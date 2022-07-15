@@ -4,15 +4,17 @@ use crate::types::compact::Compact;
 use crate::types::read::Read;
 use bs58;
 use serde_json::json;
+use crate::types::instruction::Instruction;
+use crate::error::{Result, SolanaError};
 
 struct Signature {
     value: Vec<u8>,
 }
 
 impl Read<Signature> for Signature {
-    fn read(raw: &mut Vec<u8>) -> Result<Signature, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<Signature> {
         if raw.len() < 64 {
-            return Err(format!("meet invalid data when reading signature"));
+            return Err(SolanaError::InvalidData(format!("signature")));
         }
         Ok(Signature {
             value: raw.splice(0..64, []).collect(),
@@ -25,9 +27,9 @@ struct Account {
 }
 
 impl Read<Account> for Account {
-    fn read(raw: &mut Vec<u8>) -> Result<Account, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<Account> {
         if raw.len() < 32 {
-            return Err(format!("meet invalid data when reading account"));
+            return Err(SolanaError::InvalidData(format!("account")));
         }
         Ok(Account {
             value: raw.splice(0..32, []).collect(),
@@ -40,9 +42,9 @@ struct BlockHash {
 }
 
 impl Read<BlockHash> for BlockHash {
-    fn read(raw: &mut Vec<u8>) -> Result<BlockHash, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<BlockHash> {
         if raw.len() < 32 {
-            return Err(format!("meet invalid data when reading blockhash"));
+            return Err(SolanaError::InvalidData(format!("blockhash")));
         }
         Ok(BlockHash {
             value: raw.splice(0..32, []).collect(),
@@ -58,7 +60,7 @@ pub struct Message {
 }
 
 impl Read<Message> for Message {
-    fn read(raw: &mut Vec<u8>) -> Result<Message, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<Message> {
         let header = MessageHeader::read(raw)?;
         let accounts = Compact::read(raw)?.data;
         let block_hash = BlockHash::read(raw)?;
@@ -117,9 +119,9 @@ struct MessageHeader {
 }
 
 impl Read<MessageHeader> for MessageHeader {
-    fn read(raw: &mut Vec<u8>) -> Result<MessageHeader, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<MessageHeader> {
         if raw.len() < 3 {
-            return Err(format!("meet invalid data when reading message header"));
+            return Err(SolanaError::InvalidData(format!("message header")));
         }
         let n1 = raw.remove(0);
         let n2 = raw.remove(0);
@@ -133,33 +135,11 @@ impl Read<MessageHeader> for MessageHeader {
 }
 
 impl Read<u8> for u8 {
-    fn read(raw: &mut Vec<u8>) -> Result<u8, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<u8> {
         if raw.len() < 1 {
-            return Err(format!("invalid data when reading u8"));
+            return Err(SolanaError::InvalidData(format!("u8")));
         }
         Ok(raw.remove(0))
-    }
-}
-
-struct Instruction {
-    program_index: u8,
-    account_indexes: Vec<u8>,
-    data: Vec<u8>,
-}
-
-impl Read<Instruction> for Instruction {
-    fn read(raw: &mut Vec<u8>) -> Result<Instruction, String> {
-        if raw.len() < 1 {
-            return Err(format!("meet invalid data when reading instruction"));
-        }
-        let program_index = raw.remove(0);
-        let account_indexes = Compact::read(raw)?.data;
-        let data = Compact::read(raw)?.data;
-        Ok(Instruction {
-            program_index,
-            account_indexes,
-            data,
-        })
     }
 }
 

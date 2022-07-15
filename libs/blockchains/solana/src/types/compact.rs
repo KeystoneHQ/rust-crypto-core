@@ -1,4 +1,5 @@
 use crate::types::read::Read;
+use crate::error::{Result, SolanaError};
 use std::fmt::format;
 
 pub struct Compact<T> {
@@ -7,7 +8,7 @@ pub struct Compact<T> {
 }
 
 impl<T: Read<T>> Compact<T> {
-    fn new(raw: &mut Vec<u8>) -> Result<Compact<T>, String> {
+    fn new(raw: &mut Vec<u8>) -> Result<Compact<T>> {
         let length: u32 = Compact::<T>::read_length(raw)?;
         let mut compact = Compact {
             compact_length: length,
@@ -19,12 +20,12 @@ impl<T: Read<T>> Compact<T> {
         Ok(compact)
     }
 
-    fn read_length(raw: &mut Vec<u8>) -> Result<u32, String> {
+    fn read_length(raw: &mut Vec<u8>) -> Result<u32> {
         let mut len: u32 = 0;
         let mut size: u32 = 0;
         loop {
             if raw.len() < 1 {
-                return Err(format!("meet invalid data when reading compact length"));
+                return Err(SolanaError::InvalidData(format!("compact length")));
             }
             let element: u32 = raw.remove(0) as u32;
             len |= (element & 0x7f) << (size * 7);
@@ -38,7 +39,7 @@ impl<T: Read<T>> Compact<T> {
 }
 
 impl<T: Read<T>> Read<Compact<T>> for Compact<T> {
-    fn read(raw: &mut Vec<u8>) -> Result<Compact<T>, String> {
+    fn read(raw: &mut Vec<u8>) -> Result<Compact<T>> {
         Compact::new(raw)
     }
 }

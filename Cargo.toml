@@ -1,4 +1,5 @@
 [workspace]
 members = [
-    "libs/blockchains/solana",
+    "libs/blockchains/*",
+    "libs/traits/*",
 ]

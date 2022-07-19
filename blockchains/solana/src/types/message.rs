@@ -86,18 +86,35 @@ impl Message {
         let instructions = self.instructions.iter().map(|instruction| {
             let accounts = instruction.account_indexes.iter().map(|account_index| bs58::encode(&self.accounts[usize::from(*account_index)].value).into_string()).collect::<Vec<String>>();
             let program_account = bs58::encode(&self.accounts[usize::from(instruction.program_index)].value).into_string();
-            let readable = instruction.parse(&program_account, accounts.clone())?;
-            let accounts_string = accounts.join(",").to_string();
-            Ok(json!({
-                "raw": {
-                    "program_index": instruction.program_index,
-                    "program_account": program_account,
-                    "account_indexes": instruction.account_indexes,
-                    "accounts": accounts_string,
-                    "data": bs58::encode(&instruction.data).into_string(),
+            let accounts_string = accounts.clone().join(",").to_string();
+            match instruction.parse(&program_account, accounts) {
+                Ok(value) => {
+                    Ok(json!({
+                        "raw": {
+                            "program_index": instruction.program_index,
+                            "program_account": program_account,
+                            "account_indexes": instruction.account_indexes,
+                            "accounts": accounts_string,
+                            "data": bs58::encode(&instruction.data).into_string(),
+                        },
+                        "readable": value,
+                    }))
                 },
-                "readable": readable,
-            }))
+                Err(e) => {
+                    let readable = format!("Unable to parse instruction, reason: {}", e.to_string());
+                    Ok(json!({
+                        "raw": {
+                            "program_index": instruction.program_index,
+                            "program_account": program_account,
+                            "account_indexes": instruction.account_indexes,
+                            "accounts": accounts_string,
+                            "data": bs58::encode(&instruction.data).into_string(),
+                        },
+                        "readable": readable,
+                    }))
+                }
+            }
+
         }).collect::<Result<Vec<Value>>>()?;
         let json = json!({
             "header": {

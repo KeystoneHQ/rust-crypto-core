@@ -17,6 +17,9 @@ pub enum SolanaError {
 
     #[error("Could not found account for `{0}`")]
     AccountNotFound(String),
+
+    #[error("Unknown program instruction")]
+    UnknownInstruction
 }
 
 pub type Result<T> = std::result::Result<T, SolanaError>;

@@ -3,7 +3,7 @@ use hex::{encode, ToHex};
 use crate::types::compact::Compact;
 use crate::types::read::Read;
 use bs58;
-use serde_json::json;
+use serde_json::{json, Value};
 use crate::types::instruction::Instruction;
 use crate::error::{Result, SolanaError};
 
@@ -82,7 +82,23 @@ enum SupportedPrograms {
 }
 
 impl Message {
-    pub fn to_json_str(&self) -> String {
+    pub fn to_json_str(&self) -> Result<String> {
+        let instructions = self.instructions.iter().map(|instruction| {
+            let accounts = instruction.account_indexes.iter().map(|account_index| bs58::encode(&self.accounts[usize::from(*account_index)].value).into_string()).collect::<Vec<String>>();
+            let program_account = bs58::encode(&self.accounts[usize::from(instruction.program_index)].value).into_string();
+            let readable = instruction.parse(&program_account, accounts.clone())?;
+            let accounts_string = accounts.join(",").to_string();
+            Ok(json!({
+                "raw": {
+                    "program_index": instruction.program_index,
+                    "program_account": program_account,
+                    "account_indexes": instruction.account_indexes,
+                    "accounts": accounts_string,
+                    "data": bs58::encode(&instruction.data).into_string(),
+                },
+                "readable": readable,
+            }))
+        }).collect::<Result<Vec<Value>>>()?;
         let json = json!({
             "header": {
                 "num_required_signatures": self.header.num_required_signatures,
@@ -91,17 +107,9 @@ impl Message {
             },
             "accounts": self.accounts.iter().map(|account| {bs58::encode(&account.value).into_string()}).collect::<Vec<String>>(),
             "block_hash": bs58::encode(&self.block_hash.value).into_string(),
-            "instructions": self.instructions.iter().map(|instruction| {
-                json!({
-                    "program_index": instruction.program_index,
-                    "program_account": bs58::encode(&self.accounts[usize::from(instruction.program_index)].value).into_string(),
-                    "account_indexes": instruction.account_indexes,
-                    "accounts": instruction.account_indexes.iter().map(|account_index| bs58::encode(&self.accounts[usize::from(*account_index)].value).into_string()).collect::<String>(),
-                    "data": bs58::encode(&instruction.data).into_string(),
-                })
-            }).collect::<serde_json::Value>()
+            "instructions": instructions,
         });
-        json.to_string()
+        Ok(json.to_string())
     }
 
     pub fn validate(raw: &mut Vec<u8>) -> bool {
@@ -191,28 +199,37 @@ mod tests {
             instructions[0].data,
             Vec::from_hex("0200000000e1f50500000000").unwrap()
         );
-
-        assert_eq!(message.to_json_str(), json!({
-          "accounts": [
-            "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y",
-            "23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q",
-            "11111111111111111111111111111111"
-          ],
-          "block_hash": "26673efpV4o6Cv5ZnEfYp3M18nkqhg6tyXF2A2JzeoCd",
-          "header": {
-            "num_readonly_signed_accounts": 0,
-            "num_readonly_unsigned_accounts": 1,
-            "num_required_signatures": 1
-          },
-          "instructions": [
+        assert_eq!(message.to_json_str().unwrap(), json!({
+            "accounts": [
+                "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y",
+                "23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q",
+                "11111111111111111111111111111111"
+            ],
+            "block_hash": "26673efpV4o6Cv5ZnEfYp3M18nkqhg6tyXF2A2JzeoCd",
+            "header": {
+                "num_readonly_signed_accounts": 0,
+                "num_readonly_unsigned_accounts": 1,
+                "num_required_signatures": 1
+            },
+            "instructions": [
             {
-              "account_indexes": [0, 1],
-              "accounts": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q",
-              "data": "3Bxs411Dtc7pkFQj",
-              "program_account": "11111111111111111111111111111111",
-              "program_index": 2
-            }
-          ]
+              "raw": {
+                "account_indexes": [0, 1],
+                "accounts": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y,23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q",
+                "data": "3Bxs411Dtc7pkFQj",
+                "program_account": "11111111111111111111111111111111",
+                "program_index": 2
+              },
+              "readable": {
+                "arguments": {
+                  "amount": "100000000",
+                  "from": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y",
+                  "to": "23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q"
+                },
+                "method_name": "Transfer",
+                "program_name": "System"
+              }
+            }]
         }).to_string())
     }
 

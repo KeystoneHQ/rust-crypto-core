@@ -12,7 +12,7 @@ impl Sol {
         Message::read(message).map_err(|e| e.to_string())
     }
     pub fn parse_message_to_json(message: &mut Vec<u8>) -> Result<String, String> {
-        Sol::parse_message(message).map(|v| v.to_json_str())
+        Sol::parse_message(message).and_then(|v| v.to_json_str().map_err(|e| e.to_string()))
     }
 
     pub fn validate_message(message: &mut Vec<u8>) -> bool {
@@ -22,6 +22,6 @@ impl Sol {
 
 impl Chain for Sol {
     fn parse(data: &Vec<u8>) -> Result<String, String> {
-        Sol::parse_message(data.clone().to_vec().as_mut()).map(|v| v.to_json_str())
+        Sol::parse_message(data.clone().to_vec().as_mut()).and_then(|v| v.to_json_str().map_err(|e| e.to_string()))
     }
 }

@@ -2,8 +2,8 @@ use crate::types::message::Message;
 use crate::types::read::Read;
 use rust_crypto_core_chain::Chain;
 
-mod types;
 mod error;
+mod types;
 
 pub struct Sol {}
 
@@ -22,6 +22,7 @@ impl Sol {
 
 impl Chain for Sol {
     fn parse(data: &Vec<u8>) -> Result<String, String> {
-        Sol::parse_message(data.clone().to_vec().as_mut()).and_then(|v| v.to_json_str().map_err(|e| e.to_string()))
+        Sol::parse_message(data.clone().to_vec().as_mut())
+            .and_then(|v| v.to_json_str().map_err(|e| e.to_string()))
     }
 }

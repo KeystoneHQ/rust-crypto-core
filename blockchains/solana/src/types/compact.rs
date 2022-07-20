@@ -1,5 +1,5 @@
-use crate::types::read::Read;
 use crate::error::{Result, SolanaError};
+use crate::types::read::Read;
 use std::fmt::format;
 
 pub struct Compact<T> {

@@ -1,11 +1,11 @@
 use hex::{encode, ToHex};
 
+use crate::error::{Result, SolanaError};
 use crate::types::compact::Compact;
+use crate::types::instruction::Instruction;
 use crate::types::read::Read;
 use bs58;
 use serde_json::{json, Value};
-use crate::types::instruction::Instruction;
-use crate::error::{Result, SolanaError};
 
 struct Signature {
     value: Vec<u8>,
@@ -83,13 +83,24 @@ enum SupportedPrograms {
 
 impl Message {
     pub fn to_json_str(&self) -> Result<String> {
-        let instructions = self.instructions.iter().map(|instruction| {
-            let accounts = instruction.account_indexes.iter().map(|account_index| bs58::encode(&self.accounts[usize::from(*account_index)].value).into_string()).collect::<Vec<String>>();
-            let program_account = bs58::encode(&self.accounts[usize::from(instruction.program_index)].value).into_string();
-            let accounts_string = accounts.clone().join(",").to_string();
-            match instruction.parse(&program_account, accounts) {
-                Ok(value) => {
-                    Ok(json!({
+        let instructions = self
+            .instructions
+            .iter()
+            .map(|instruction| {
+                let accounts = instruction
+                    .account_indexes
+                    .iter()
+                    .map(|account_index| {
+                        bs58::encode(&self.accounts[usize::from(*account_index)].value)
+                            .into_string()
+                    })
+                    .collect::<Vec<String>>();
+                let program_account =
+                    bs58::encode(&self.accounts[usize::from(instruction.program_index)].value)
+                        .into_string();
+                let accounts_string = accounts.clone().join(",").to_string();
+                match instruction.parse(&program_account, accounts) {
+                    Ok(value) => Ok(json!({
                         "raw": {
                             "program_index": instruction.program_index,
                             "program_account": program_account,
@@ -98,24 +109,24 @@ impl Message {
                             "data": bs58::encode(&instruction.data).into_string(),
                         },
                         "readable": value,
-                    }))
-                },
-                Err(e) => {
-                    let readable = format!("Unable to parse instruction, reason: {}", e.to_string());
-                    Ok(json!({
-                        "raw": {
-                            "program_index": instruction.program_index,
-                            "program_account": program_account,
-                            "account_indexes": instruction.account_indexes,
-                            "accounts": accounts_string,
-                            "data": bs58::encode(&instruction.data).into_string(),
-                        },
-                        "readable": readable,
-                    }))
+                    })),
+                    Err(e) => {
+                        let readable =
+                            format!("Unable to parse instruction, reason: {}", e.to_string());
+                        Ok(json!({
+                            "raw": {
+                                "program_index": instruction.program_index,
+                                "program_account": program_account,
+                                "account_indexes": instruction.account_indexes,
+                                "accounts": accounts_string,
+                                "data": bs58::encode(&instruction.data).into_string(),
+                            },
+                            "readable": readable,
+                        }))
+                    }
                 }
-            }
-
-        }).collect::<Result<Vec<Value>>>()?;
+            })
+            .collect::<Result<Vec<Value>>>()?;
         let json = json!({
             "header": {
                 "num_required_signatures": self.header.num_required_signatures,
@@ -229,24 +240,25 @@ mod tests {
                 "num_required_signatures": 1
             },
             "instructions": [
-            {
-              "raw": {
-                "account_indexes": [0, 1],
-                "accounts": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y,23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q",
-                "data": "3Bxs411Dtc7pkFQj",
-                "program_account": "11111111111111111111111111111111",
-                "program_index": 2
-              },
-              "readable": {
-                "arguments": {
-                  "amount": "100000000",
-                  "from": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y",
-                  "to": "23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q"
-                },
-                "method_name": "Transfer",
-                "program_name": "System"
-              }
-            }]
+                {
+                  "raw": {
+                    "account_indexes": [0, 1],
+                    "accounts": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y,23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q",
+                    "data": "3Bxs411Dtc7pkFQj",
+                    "program_account": "11111111111111111111111111111111",
+                    "program_index": 2
+                  },
+                  "readable": {
+                    "arguments": {
+                      "amount": "100000000",
+                      "from": "EX1oURpiPWWYUjVSK9KQR2qyqTBaR1EGfRNxkTsNk57Y",
+                      "to": "23qJPvgvCBGJFhPmemqcksVCtrLDKyXJh5ZstjfCuu9q"
+                    },
+                    "method_name": "Transfer",
+                    "program_name": "System"
+                  }
+                }
+            ]
         }).to_string())
     }
 
@@ -261,5 +273,91 @@ mod tests {
         let mut raw_valid = Vec::from_hex(message_valid).unwrap();
         let result_valid = Message::validate(&mut raw_valid);
         assert_eq!(result_valid, true);
+    }
+
+    #[test]
+    fn test_system_transfer() {
+        let mut transaction = Vec::from_hex("01000103876c762c4c83532f82966935ba1810659a96237028a2af6688dadecb0155ae071c7d0930a08193e702b0f24ebba96f179e9c186ef1208f98652ee775001744490000000000000000000000000000000000000000000000000000000000000000a7516fe1d3af3457fdc54e60856c0c3c87f4e5be3d10ffbc7a5cce8bf96792a101020200010c020000008813000000000000").unwrap();
+        let message = Message::read(&mut transaction).unwrap();
+        let json = message.to_json_str().unwrap();
+        assert_eq!(json, json!({
+          "accounts": [
+            "A7dxsCbMy5ktZwQUgsQhVxsoJpx6wPAZYEcccQVjWnkE",
+            "2vCzt15qsXSCsf5k6t6QF9DiQSpE7kPTg3PdvFZtm2Tr",
+            "11111111111111111111111111111111"
+          ],
+          "block_hash": "CG97KCGLGgPS1E754VjLgy724zNwGjE9sjrzqYa6CU2t",
+          "header": {
+            "num_readonly_signed_accounts": 0,
+            "num_readonly_unsigned_accounts": 1,
+            "num_required_signatures": 1
+          },
+          "instructions": [
+            {
+              "raw": {
+                "account_indexes": [0, 1],
+                "accounts": "A7dxsCbMy5ktZwQUgsQhVxsoJpx6wPAZYEcccQVjWnkE,2vCzt15qsXSCsf5k6t6QF9DiQSpE7kPTg3PdvFZtm2Tr",
+                "data": "3Bxs4PckVVt51W8w",
+                "program_account": "11111111111111111111111111111111",
+                "program_index": 2
+              },
+              "readable": {
+                "arguments": {
+                  "amount": "5000",
+                  "from": "A7dxsCbMy5ktZwQUgsQhVxsoJpx6wPAZYEcccQVjWnkE",
+                  "to": "2vCzt15qsXSCsf5k6t6QF9DiQSpE7kPTg3PdvFZtm2Tr"
+                },
+                "method_name": "Transfer",
+                "program_name": "System"
+              }
+            }
+          ]
+        }).to_string())
+    }
+
+    #[test]
+    fn test_vote_vote() {
+        let mut transaction = Vec::from_hex("01000305b446cb8fd7c225bf416df87c286710d75711af95222e41216da2177289cbbfa6b68edcd94d93de68614892bd165a94a6647aa040d87b9a042b41a009bdb469cf06a7d51718c774c928566398691d5eb68b5eb8a39b4b6d5c73555b210000000006a7d517192f0aafc6f265e3fb77cc7ada82c529d0be3b136e2d0055200000000761481d357474bb7c4d7624ebd3bdb3d8355e73d11043fc0da35380000000009254bd5e695fabf43f0ead6da730e88cf39bec6991c2c4374bcade97d0a73be7010404010302003d02000000010000000000000060f2790800000000856a887d33af1cd1723388576a7be8fa6d9c9c80c548495a24bf680c908812cf01da7dd66200000000").unwrap();
+        let message = Message::read(&mut transaction).unwrap();
+        let json = message.to_json_str().unwrap();
+        assert_eq!(json, json!({
+          "accounts": [
+            "D8izqaR979Fc2amDoGHmYqEugjckEi1RQL1Y1JKyHUwX",
+            "DHdYsTEsd1wGrmthR1ognfRXPkWBmxAWAv2pKdAix3HY",
+            "SysvarC1ock11111111111111111111111111111111",
+            "SysvarS1otHashes111111111111111111111111111",
+            "Vote111111111111111111111111111111111111111"
+          ],
+          "block_hash": "ArDU9jQqkrYg12SBihpjx7JSw2FjWtJ8K91uKTCyLEFG",
+          "header": {
+            "num_readonly_signed_accounts": 0,
+            "num_readonly_unsigned_accounts": 3,
+            "num_required_signatures": 1
+          },
+          "instructions": [
+            {
+              "raw": {
+                "account_indexes": [1, 3, 2, 0],
+                "accounts": "DHdYsTEsd1wGrmthR1ognfRXPkWBmxAWAv2pKdAix3HY,SysvarS1otHashes111111111111111111111111111,SysvarC1ock11111111111111111111111111111111,D8izqaR979Fc2amDoGHmYqEugjckEi1RQL1Y1JKyHUwX",
+                "data": "2ZjTR1vUs2pHXyTM654NvMLxNNEnyzg3FA11yGaXSzmQfbB1dvqqKtnN2zJZUdhjpAoqBb3M3gye9Dghi7q",
+                "program_account": "Vote111111111111111111111111111111111111111",
+                "program_index": 4
+              },
+              "readable": {
+                "arguments": {
+                  "clock_sysvar": "SysvarC1ock11111111111111111111111111111111",
+                  "slot_hashes_sysvar": "D8izqaR979Fc2amDoGHmYqEugjckEi1RQL1Y1JKyHUwX",
+                  "timestamp": "1658224090",
+                  "vote_account": "SysvarS1otHashes111111111111111111111111111",
+                  "vote_authority": "DHdYsTEsd1wGrmthR1ognfRXPkWBmxAWAv2pKdAix3HY",
+                  "vote_hash": "9yoSeo4kEjumeyYFfohaCUYyjsu134xhXbrAxumCmysC",
+                  "vote_slots": "142209632"
+                },
+                "method_name": "Vote",
+                "program_name": "Vote"
+              }
+            }
+          ]
+        }).to_string())
     }
 }

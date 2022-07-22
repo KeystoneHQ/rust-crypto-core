@@ -1,11 +1,10 @@
-use solana_program::stake::instruction::StakeInstruction;
 use crate::error::{Result, SolanaError};
-use serde_json::{json, Value};
-use solana_program::stake::state::StakeAuthorize;
 use crate::types::resolvers::template_instruction;
+use serde_json::{json, Value};
+use solana_program::stake::instruction::StakeInstruction;
+use solana_program::stake::state::StakeAuthorize;
 
-pub fn resolve(instruction: StakeInstruction,
-               accounts: Vec<String>, ) -> Result<Value> {
+pub fn resolve(instruction: StakeInstruction, accounts: Vec<String>) -> Result<Value> {
     let program_name = "Stake";
     match instruction {
         StakeInstruction::Initialize(authorized, lockup) => {
@@ -45,13 +44,13 @@ pub fn resolve(instruction: StakeInstruction,
             let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
                 "Authorize.clock_sysvar"
             )))?;
-            let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "Authorize.authority"
-            )))?;
+            let authority = accounts
+                .get(2)
+                .ok_or(SolanaError::AccountNotFound(format!("Authorize.authority")))?;
             let new_authorized_pubkey = pubkey.to_string();
             let authorize_type = match stake_authorize {
                 StakeAuthorize::Staker => "staker",
-                StakeAuthorize::Withdrawer => "withdrawer"
+                StakeAuthorize::Withdrawer => "withdrawer",
             };
             Ok(template_instruction(
                 program_name,
@@ -75,9 +74,9 @@ pub fn resolve(instruction: StakeInstruction,
             let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
                 "DelegateStake.clock_sysvar"
             )))?;
-            let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "DelegateStake.stake_history_sysvar"
-            )))?;
+            let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+                format!("DelegateStake.stake_history_sysvar"),
+            ))?;
             let config_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
                 "DelegateStake.config_account"
             )))?;
@@ -98,9 +97,9 @@ pub fn resolve(instruction: StakeInstruction,
             ))
         }
         StakeInstruction::Split(lamports) => {
-            let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Split.stake_account"
-            )))?;
+            let stake_account = accounts
+                .get(0)
+                .ok_or(SolanaError::AccountNotFound(format!("Split.stake_account")))?;
             let target_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
                 "Split.target_account"
             )))?;
@@ -123,18 +122,18 @@ pub fn resolve(instruction: StakeInstruction,
             let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
                 "Withdraw.stake_account"
             )))?;
-            let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "Withdraw.target_account"
-            )))?;
+            let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+                format!("Withdraw.target_account"),
+            ))?;
             let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
                 "Withdraw.stake_authority"
             )))?;
-            let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "Withdraw.stake_account"
-            )))?;
-            let withdraw_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-                "Withdraw.target_account"
-            )))?;
+            let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+                format!("Withdraw.stake_account"),
+            ))?;
+            let withdraw_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(
+                format!("Withdraw.target_account"),
+            ))?;
             let stake_authority = accounts.get(5);
             let amount = lamports.to_string();
             Ok(template_instruction(
@@ -151,9 +150,9 @@ pub fn resolve(instruction: StakeInstruction,
             ))
         }
         StakeInstruction::Deactivate => {
-            let delegated_stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Deactivate.delegated_stake_account"
-            )))?;
+            let delegated_stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
+                format!("Deactivate.delegated_stake_account"),
+            ))?;
             let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
                 "Deactivate.clock_sysvar"
             )))?;
@@ -195,18 +194,18 @@ pub fn resolve(instruction: StakeInstruction,
             ))
         }
         StakeInstruction::Merge => {
-            let destination_stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Merge.destination_stake_account"
-            )))?;
-            let source_stake_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "Merge.source_stake_account"
-            )))?;
-            let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "Merge.clock_sysvar"
-            )))?;
-            let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "Merge.stake_history_sysvar"
-            )))?;
+            let destination_stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
+                format!("Merge.destination_stake_account"),
+            ))?;
+            let source_stake_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+                format!("Merge.source_stake_account"),
+            ))?;
+            let clock_sysvar = accounts
+                .get(2)
+                .ok_or(SolanaError::AccountNotFound(format!("Merge.clock_sysvar")))?;
+            let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+                format!("Merge.stake_history_sysvar"),
+            ))?;
             let stake_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
                 "Merge.stake_authority"
             )))?;
@@ -267,9 +266,9 @@ pub fn resolve(instruction: StakeInstruction,
             let stake_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
                 "InitializeChecked.destination_stake_account"
             )))?;
-            let withdraw_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeChecked.destination_stake_account"
-            )))?;
+            let withdraw_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+                format!("InitializeChecked.destination_stake_account"),
+            ))?;
             Ok(template_instruction(
                 program_name,
                 "InitializeChecked",
@@ -297,7 +296,7 @@ pub fn resolve(instruction: StakeInstruction,
             let lock_authority = accounts.get(4);
             let authority_type = match stake_authorize {
                 StakeAuthorize::Staker => "staker",
-                StakeAuthorize::Withdrawer => "withdrawer"
+                StakeAuthorize::Withdrawer => "withdrawer",
             };
             Ok(template_instruction(
                 program_name,
@@ -328,7 +327,7 @@ pub fn resolve(instruction: StakeInstruction,
             let lock_authority = accounts.get(4);
             let authority_type = match args.stake_authorize {
                 StakeAuthorize::Staker => "staker",
-                StakeAuthorize::Withdrawer => "withdrawer"
+                StakeAuthorize::Withdrawer => "withdrawer",
             };
             let authority_seed = args.authority_seed;
             let authority_owner = args.authority_owner.to_string();
@@ -374,19 +373,15 @@ pub fn resolve(instruction: StakeInstruction,
                 }),
             ))
         }
-        StakeInstruction::GetMinimumDelegation => {
-            Ok(template_instruction(
-                program_name,
-                "GetMinimumDelegation",
-                json!({}),
-            ))
-        }
-        StakeInstruction::DeactivateDelinquent => {
-            Ok(template_instruction(
-                program_name,
-                "DeactivateDelinquent",
-                json!({}),
-            ))
-        }
+        StakeInstruction::GetMinimumDelegation => Ok(template_instruction(
+            program_name,
+            "GetMinimumDelegation",
+            json!({}),
+        )),
+        StakeInstruction::DeactivateDelinquent => Ok(template_instruction(
+            program_name,
+            "DeactivateDelinquent",
+            json!({}),
+        )),
     }
 }

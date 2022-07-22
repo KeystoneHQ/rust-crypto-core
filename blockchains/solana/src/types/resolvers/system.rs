@@ -1,12 +1,9 @@
-use solana_program::system_instruction::SystemInstruction;
 use crate::error::{Result, SolanaError};
-use serde_json::{json, Value};
 use crate::types::resolvers::template_instruction;
+use serde_json::{json, Value};
+use solana_program::system_instruction::SystemInstruction;
 
-pub fn resolve(
-    instruction: SystemInstruction,
-    accounts: Vec<String>,
-) -> Result<Value> {
+pub fn resolve(instruction: SystemInstruction, accounts: Vec<String>) -> Result<Value> {
     let program_name = "System";
     match instruction {
         SystemInstruction::CreateAccount {
@@ -28,12 +25,12 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "funder": funder,
-                        "account": account,
-                        "amount": amount,
-                        "space": space,
-                        "owner": owner,
-                    }),
+                    "funder": funder,
+                    "account": account,
+                    "amount": amount,
+                    "space": space,
+                    "owner": owner,
+                }),
             ))
         }
         SystemInstruction::Assign { owner } => {
@@ -46,9 +43,9 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "account": account,
-                        "new_owner": new_owner,
-                    }),
+                    "account": account,
+                    "new_owner": new_owner,
+                }),
             ))
         }
 
@@ -65,10 +62,10 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "from": from,
-                        "to": to,
-                        "amount": amount
-                    }),
+                    "from": from,
+                    "to": to,
+                    "amount": amount
+                }),
             ))
         }
         SystemInstruction::CreateAccountWithSeed {
@@ -94,26 +91,25 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "funder": funder,
-                        "account": account,
-                        "signer": signer,
-                        "base": signer,
-                        "seed": seed,
-                        "amount": amount,
-                        "space": space,
-                        "owner": owner,
-                    }),
+                    "funder": funder,
+                    "account": account,
+                    "signer": signer,
+                    "base": signer,
+                    "seed": seed,
+                    "amount": amount,
+                    "space": space,
+                    "owner": owner,
+                }),
             ))
         }
         SystemInstruction::AdvanceNonceAccount {} => {
             let method_name = "AdvanceNonceAccount";
-            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
-                format!("AdvanceNonceAccount.nonce_account"),
+            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "AdvanceNonceAccount.nonce_account"
+            )))?;
+            let recent_blockhashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+                format!("AdvanceNonceAccount.recent_blockhashes_sysvar"),
             ))?;
-            let recent_blockhashes_sysvar =
-                accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                    "AdvanceNonceAccount.recent_blockhashes_sysvar"
-                )))?;
             let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
                 "AdvanceNonceAccount.authority"
             )))?;
@@ -121,53 +117,51 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "nonce_account": nonce_account,
-                        "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
-                        "authority": authority,
-                    }),
+                    "nonce_account": nonce_account,
+                    "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
+                    "authority": authority,
+                }),
             ))
         }
         SystemInstruction::WithdrawNonceAccount(lamports) => {
             let method_name = "WithdrawNonceAccount";
-            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
-                format!("WithdrawNonceAccount.nonce_account"),
-            ))?;
+            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "WithdrawNonceAccount.nonce_account"
+            )))?;
             let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
                 format!("WithdrawNonceAccount.recipient_account"),
             ))?;
-            let recent_blockhashes_sysvar =
-                accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                    "WithdrawNonceAccount.recent_blockhashes_sysvar"
-                )))?;
+            let recent_blockhashes_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+                format!("WithdrawNonceAccount.recent_blockhashes_sysvar"),
+            ))?;
             let rent_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
                 "WithdrawNonceAccount.rent_sysvar"
             )))?;
-            let nonce_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-                format!("WithdrawNonceAccount.nonce_authority"),
-            ))?;
+            let nonce_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+                "WithdrawNonceAccount.nonce_authority"
+            )))?;
             let amount = lamports.to_string();
             Ok(template_instruction(
                 program_name,
                 method_name,
                 json!({
-                        "nonce_account": nonce_account,
-                        "recipient_account": recipient_account,
-                        "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
-                        "rent_sysvar": rent_sysvar,
-                        "nonce_authority": nonce_authority,
-                        "amount": amount,
-                    }),
+                    "nonce_account": nonce_account,
+                    "recipient_account": recipient_account,
+                    "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
+                    "rent_sysvar": rent_sysvar,
+                    "nonce_authority": nonce_authority,
+                    "amount": amount,
+                }),
             ))
         }
         SystemInstruction::InitializeNonceAccount(pubkey) => {
             let method_name = "InitializeNonceAccount";
-            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
-                format!("InitializeNonceAccount.nonce_account"),
+            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "InitializeNonceAccount.nonce_account"
+            )))?;
+            let recent_blockhashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+                format!("InitializeNonceAccount.recent_blockhashes_sysvar"),
             ))?;
-            let recent_blockhashes_sysvar =
-                accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                    "InitializeNonceAccount.recent_blockhashes_sysvar"
-                )))?;
             let rent_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
                 "InitializeNonceAccount.rent_sysvar"
             )))?;
@@ -176,30 +170,30 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "nonce_account": nonce_account,
-                        "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
-                        "rent_sysvar": rent_sysvar,
-                        "authority": authority,
-                    }),
+                    "nonce_account": nonce_account,
+                    "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
+                    "rent_sysvar": rent_sysvar,
+                    "authority": authority,
+                }),
             ))
         }
         SystemInstruction::AuthorizeNonceAccount(pubkey) => {
             let method_name = "AuthorizeNonceAccount";
-            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
-                format!("AuthorizeNonceAccount.nonce_account"),
-            ))?;
-            let nonce_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("AuthorizeNonceAccount.nonce_authority"),
-            ))?;
+            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "AuthorizeNonceAccount.nonce_account"
+            )))?;
+            let nonce_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+                "AuthorizeNonceAccount.nonce_authority"
+            )))?;
             let new_authority = pubkey.to_string();
             Ok(template_instruction(
                 program_name,
                 method_name,
                 json!({
-                        "nonce_account": nonce_account,
-                        "nonce_authority": nonce_authority,
-                        "new_authority": new_authority,
-                    }),
+                    "nonce_account": nonce_account,
+                    "nonce_authority": nonce_authority,
+                    "new_authority": new_authority,
+                }),
             ))
         }
         SystemInstruction::Allocate { space } => {
@@ -211,9 +205,9 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "account": account,
-                        "space": space.to_string(),
-                    }),
+                    "account": account,
+                    "space": space.to_string(),
+                }),
             ))
         }
         SystemInstruction::AllocateWithSeed {
@@ -236,19 +230,19 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "allocated_account": allocated_account,
-                        "base_account": base_account,
-                        "owner": owner,
-                        "base": base,
-                        "space": space
-                    }),
+                    "allocated_account": allocated_account,
+                    "base_account": base_account,
+                    "owner": owner,
+                    "base": base,
+                    "space": space
+                }),
             ))
         }
         SystemInstruction::AssignWithSeed { owner, seed, base } => {
             let method_name = "AssignWithSeed";
-            let assigned_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
-                format!("AssignWithSeed.assigned_account"),
-            ))?;
+            let assigned_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "AssignWithSeed.assigned_account"
+            )))?;
             let base_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
                 "AssignWithSeed.base_account"
             )))?;
@@ -256,12 +250,12 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "assigned_account": assigned_account,
-                        "base_account": base_account,
-                        "seed": seed,
-                        "base": base.to_string(),
-                        "owner": owner.to_string(),
-                    }),
+                    "assigned_account": assigned_account,
+                    "base_account": base_account,
+                    "seed": seed,
+                    "base": base.to_string(),
+                    "owner": owner.to_string(),
+                }),
             ))
         }
         SystemInstruction::TransferWithSeed {
@@ -285,26 +279,26 @@ pub fn resolve(
                 program_name,
                 method_name,
                 json!({
-                        "fund_account": fund_account,
-                        "recipient_account": recipient_account,
-                        "amount": amount,
-                        "from_base": from_base,
-                        "from_owner": from_owner,
-                        "from_seed": from_seed,
-                    }),
+                    "fund_account": fund_account,
+                    "recipient_account": recipient_account,
+                    "amount": amount,
+                    "from_base": from_base,
+                    "from_owner": from_owner,
+                    "from_seed": from_seed,
+                }),
             ))
         }
         SystemInstruction::UpgradeNonceAccount => {
             let method_name = "UpgradeNonceAccount";
-            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
-                format!("UpgradeNonceAccount.nonce_account"),
-            ))?;
+            let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "UpgradeNonceAccount.nonce_account"
+            )))?;
             Ok(template_instruction(
                 program_name,
                 method_name,
                 json!({
-                        "nonce_account": nonce_account,
-                    }),
+                    "nonce_account": nonce_account,
+                }),
             ))
         }
     }

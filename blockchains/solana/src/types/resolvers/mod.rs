@@ -1,8 +1,9 @@
 use serde_json::{json, Value};
 
-pub mod system;
-pub mod vote;
 pub mod stake;
+pub mod system;
+pub mod token;
+pub mod vote;
 
 fn template_instruction(program_name: &str, method_name: &str, arguments: Value) -> Value {
     json!({
@@ -11,4 +12,3 @@ fn template_instruction(program_name: &str, method_name: &str, arguments: Value)
         "arguments": arguments
     })
 }
-

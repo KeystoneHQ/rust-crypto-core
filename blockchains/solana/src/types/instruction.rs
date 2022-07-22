@@ -1,16 +1,17 @@
 use crate::error::SolanaError::ProgramError;
 use crate::error::{Result, SolanaError};
 use crate::types::compact::Compact;
+use crate::types::resolvers;
 use crate::Read;
 use serde_json::{json, Value};
 use solana_program;
 use solana_program::stake::instruction::StakeInstruction;
+use solana_program::system_instruction::SystemInstruction;
 use solana_sdk;
 use solana_vote_program::vote_instruction::VoteInstruction;
-use std::fmt::format;
-use solana_program::system_instruction::SystemInstruction;
 use solana_vote_program::vote_state::VoteAuthorize;
-use crate::types::resolvers;
+use spl_token::instruction::TokenInstruction;
+use std::fmt::format;
 
 pub struct Instruction {
     pub(crate) program_index: u8,
@@ -58,26 +59,25 @@ impl Instruction {
         let program = SupportedProgram::from_program_id(program_id.clone())?;
         match program {
             SupportedProgram::SystemProgram => {
-                let instruction = Self::parse_native_program_instruction::<
-                    SystemInstruction,
-                >(self.data.clone())?;
+                let instruction =
+                    Self::parse_native_program_instruction::<SystemInstruction>(self.data.clone())?;
                 resolvers::system::resolve(instruction, accounts)
             }
             SupportedProgram::VoteProgram => {
-                let instruction = Self::parse_native_program_instruction::<
-                    VoteInstruction,
-                >(self.data.clone())?;
+                let instruction =
+                    Self::parse_native_program_instruction::<VoteInstruction>(self.data.clone())?;
                 resolvers::vote::resolve(instruction, accounts)
             }
             SupportedProgram::StakeProgram => {
-                let instruction = Self::parse_native_program_instruction::<
-                    StakeInstruction,
-                >(self.data.clone())?;
+                let instruction =
+                    Self::parse_native_program_instruction::<StakeInstruction>(self.data.clone())?;
                 resolvers::stake::resolve(instruction, accounts)
             }
             SupportedProgram::TokenProgram => {
-                unimplemented!()
-                // Self::parse_on_chain_program_instruction(_accounts, self.data.clone())
+                let instruction =
+                    spl_token::instruction::TokenInstruction::unpack(self.data.clone().as_slice())
+                        .map_err(|e| ProgramError(e.to_string()))?;
+                resolvers::token::resolve(instruction, accounts)
             }
         }
     }
@@ -87,12 +87,5 @@ impl Instruction {
     ) -> Result<T> {
         solana_sdk::program_utils::limited_deserialize::<T>(instruction_data.as_slice())
             .map_err(|e| ProgramError(e.to_string()))
-    }
-
-    fn parse_on_chain_program_instruction(
-        accounts: Vec<String>,
-        instruction_data: Vec<u8>,
-    ) -> Result<String> {
-        unimplemented!()
     }
 }

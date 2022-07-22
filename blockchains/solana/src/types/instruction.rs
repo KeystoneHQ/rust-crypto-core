@@ -56,34 +56,24 @@ impl SupportedProgram {
 impl Instruction {
     pub fn parse(&self, program_id: &String, accounts: Vec<String>) -> Result<Value> {
         let program = SupportedProgram::from_program_id(program_id.clone())?;
-        let _accounts: Result<Vec<String>> = self
-            .account_indexes
-            .iter()
-            .map(|v| {
-                accounts
-                    .get(usize::from(v.clone()))
-                    .map(|v| v.clone())
-                    .ok_or(SolanaError::InvalidData(format!("instruction data")))
-            })
-            .collect();
         match program {
             SupportedProgram::SystemProgram => {
                 let instruction = Self::parse_native_program_instruction::<
                     SystemInstruction,
                 >(self.data.clone())?;
-                resolvers::system::resolve(instruction, _accounts?)
+                resolvers::system::resolve(instruction, accounts)
             }
             SupportedProgram::VoteProgram => {
                 let instruction = Self::parse_native_program_instruction::<
                     VoteInstruction,
                 >(self.data.clone())?;
-                resolvers::vote::resolve(instruction, _accounts?)
+                resolvers::vote::resolve(instruction, accounts)
             }
             SupportedProgram::StakeProgram => {
                 let instruction = Self::parse_native_program_instruction::<
                     StakeInstruction,
                 >(self.data.clone())?;
-                resolvers::stake::resolve(instruction, _accounts?)
+                resolvers::stake::resolve(instruction, accounts)
             }
             SupportedProgram::TokenProgram => {
                 unimplemented!()

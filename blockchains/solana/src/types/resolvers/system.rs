@@ -1,6 +1,7 @@
 use solana_program::system_instruction::SystemInstruction;
 use crate::error::{Result, SolanaError};
 use serde_json::{json, Value};
+use crate::types::resolvers::template_instruction;
 
 pub fn resolve(
     instruction: SystemInstruction,

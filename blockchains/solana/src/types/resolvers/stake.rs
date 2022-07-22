@@ -24,8 +24,8 @@ pub fn resolve(instruction: StakeInstruction,
                 program_name,
                 "Initialize",
                 json!({
-                    "stake_account": funder,
-                    "rent_sysvar": account,
+                    "stake_account": stake_account,
+                    "rent_sysvar": rent_sysvar,
                     "authorized": {
                         "staker": staker,
                         "withdrawer": withdrawer,
@@ -160,7 +160,6 @@ pub fn resolve(instruction: StakeInstruction,
             let stake_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
                 "Deactivate.stake_authority"
             )))?;
-            let amount = lamports.to_string();
             Ok(template_instruction(
                 program_name,
                 "Deactivate",
@@ -180,7 +179,7 @@ pub fn resolve(instruction: StakeInstruction,
             )))?;
             let unix_timestamp = lockup.unix_timestamp;
             let epoch = lockup.epoch;
-            let custodian = lockup.custodian.to_string();
+            let custodian = lockup.custodian.map(|v| v.to_string());
             Ok(template_instruction(
                 program_name,
                 "SetLockup",
@@ -339,7 +338,7 @@ pub fn resolve(instruction: StakeInstruction,
                 json!({
                     "stake_account": stake_account,
                     "clock_sysvar": clock_sysvar,
-                    "old_authority": old_authority,
+                    "old_base_key": old_base_key,
                     "new_authority": new_authority,
                     "lock_authority": lock_authority,
                     "arguments": {

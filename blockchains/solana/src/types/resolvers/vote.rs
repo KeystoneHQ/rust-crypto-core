@@ -1,6 +1,8 @@
 use solana_vote_program::vote_instruction::VoteInstruction;
 use crate::error::{Result, SolanaError};
 use serde_json::{json, Value};
+use solana_vote_program::vote_state::VoteAuthorize;
+use crate::types::resolvers::template_instruction;
 
 pub fn resolve(
     instruction: VoteInstruction,
@@ -29,7 +31,7 @@ pub fn resolve(
                 program_name,
                 "InitializeAccount",
                 json!({
-                        "vote_account": vote_account,
+                        "vote_account": account,
                         "rent_sysvar": rent_sysvar,
                         "clock_sysvar": clock_sysvar,
                         "new_validator_identity": new_validator_identity,
@@ -137,7 +139,6 @@ pub fn resolve(
             let withdraw_authority = accounts
                 .get(2)
                 .ok_or(SolanaError::AccountNotFound(format!("UpdateValidatorIdentity.withdraw_authority")))?;
-            let amount = lamports.to_string();
             Ok(template_instruction(
                 program_name,
                 "UpdateValidatorIdentity",
@@ -199,7 +200,7 @@ pub fn resolve(
                             "slots": vote_slots,
                             "hash": vote_hash,
                             "timestamp": timestamp,
-                        }
+                        },
                         "proof_hash": proof_hash,
                     }),
             ))
@@ -253,8 +254,6 @@ pub fn resolve(
                 json!({
                         "vote_account": vote_account,
                         "vote_authority": vote_authority,
-                        "new_authorized_pubkey": pubkey.to_string(),
-                        "authority_type": authority_type,
                         "new_vote_state": {
                             "lockouts": lockouts,
                             "root": root,
@@ -285,8 +284,6 @@ pub fn resolve(
                 json!({
                         "vote_account": vote_account,
                         "vote_authority": vote_authority,
-                        "new_authorized_pubkey": pubkey.to_string(),
-                        "authority_type": authority_type,
                         "new_vote_state": {
                             "lockouts": lockouts,
                             "root": root,

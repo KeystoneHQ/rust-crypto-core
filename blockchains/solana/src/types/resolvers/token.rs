@@ -616,7 +616,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                 method_name
             )))?;
             let token_mint = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "{}.mint_to_account",
+                "{}.token_mint",
                 method_name
             )))?;
             if is_multisig(&accounts, 3) {
@@ -628,8 +628,8 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     program_name,
                     method_name,
                     json!({
-                        "mint": mint,
-                        "mint_to_account": mint_to_account,
+                        "account": account,
+                        "token_mint": token_mint,
                         "multisig_owner": multisig_owner,
                         "signers": signers,
                         "decimals": decimals,
@@ -645,8 +645,8 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     program_name,
                     method_name,
                     json!({
-                        "mint": mint,
-                        "mint_to_account": mint_to_account,
+                        "account": account,
+                        "token_mint": token_mint,
                         "owner": owner,
                         "decimals": decimals,
                         "amount": amount,

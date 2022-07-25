@@ -15,5 +15,6 @@ solana-program = "1.11.2"
 solana-stake-program = "1.11.2"
 solana-sdk = "1.11.3"
 spl-token = "3.3.0"
+spl-token-swap = "3.0.0"
 rust_crypto_core_chain = { path = "../../traits/chain" }
 thiserror = "1.0.31"

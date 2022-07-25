@@ -40,6 +40,7 @@ enum SupportedProgram {
     VoteProgram,
     StakeProgram,
     TokenProgram,
+    TokenSwapProgram,
 }
 
 impl SupportedProgram {
@@ -49,6 +50,7 @@ impl SupportedProgram {
             "Vote111111111111111111111111111111111111111" => Ok(SupportedProgram::VoteProgram),
             "Stake11111111111111111111111111111111111111" => Ok(SupportedProgram::StakeProgram),
             "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" => Ok(SupportedProgram::TokenProgram),
+            "SwapsVeCiPHMUAtzQWZw7RjsKjgCjhwU55QGu4U1Szw" => Ok(SupportedProgram::TokenSwapProgram),
             x => Err(SolanaError::UnsupportedProgram(x.to_string())),
         }
     }
@@ -78,6 +80,12 @@ impl Instruction {
                     spl_token::instruction::TokenInstruction::unpack(self.data.clone().as_slice())
                         .map_err(|e| ProgramError(e.to_string()))?;
                 resolvers::token::resolve(instruction, accounts)
+            }
+            SupportedProgram::TokenSwapProgram => {
+                let instruction =
+                    spl_token_swap::instruction::SwapInstruction::unpack(self.data.clone().as_slice())
+                        .map_err(|e| ProgramError(e.to_string()))?;
+                resolvers::token_swap::resolve(instruction, accounts)
             }
         }
     }

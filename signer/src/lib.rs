@@ -2,7 +2,8 @@ mod error;
 mod keymaster;
 
 use error::KSError;
-use keymaster::{se::SecureElement, KeyMaster, SigningAlgorithm, local::Mini};
+use keymaster::{se::SecureElement, KeyMaster, local::Mini};
+pub use keymaster::SigningAlgorithm;
 
 pub struct Signer {
     inner: Box<dyn KeyMaster>,

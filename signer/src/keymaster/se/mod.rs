@@ -8,6 +8,8 @@ use std::convert::TryFrom;
 use self::command::CommandBuilder;
 use bs58;
 use k256::ecdsa::digest::Digest;
+use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey};
+use zeroize::Zeroizing;
 
 use super::hash_wraper::ShaWrapper;
 use super::KeyMaster;
@@ -21,7 +23,7 @@ use serial_manager::SerialManager;
 use tags::result;
 use tvl::Packet;
 
-use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey};
+
 
 pub struct SecureElement {
     version: String,
@@ -165,10 +167,10 @@ impl KeyMaster for SecureElement {
         };
 
         let private_key = self.get_key(menomic_id, derivation_path, Some(auth_token), curve_tag)?;
-
+        let zeroize_private_key = Zeroizing::new(private_key);
         match algo {
             SigningAlgorithm::Secp256k1 => {
-                let signing_key = SigningKey::from_bytes(private_key.as_slice())
+                let signing_key = SigningKey::from_bytes(zeroize_private_key.as_slice())
                     .map_err(|_e| KSError::SEError("error generate the signing key".to_string()))?;
                 let mut hash_wrapper = ShaWrapper::new();
                 hash_wrapper.update(data);

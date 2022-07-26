@@ -13,3 +13,4 @@ bytes = "1"
 indexmap = "1.8.1"
 k256 = {version = "0.11.3", features=["ecdsa", "keccak256"] }
 bs58="0.4.0"
+zeroize="1.1.0"

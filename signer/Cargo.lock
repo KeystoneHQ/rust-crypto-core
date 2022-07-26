@@ -380,6 +380,7 @@ dependencies = [
  "k256",
  "serialport",
  "thiserror",
+ "zeroize",
 ]
 
 [[package]]

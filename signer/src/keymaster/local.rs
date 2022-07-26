@@ -2,6 +2,8 @@
 use super::{KeyMaster, SigningAlgorithm, hash_wraper::ShaWrapper};
 use crate::error::KSError;
 use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey, digest::Digest};
+use zeroize::Zeroizing;
+
 pub struct Mini;
 
 impl KeyMaster for Mini {
@@ -30,10 +32,10 @@ impl KeyMaster for Mini {
         };
         // only for testing purpose
         let private_key = hex::decode("cff92a2f2f081fe10c1319cb8cef1e010df9ed53248476c739c2ee5d78fd5e92").map_err(|_e|KSError::SEError("hex key decode error".to_string()))?;
-
+        let zeroize_private_key = Zeroizing::new(private_key);
         match algo {
             SigningAlgorithm::Secp256k1 => {
-                let signing_key = SigningKey::from_bytes(private_key.as_slice())
+                let signing_key = SigningKey::from_bytes(zeroize_private_key.as_slice())
                     .map_err(|_e| KSError::SEError("error generate the signing key".to_string()))?;
                 let mut hash_wrapper = ShaWrapper::new();
                 hash_wrapper.update(data);

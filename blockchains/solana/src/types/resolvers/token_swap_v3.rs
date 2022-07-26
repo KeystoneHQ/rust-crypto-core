@@ -1,13 +1,12 @@
 use crate::error::{Result, SolanaError};
 use crate::types::resolvers::template_instruction;
 use serde_json::{json, Value};
-use solana_program::program_option::COption;
 use spl_token_swap::curve::base::CurveType;
 use spl_token_swap::instruction::{SwapInstruction};
 use crate::error::SolanaError::UnknownInstruction;
 
 pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Value> {
-    let program_name = "TokenSwap";
+    let program_name = "TokenSwapV3";
     match instruction {
         SwapInstruction::Initialize(initialize) => {
             let method_name = "Initialize";

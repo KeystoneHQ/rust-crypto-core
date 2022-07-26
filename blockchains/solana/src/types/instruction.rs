@@ -12,6 +12,7 @@ use solana_vote_program::vote_instruction::VoteInstruction;
 use solana_vote_program::vote_state::VoteAuthorize;
 use spl_token::instruction::TokenInstruction;
 use std::fmt::format;
+use solana_program::program_error::ProgramError;
 
 pub struct Instruction {
     pub(crate) program_index: u8,
@@ -40,7 +41,8 @@ enum SupportedProgram {
     VoteProgram,
     StakeProgram,
     TokenProgram,
-    TokenSwapProgram,
+    TokenSwapProgramV3,
+    TokenLendingProgram,
 }
 
 impl SupportedProgram {
@@ -50,7 +52,8 @@ impl SupportedProgram {
             "Vote111111111111111111111111111111111111111" => Ok(SupportedProgram::VoteProgram),
             "Stake11111111111111111111111111111111111111" => Ok(SupportedProgram::StakeProgram),
             "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb" => Ok(SupportedProgram::TokenProgram),
-            "SwapsVeCiPHMUAtzQWZw7RjsKjgCjhwU55QGu4U1Szw" => Ok(SupportedProgram::TokenSwapProgram),
+            "SwapsVeCiPHMUAtzQWZw7RjsKjgCjhwU55QGu4U1Szw" => Ok(SupportedProgram::TokenSwapProgramV3),
+            "LendZqTs8gn5CTSJU1jWKhKuVpjJGom45nnwPb2AMTi" => Ok(SupportedProgram::TokenLendingProgram),
             x => Err(SolanaError::UnsupportedProgram(x.to_string())),
         }
     }
@@ -85,7 +88,12 @@ impl Instruction {
                 let instruction =
                     spl_token_swap::instruction::SwapInstruction::unpack(self.data.clone().as_slice())
                         .map_err(|e| ProgramError(e.to_string()))?;
-                resolvers::token_swap::resolve(instruction, accounts)
+                resolvers::token_swap_v3::resolve(instruction, accounts)
+            }
+            SupportedProgram::TokenLendingProgram => {
+                let instruction = spl_token_lending::instruction::LendingInstruction::unpack(self.data.clone().as_slice())
+                    .map_err(|e| ProgramError(e.to_string()))?;
+                resolvers::token_lending::resolve(instruction, accounts)
             }
         }
     }

@@ -1740,6 +1740,7 @@ dependencies = [
  "solana-stake-program",
  "solana-vote-program",
  "spl-token",
+ "spl-token-lending",
  "spl-token-swap",
  "thiserror",
 ]
@@ -2040,7 +2041,7 @@ dependencies = [
  "num-traits",
  "solana-program",
  "thiserror",
- "uint",
+ "uint 0.8.5",
 ]
 
 [[package]]
@@ -2055,6 +2056,22 @@ dependencies = [
  "num_enum",
  "solana-program",
  "thiserror",
+]
+
+[[package]]
+name = "spl-token-lending"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6703367aa2e5cb46fb85bd386ad431a85774dc6aef3639ef72dd8c32f1e17e6"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "solana-program",
+ "spl-token",
+ "thiserror",
+ "uint 0.9.3",
 ]
 
 [[package]]
@@ -2281,6 +2298,18 @@ dependencies = [
  "byteorder",
  "crunchy",
  "rustc-hex",
+ "static_assertions",
+]
+
+[[package]]
+name = "uint"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12f03af7ccf01dd611cc450a0d10dbc9b745770d096473e2faf0ca6e2d66d1e0"
+dependencies = [
+ "byteorder",
+ "crunchy",
+ "hex",
  "static_assertions",
 ]
 

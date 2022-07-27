@@ -8,17 +8,21 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
     let program_name = "Vote";
     match instruction {
         VoteInstruction::InitializeAccount(vote_init) => {
+            let method_name = "InitializeAccount";
             let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.account"
+                "{}.account",
+                method_name
             )))?;
             let rent_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.rent_sysvar"
+                "{}.rent_sysvar",
+                method_name
             )))?;
             let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.clock_sysvar"
+                "{}.clock_sysvar",
+                method_name
             )))?;
             let new_validator_identity = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-                format!("InitializeAccount.new_validator_identity"),
+                format!("{}.new_validator_identity", method_name),
             ))?;
             let node_pubkey = vote_init.node_pubkey.to_string();
             let authorized_voter = vote_init.authorized_voter.to_string();
@@ -26,7 +30,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             let commission = vote_init.commission;
             Ok(template_instruction(
                 program_name,
-                "InitializeAccount",
+                method_name,
                 json!({
                     "vote_account": account,
                     "rent_sysvar": rent_sysvar,
@@ -42,14 +46,18 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::Authorize(pubkey, vote_authority) => {
+            let method_name = "Authorize";
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Authorize.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "Authorize.clock_sysvar"
+                "{}.clock_sysvar",
+                method_name
             )))?;
             let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "Authorize.authority"
+                "{}.authority",
+                method_name
             )))?;
             let authority_type = match vote_authority {
                 VoteAuthorize::Voter => "voter",
@@ -57,7 +65,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             };
             Ok(template_instruction(
                 program_name,
-                "Authorize",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "clock_sysvar": clock_sysvar,
@@ -68,18 +76,23 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::Vote(vote) => {
-            let vote_account = accounts
-                .get(0)
-                .ok_or(SolanaError::AccountNotFound(format!("Vote.vote_account")))?;
+            let method_name = "Vote";
+
+            let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.vote_account",
+                method_name
+            )))?;
             let slot_hashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("Vote.slot_hashes_sysvar"),
+                format!("{}.slot_hashes_sysvar", method_name),
             ))?;
-            let clock_sysvar = accounts
-                .get(2)
-                .ok_or(SolanaError::AccountNotFound(format!("Vote.clock_sysvar")))?;
-            let vote_authority = accounts
-                .get(3)
-                .ok_or(SolanaError::AccountNotFound(format!("Vote.vote_authority")))?;
+            let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.clock_sysvar",
+                method_name
+            )))?;
+            let vote_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.vote_authority",
+                method_name
+            )))?;
             let vote_slots = vote
                 .slots
                 .iter()
@@ -90,7 +103,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             let timestamp = vote.timestamp.map(|v| v.to_string());
             Ok(template_instruction(
                 program_name,
-                "Vote",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "slot_hashes_sysvar": slot_hashes_sysvar,
@@ -105,19 +118,22 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::Withdraw(lamports) => {
+            let method_name = "Withdraw";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Withdraw.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("Withdraw.recipient_account"),
+                format!("{}.recipient_account", method_name),
             ))?;
             let withdraw_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-                format!("Withdraw.withdraw_authority"),
+                format!("{}.withdraw_authority", method_name),
             ))?;
             let amount = lamports.to_string();
             Ok(template_instruction(
                 program_name,
-                "Withdraw",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "recipient_account": recipient_account,
@@ -127,18 +143,21 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::UpdateValidatorIdentity => {
+            let method_name = "UpdateValidatorIdentity";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "UpdateValidatorIdentity.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let new_validator_identity = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("UpdateValidatorIdentity.new_validator_identity"),
+                format!("{}.new_validator_identity", method_name),
             ))?;
             let withdraw_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-                format!("UpdateValidatorIdentity.withdraw_authority"),
+                format!("{}.withdraw_authority", method_name),
             ))?;
             Ok(template_instruction(
                 program_name,
-                "UpdateValidatorIdentity",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "new_validator_identity": new_validator_identity,
@@ -147,15 +166,18 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::UpdateCommission(new_commission) => {
+            let method_name = "UpdateCommission";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "UpdateCommission.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let withdraw_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("UpdateCommission.withdraw_authority"),
+                format!("{}.withdraw_authority", method_name),
             ))?;
             Ok(template_instruction(
                 program_name,
-                "UpdateCommission",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "withdraw_authority": withdraw_authority,
@@ -164,17 +186,22 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::VoteSwitch(vote, proof_hash) => {
+            let method_name = "VoteSwitch";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "VoteSwitch.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let slot_hashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("VoteSwitch.slot_hashes_sysvar"),
+                format!("{}.slot_hashes_sysvar", method_name),
             ))?;
             let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "VoteSwitch.clock_sysvar"
+                "{}.clock_sysvar",
+                method_name
             )))?;
             let vote_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "VoteSwitch.vote_authority"
+                "{}.vote_authority",
+                method_name
             )))?;
             let vote_slots = vote
                 .slots
@@ -187,7 +214,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             let timestamp = vote.timestamp.map(|v| v.to_string());
             Ok(template_instruction(
                 program_name,
-                "VoteSwitch",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "slot_hashes_sysvar": slot_hashes_sysvar,
@@ -203,17 +230,23 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::AuthorizeChecked(vote_authority) => {
+            let method_name = "AuthorizeChecked";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeChecked.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeChecked.clock_sysvar"
+                "{}.clock_sysvar",
+                method_name
             )))?;
             let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeChecked.authority"
+                "{}.authority",
+                method_name
             )))?;
             let new_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeChecked.new_authority"
+                "{}.new_authority",
+                method_name
             )))?;
             let authority_type = match vote_authority {
                 VoteAuthorize::Voter => "voter",
@@ -221,7 +254,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             };
             Ok(template_instruction(
                 program_name,
-                "AuthorizeChecked",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "clock_sysvar": clock_sysvar,
@@ -232,12 +265,17 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::UpdateVoteState(state) => {
+            let method_name = "UpdateVoteState";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "UpdateVoteState.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let vote_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "UpdateVoteState.vote_authority"
+                "{}.vote_authority",
+                method_name
             )))?;
+
             let lockouts = state
                 .lockouts
                 .iter()
@@ -253,7 +291,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             let timestamp = state.timestamp.map(|v| v.to_string());
             Ok(template_instruction(
                 program_name,
-                "UpdateVoteState",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "vote_authority": vote_authority,
@@ -267,11 +305,15 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::UpdateVoteStateSwitch(state, proof_hash) => {
+            let method_name = "UpdateVoteStateSwitch";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "UpdateVoteStateSwitch.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let vote_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "UpdateVoteStateSwitch.vote_authority"
+                "{}.vote_authority",
+                method_name
             )))?;
             let lockouts = state
                 .lockouts
@@ -289,7 +331,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             let proof_hash = proof_hash.to_string();
             Ok(template_instruction(
                 program_name,
-                "UpdateVoteStateSwitch",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "vote_authority": vote_authority,
@@ -304,14 +346,19 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::AuthorizeWithSeed(args) => {
+            let method_name = "AuthorizeWithSeed";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeWithSeed.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeWithSeed.clock_sysvar"
+                "{}.clock_sysvar",
+                method_name
             )))?;
             let base_key = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeWithSeed.base_key"
+                "{}.base_key",
+                method_name
             )))?;
 
             let authorization_type = match args.authorization_type {
@@ -325,7 +372,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
 
             Ok(template_instruction(
                 program_name,
-                "AuthorizeWithSeed",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "clock_sysvar": clock_sysvar,
@@ -340,17 +387,23 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
             ))
         }
         VoteInstruction::AuthorizeCheckedWithSeed(args) => {
+            let method_name = "AuthorizeCheckedWithSeed";
+
             let vote_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeCheckedWithSeed.vote_account"
+                "{}.vote_account",
+                method_name
             )))?;
             let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeCheckedWithSeed.clock_sysvar"
+                "{}.clock_sysvar",
+                method_name
             )))?;
             let base_key = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeCheckedWithSeed.base_key"
+                "{}.base_key",
+                method_name
             )))?;
             let new_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "AuthorizeCheckedWithSeed.new_authority"
+                "{}.new_authority",
+                method_name
             )))?;
 
             let authorization_type = match args.authorization_type {
@@ -363,7 +416,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
 
             Ok(template_instruction(
                 program_name,
-                "AuthorizeCheckedWithSeed",
+                method_name,
                 json!({
                     "vote_account": vote_account,
                     "clock_sysvar": clock_sysvar,

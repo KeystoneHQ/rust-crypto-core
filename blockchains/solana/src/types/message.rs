@@ -172,7 +172,7 @@ impl Read<u8> for u8 {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::message::{Message};
+    use crate::types::message::Message;
     use crate::types::read::Read;
     use hex::{self, FromHex};
     use serde_json::json;
@@ -341,5 +341,12 @@ mod tests {
         // https://solscan.io/tx/23nCgTp9zNo7e56bcFiyYgM4t4A9HGGX4z3JNPMzBxGbGExAVSMBfpkE3digYRcYbKUQfwnq3rGtEND7fD5HiT2x
         let json = read_message("010002044dd6a13d7b9ca64c690638eb9679f4a264a5a93022212ec608b24964dbc5701aff979426efda42a314f5b5477ea3264fddfb5ee1b9f939bff1e90cbea09cde3306a1d8179137542a983437bdfe2a7ab2557f535c8a78722b68a49dc00000000006a7d51718c774c928566398691d5eb68b5eb8a39b4b6d5c73555b2100000000a4eb4d5967097a0ec98783003eba3fde67341ba6d6d55f7d6987494a952466520102030103000405000000");
         assert_eq!(json, json!({"accounts":["6ErDKgZ7M1jdHp9fMWQ7mB3vmxBAWKH7YJ9FGk1qaYBK","JCj29zzZjPjZnDKVP7EyR6gordbAAYacKGkG811NepcJ","Stake11111111111111111111111111111111111111","SysvarC1ock11111111111111111111111111111111"],"block_hash":"C6mxxjU1QuPoDAJQwheeXwv6CnFt8toc11zPM7rvy4Wd","header":{"num_readonly_signed_accounts":0,"num_readonly_unsigned_accounts":2,"num_required_signatures":1},"instructions":[{"raw":{"account_indexes":[1,3,0],"accounts":"JCj29zzZjPjZnDKVP7EyR6gordbAAYacKGkG811NepcJ,SysvarC1ock11111111111111111111111111111111,6ErDKgZ7M1jdHp9fMWQ7mB3vmxBAWKH7YJ9FGk1qaYBK","data":"8QwQj","program_account":"Stake11111111111111111111111111111111111111","program_index":2},"readable":{"arguments":{"clock_sysvar":"SysvarC1ock11111111111111111111111111111111","delegated_stake_account":"JCj29zzZjPjZnDKVP7EyR6gordbAAYacKGkG811NepcJ","stake_authority":"6ErDKgZ7M1jdHp9fMWQ7mB3vmxBAWKH7YJ9FGk1qaYBK"},"method_name":"Deactivate","program_name":"Stake"}}]}).to_string());
+    }
+
+    #[test]
+    fn test_transaction_10() {
+        // https://solscan.io/tx/3KCJ2aWgKc6cyEagFdk74WfM9eDw7VumB7rPw96fQkD1CmjG3w29gTazDEvNsc2bNbkQaZAvL2att11Siy8qF89k
+        let json = read_message("0301080fae0e9965d80b3bb521ed714366a4d461fd58d7b7c97caa15564ba34c3ec5c04d940d487f489c470872533e2d8b55a5ec1ae1fd130cefae0f1bd1527a9b6955c1ab9daad5867d8a4dba28bb9b9bc4146bc81a83e877c01d693d9860e2863df6f5aaf29edc6d0d3544fccda1232277d6032783264c5cfc335600c85f30754adaa9f604b96c15a6018a88598d0c5a310fe2b6333aa48ba916e502be02578ca50384cc51e45da7f68a2906979e692c1e8bc87e51deca9ddfe7e673895a01ef80facf5f4019373457f129bf4cae6a4255518b885bf718157dd4357233dc79268c4cbf069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f0000000000106a7d517192c5c51218cc94c3d4af17f58daee089ba1fd44e3dbd98a0000000006a7d51718c774c928566398691d5eb68b5eb8a39b4b6d5c73555b210000000023166cdfc331b06925f390147d4270172c25a5b218580326b09081a9f3bbe90c051e8a28c6a067b32fbb33323ed92334b6adbdc4639b871c8a2e44f47058ef8506ddf6e1d765a193d9cbe146ceeb79ac1cb485ed5f5b37913a8cf5857eff00a900000000000000000000000000000000000000000000000000000000000000000508c2ceb1b5d05c874980ac52cf659740e7e9b9356aaf2a0362673263526c15e83b5d0c7735cf4f76914b1488bc665d32dce3140950851428922cc65fbb565b070c03030200090424eb0700000000000d0200013400000000f01d1f0000000000a50000000000000006ddf6e1d765a193d9cbe146ceeb79ac1cb485ed5f5b37913a8cf5857eff00a90c040107000801010e02090401080e0a03010405060a0b02090c090424eb0700000000000c02030001050c03010000010901");
+        println!("{}", json);
     }
 }

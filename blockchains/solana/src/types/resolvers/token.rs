@@ -23,17 +23,20 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             decimals,
             freeze_authority,
         } => {
-            let mint = accounts
-                .get(0)
-                .ok_or(SolanaError::AccountNotFound(format!("InitializeMint.mint")))?;
+            let method_name = "InitializeMint";
+            let mint = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.mint",
+                method_name
+            )))?;
             let rent_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeMint.rent_sysvar"
+                "{}.rent_sysvar",
+                method_name
             )))?;
             let mint_authority = mint_authority.to_string();
             let freeze_authority = map_coption_to_option(freeze_authority.map(|v| v.to_string()));
             Ok(template_instruction(
                 program_name,
-                "InitializeMint",
+                method_name,
                 json!({
                     "mint": mint,
                     "rent_sysvar": rent_sysvar,
@@ -44,21 +47,27 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ))
         }
         TokenInstruction::InitializeAccount => {
+            let method_name = "InitializeAccount";
+
             let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.mint"
+                "{}.mint",
+                method_name
             )))?;
             let mint = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.account"
+                "{}.account",
+                method_name
             )))?;
             let owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.owner"
+                "{}.owner",
+                method_name
             )))?;
             let rent_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeAccount.rent_sysvar"
+                "{}.rent_sysvar",
+                method_name
             )))?;
             Ok(template_instruction(
                 program_name,
-                "InitializeAccount",
+                method_name,
                 json!({
                     "account": account,
                     "mint": mint,
@@ -68,17 +77,21 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ))
         }
         TokenInstruction::InitializeMultisig { m } => {
+            let method_name = "InitializeMultisig";
+
             let multisig_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeMultisig.multisig_account"
+                "{}.multisig_account",
+                method_name
             )))?;
             let mint = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeMultisig.account"
+                "{}.account",
+                method_name
             )))?;
             let attendees = &accounts[2..];
             let required_signatures = m;
             Ok(template_instruction(
                 program_name,
-                "InitializeMultisig",
+                method_name,
                 json!({
                     "multisig_account": multisig_account,
                     "mint": mint,
@@ -88,21 +101,24 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ))
         }
         TokenInstruction::Transfer { amount } => {
+            let method_name = "Transfer";
+
             let source_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Transfer.source_account"
+                "{}.source_account",
+                method_name
             )))?;
             let destination_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("Transfer.destination_account"),
+                format!("{}.destination_account", method_name),
             ))?;
             let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-                    format!("Transfer.multisig_account"),
+                    format!("{}.multisig_account", method_name),
                 ))?;
                 let signers = &accounts[3..];
                 return Ok(template_instruction(
                     program_name,
-                    "Transfer",
+                    method_name,
                     json!({
                         "source_account": source_account,
                         "destination_account": destination_account,
@@ -117,7 +133,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                 .ok_or(SolanaError::AccountNotFound(format!("Transfer.owner")))?;
             return Ok(template_instruction(
                 program_name,
-                "Transfer",
+                method_name,
                 json!({
                     "source_account": source_account,
                     "destination_account": destination_account,
@@ -127,21 +143,25 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ));
         }
         TokenInstruction::Approve { amount } => {
+            let method_name = "Approve";
+
             let source_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Approve.source_account"
+                "{}.source_account",
+                method_name
             )))?;
             let delegate_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "Approve.delegate_account"
+                "{}.delegate_account",
+                method_name
             )))?;
             let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-                    format!("Approve.multisig_account"),
+                    format!("{}.multisig_account", method_name),
                 ))?;
                 let signers = &accounts[3..];
                 return Ok(template_instruction(
                     program_name,
-                    "Approve",
+                    method_name,
                     json!({
                         "source_account": source_account,
                         "delegate_account": delegate_account,
@@ -151,12 +171,13 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     }),
                 ));
             }
-            let owner = accounts
-                .get(2)
-                .ok_or(SolanaError::AccountNotFound(format!("Approve.owner")))?;
+            let owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.owner",
+                method_name
+            )))?;
             Ok(template_instruction(
                 program_name,
-                "Approve",
+                method_name,
                 json!({
                     "source_account": source_account,
                     "delegate_account": delegate_account,
@@ -166,17 +187,20 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ))
         }
         TokenInstruction::Revoke => {
+            let method_name = "Revoke";
+
             let source_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "Revoke.source_account"
+                "{}.source_account",
+                method_name
             )))?;
             if is_multisig(&accounts, 2) {
                 let multisig_owner = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                    format!("Revoke.multisig_owner"),
+                    format!("{}.multisig_owner", method_name),
                 ))?;
                 let signers = &accounts[2..];
                 return Ok(template_instruction(
                     program_name,
-                    "Revoke",
+                    method_name,
                     json!({
                         "source_account": source_account,
                         "multisig_owner": multisig_owner,
@@ -184,12 +208,13 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     }),
                 ));
             }
-            let owner = accounts
-                .get(1)
-                .ok_or(SolanaError::AccountNotFound(format!("Revoke.owner")))?;
+            let owner = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.owner",
+                method_name
+            )))?;
             return Ok(template_instruction(
                 program_name,
-                "Revoke",
+                method_name,
                 json!({
                     "source_account": source_account,
                     "owner": owner,
@@ -200,8 +225,11 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             authority_type,
             new_authority,
         } => {
+            let method_name = "SetAuthority";
+
             let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "SetAuthority.account"
+                "{}.account",
+                method_name
             )))?;
             let authority_type = match authority_type {
                 AuthorityType::AccountOwner => "account owner",
@@ -212,12 +240,12 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             let new_authority = map_coption_to_option(new_authority.map(|v| v.to_string()));
             if is_multisig(&accounts, 2) {
                 let multisig_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                    format!("SetAuthority.multisig_authority"),
+                    format!("{}.multisig_authority", method_name),
                 ))?;
                 let signers = &accounts[2..];
                 Ok(template_instruction(
                     program_name,
-                    "SetAuthority",
+                    method_name,
                     json!({
                         "account": account,
                         "multisig_authority": multisig_authority,
@@ -228,11 +256,12 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                 ))
             } else {
                 let authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                    "SetAuthority.authority"
+                    "{}.authority",
+                    method_name
                 )))?;
                 Ok(template_instruction(
                     program_name,
-                    "SetAuthority",
+                    method_name,
                     json!({
                         "account": account,
                         "authority": authority,
@@ -243,21 +272,25 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             }
         }
         TokenInstruction::MintTo { amount } => {
-            let mint = accounts
-                .get(0)
-                .ok_or(SolanaError::AccountNotFound(format!("MintTo.mint")))?;
+            let method_name = "MintTo";
+
+            let mint = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.mint",
+                method_name
+            )))?;
             let mint_to_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-                "MintTo.mint_to_account"
+                "{}.mint_to_account",
+                method_name
             )))?;
             let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-                    format!("MintTo.multisig_authority"),
+                    format!("{}.multisig_authority", method_name),
                 ))?;
                 let signers = &accounts[3..];
                 Ok(template_instruction(
                     program_name,
-                    "MintTo",
+                    method_name,
                     json!({
                         "mint": mint,
                         "mint_to_account": mint_to_account,
@@ -267,12 +300,13 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     }),
                 ))
             } else {
-                let authority = accounts
-                    .get(2)
-                    .ok_or(SolanaError::AccountNotFound(format!("MintTo.authority")))?;
+                let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+                    "{}.authority",
+                    method_name
+                )))?;
                 Ok(template_instruction(
                     program_name,
-                    "MintTo",
+                    method_name,
                     json!({
                         "mint": mint,
                         "mint_to_account": mint_to_account,
@@ -283,21 +317,25 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             }
         }
         TokenInstruction::Burn { amount } => {
-            let account = accounts
-                .get(0)
-                .ok_or(SolanaError::AccountNotFound(format!("Burn.account")))?;
-            let mint = accounts
-                .get(1)
-                .ok_or(SolanaError::AccountNotFound(format!("Burn.mint")))?;
+            let method_name = "Burn";
+
+            let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.account",
+                method_name
+            )))?;
+            let mint = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.mint",
+                method_name
+            )))?;
             let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
-                let multisig_owner = accounts
-                    .get(2)
-                    .ok_or(SolanaError::AccountNotFound(format!("Burn.multisig_owner")))?;
+                let multisig_owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+                    format!("{}.multisig_owner", method_name),
+                ))?;
                 let signers = &accounts[3..];
                 Ok(template_instruction(
                     program_name,
-                    "Burn",
+                    method_name,
                     json!({
                         "account": account,
                         "mint": mint,
@@ -307,12 +345,13 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     }),
                 ))
             } else {
-                let owner = accounts
-                    .get(2)
-                    .ok_or(SolanaError::AccountNotFound(format!("Burn.owner")))?;
+                let owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+                    "{}.owner",
+                    method_name
+                )))?;
                 Ok(template_instruction(
                     program_name,
-                    "Burn",
+                    method_name,
                     json!({
                         "account": account,
                         "mint": mint,
@@ -323,20 +362,22 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             }
         }
         TokenInstruction::CloseAccount => {
+            let method_name = "CloseAccount";
             let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "CloseAccount.account"
+                "{}.account",
+                method_name
             )))?;
             let destination_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-                format!("CloseAccount.destination_account"),
+                format!("{}.destination_account", method_name),
             ))?;
             if is_multisig(&accounts, 3) {
                 let multisig_owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-                    format!("CloseAccount.multisig_owner"),
+                    format!("{}.multisig_owner", method_name),
                 ))?;
                 let signers = &accounts[3..];
                 Ok(template_instruction(
                     program_name,
-                    "Burn",
+                    method_name,
                     json!({
                         "account": account,
                         "destination_account": destination_account,
@@ -703,7 +744,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ))
         }
         TokenInstruction::InitializeAccount3 { owner } => {
-            let method_name = "InitializeAccount2";
+            let method_name = "InitializeAccount3";
             let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
                 "{}.account",
                 method_name
@@ -724,14 +765,16 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             ))
         }
         TokenInstruction::InitializeMultisig2 { m } => {
+            let method_name = "InitializeMultisig2";
             let multisig_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-                "InitializeMultisig.multisig_account"
+                "{}.multisig_account",
+                method_name
             )))?;
             let attendees = &accounts[1..];
             let required_signatures = m;
             Ok(template_instruction(
                 program_name,
-                "InitializeMultisig",
+                method_name,
                 json!({
                     "multisig_account": multisig_account,
                     "attendees": attendees,
@@ -744,14 +787,16 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             decimals,
             freeze_authority,
         } => {
-            let mint = accounts
-                .get(0)
-                .ok_or(SolanaError::AccountNotFound(format!("InitializeMint.mint")))?;
+            let method_name = "InitializeMint2";
+            let mint = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+                "{}.mint",
+                method_name
+            )))?;
             let mint_authority = mint_authority.to_string();
             let freeze_authority = map_coption_to_option(freeze_authority.map(|v| v.to_string()));
             Ok(template_instruction(
                 program_name,
-                "InitializeMint",
+                method_name,
                 json!({
                     "mint": mint,
                     "mint_authority": mint_authority,

@@ -1,5 +1,5 @@
 use crate::error::{Result, SolanaError};
-use crate::types::resolvers::template_instruction;
+use crate::resolvers::template_instruction;
 use serde_json::{json, Value};
 use solana_program::stake::instruction::StakeInstruction;
 use solana_program::stake::state::StakeAuthorize;

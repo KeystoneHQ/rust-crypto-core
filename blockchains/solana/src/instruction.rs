@@ -1,7 +1,7 @@
 use crate::error::SolanaError::ProgramError;
 use crate::error::{Result, SolanaError};
-use crate::types::compact::Compact;
-use crate::types::resolvers;
+use crate::compact::Compact;
+use crate::resolvers;
 use crate::Read;
 use serde_json::Value;
 use solana_program;

@@ -1,14 +1,19 @@
-use crate::types::message::Message;
-use crate::types::read::Read;
+use crate::message::Message;
+use crate::read::Read;
 use rust_crypto_core_chain::Chain;
 
 mod error;
-mod types;
+mod compact;
+mod instruction;
+pub mod message;
+pub(crate) mod read;
+mod resolvers;
+
 
 pub struct Sol {}
 
 impl Sol {
-    fn parse_message(message: &mut Vec<u8>) -> Result<types::message::Message, String> {
+    fn parse_message(message: &mut Vec<u8>) -> Result<message::Message, String> {
         Message::read(message).map_err(|e| e.to_string())
     }
     pub fn parse_message_to_json(message: &mut Vec<u8>) -> Result<String, String> {

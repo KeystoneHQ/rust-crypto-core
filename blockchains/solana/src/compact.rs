@@ -1,5 +1,5 @@
 use crate::error::{Result, SolanaError};
-use crate::types::read::Read;
+use crate::read::Read;
 
 pub struct Compact<T> {
     compact_length: u32,

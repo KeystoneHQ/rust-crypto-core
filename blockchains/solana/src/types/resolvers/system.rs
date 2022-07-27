@@ -94,7 +94,7 @@ pub fn resolve(instruction: SystemInstruction, accounts: Vec<String>) -> Result<
                     "funder": funder,
                     "account": account,
                     "signer": signer,
-                    "base": signer,
+                    "base": base,
                     "seed": seed,
                     "amount": amount,
                     "space": space,
@@ -234,6 +234,7 @@ pub fn resolve(instruction: SystemInstruction, accounts: Vec<String>) -> Result<
                     "base_account": base_account,
                     "owner": owner,
                     "base": base,
+                    "seed": seed,
                     "space": space
                 }),
             ))

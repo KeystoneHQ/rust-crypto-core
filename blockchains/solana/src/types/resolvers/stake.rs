@@ -146,6 +146,7 @@ pub fn resolve(instruction: StakeInstruction, accounts: Vec<String>) -> Result<V
                     "stake_history_sysvar": stake_history_sysvar,
                     "withdraw_authority": withdraw_authority,
                     "stake_authority": stake_authority,
+                    "amount": amount,
                 }),
             ))
         }

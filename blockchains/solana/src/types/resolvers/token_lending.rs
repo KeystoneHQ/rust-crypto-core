@@ -2,7 +2,6 @@ use crate::error::{Result, SolanaError};
 use crate::types::resolvers::template_instruction;
 use serde_json::{json, Value};
 use spl_token_lending::instruction::LendingInstruction;
-use crate::error::SolanaError::UnknownInstruction;
 
 pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result<Value> {
     let program_name = "TokenLending";
@@ -22,7 +21,7 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                 "{}.oracle_program_id", method_name
             )))?;
             let owner = owner.to_string();
-            let quote_currency = std::str::from_utf8(&quote_currency).map_err(SolanaError::InvalidData(format!("{}.quote_currency", method_name)))?;
+            let quote_currency = std::str::from_utf8(&quote_currency).map_err(|_| SolanaError::InvalidData(format!("{}.quote_currency", method_name)))?;
             Ok(template_instruction(
                 program_name,
                 method_name,
@@ -118,9 +117,9 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                 "optimal_borrow_rate": config.optimal_borrow_rate,
                 "max_borrow_rate": config.max_borrow_rate,
                 "fees": {
-                    "borrow_fee_wad": config.fees.borrow_fee_wad,
-                    "flash_loan_fee_wad": config.fees.flash_loan_fee_wad,
-                    "host_fee_percentage": config.fees.host_fee_percentage,
+                    "borrow_fee_wad": config.fees.borrow_fee_wad.to_string(),
+                    "flash_loan_fee_wad": config.fees.flash_loan_fee_wad.to_string(),
+                    "host_fee_percentage": config.fees.host_fee_percentage.to_string(),
                 },
             });
             Ok(template_instruction(
@@ -202,7 +201,7 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
             let token_program_id = accounts.get(9).ok_or(SolanaError::AccountNotFound(format!(
                 "{}.token_program_id", method_name
             )))?;
-
+            let liquidity_amount = liquidity_amount.to_string();
             Ok(template_instruction(
                 program_name,
                 method_name,
@@ -258,8 +257,8 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                 program_name,
                 method_name,
                 json!({
-                    "source_liquidity_pubkey": source_liquidity_pubkey,
-                    "destination_collateral_pubkey": destination_collateral_pubkey,
+                    "source_collateral_pubkey": source_collateral_pubkey,
+                    "destination_liquidity_pubkey": destination_liquidity_pubkey,
                     "reserve_pubkey": reserve_pubkey,
                     "reserve_liquidity_supply_pubkey": reserve_liquidity_supply_pubkey,
                     "reserve_collateral_mint_pubkey": reserve_collateral_mint_pubkey,
@@ -268,7 +267,7 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
                     "sysvar_clock": sysvar_clock,
                     "token_program_id": token_program_id,
-                    "collateral_amount": collateral_amount,
+                    "collateral_amount": collateral_amount.to_string(),
                 }),
             ))
         }
@@ -301,7 +300,7 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "lending_market_account": lending_market_account,
                     "obligation_owner": obligation_owner,
                     "sysvar_clock": sysvar_clock,
-                    "sysvar_rent": reserve_collateral_sysvar_rentmint_pubkey,
+                    "sysvar_rent": sysvar_rent,
                     "token_program_id": token_program_id,
                 }),
             ))
@@ -366,10 +365,10 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "obligation_pubkey": obligation_pubkey,
                     "lending_market_pubkey": lending_market_pubkey,
                     "obligation_owner_pubkey": obligation_owner_pubkey,
-                    "user_transfer_authority_pubkey": user_transfer_authority_pubkey
+                    "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
                     "sysvar_clock": sysvar_clock,
                     "token_program_id": token_program_id,
-                    "collateral_amount": collateral_amount,
+                    "collateral_amount": collateral_amount.to_string(),
                 }),
             ))
         }
@@ -413,10 +412,10 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "obligation_pubkey": obligation_pubkey,
                     "lending_market_pubkey": lending_market_pubkey,
                     "lending_market_authority_pubkey": lending_market_authority_pubkey,
-                    "obligation_owner_pubkey": obligation_owner_pubkey
+                    "obligation_owner_pubkey": obligation_owner_pubkey,
                     "sysvar_clock": sysvar_clock,
                     "token_program_id": token_program_id,
-                    "collateral_amount": collateral_amount,
+                    "collateral_amount": collateral_amount.to_string(),
                 }),
             ))
         }
@@ -465,11 +464,11 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "obligation_pubkey": obligation_pubkey,
                     "lending_market_pubkey": lending_market_pubkey,
                     "lending_market_authority_pubkey": lending_market_authority_pubkey,
-                    "obligation_owner_pubkey": obligation_owner_pubkey
+                    "obligation_owner_pubkey": obligation_owner_pubkey,
                     "sysvar_clock": sysvar_clock,
                     "token_program_id": token_program_id,
                     "host_fee_receiver_pubkey": host_fee_receiver_pubkey,
-                    "liquidity_amount": liquidity_amount,
+                    "liquidity_amount": liquidity_amount.to_string(),
                 }),
             ))
         }
@@ -509,11 +508,11 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "destination_liquidity_pubkey": destination_liquidity_pubkey,
                     "repay_reserve_pubkey": repay_reserve_pubkey,
                     "obligation_pubkey": obligation_pubkey,
-                    "lending_market_pubkey": lending_market_pubkey
-                    "user_transfer_authority_pubkey": user_transfer_authority_pubkey
+                    "lending_market_pubkey": lending_market_pubkey,
+                    "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
                     "sysvar_clock": sysvar_clock,
                     "token_program_id": token_program_id,
-                    "liquidity_amount": liquidity_amount,
+                    "liquidity_amount": liquidity_amount.to_string(),
                 }),
             ))
         }
@@ -561,18 +560,18 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                 method_name,
                 json!({
                     "source_liquidity_pubkey": source_liquidity_pubkey,
-                    "destination_liquidity_pubkey": destination_liquidity_pubkey,
+                    "destination_liquidity_pubkey": destination_collateral_pubkey,
                     "repay_reserve_pubkey": repay_reserve_pubkey,
                     "repay_reserve_liquidity_supply_pubkey": repay_reserve_liquidity_supply_pubkey,
                     "withdraw_reserve_pubkey": withdraw_reserve_pubkey,
                     "withdraw_reserve_collateral_supply_pubkey": withdraw_reserve_collateral_supply_pubkey,
                     "obligation_pubkey": obligation_pubkey,
-                    "lending_market_pubkey": lending_market_pubkey
-                    "lending_market_authority_pubkey": lending_market_authority_pubkey
-                    "user_transfer_authority_pubkey": user_transfer_authority_pubkey
+                    "lending_market_pubkey": lending_market_pubkey,
+                    "lending_market_authority_pubkey": lending_market_authority_pubkey,
+                    "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
                     "sysvar_clock": sysvar_clock,
                     "token_program_id": token_program_id,
-                    "liquidity_amount": liquidity_amount,
+                    "liquidity_amount": liquidity_amount.to_string(),
                 }),
             ))
         }
@@ -621,7 +620,7 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
                     "token_program_id": token_program_id,
                     "flash_loan_receiver_program_id": flash_loan_receiver_program_id,
                     "flash_loan_receiver_program_accounts": flash_loan_receiver_program_accounts,
-                    "amount": amount,
+                    "amount": amount.to_string(),
                 }),
             ))
         }

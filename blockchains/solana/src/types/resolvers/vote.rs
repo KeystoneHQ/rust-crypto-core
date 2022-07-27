@@ -49,7 +49,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
                 "Authorize.clock_sysvar"
             )))?;
             let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-                "Authorize.vote_authority"
+                "Authorize.authority"
             )))?;
             let authority_type = match vote_authority {
                 VoteAuthorize::Voter => "voter",
@@ -61,7 +61,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
                 json!({
                     "vote_account": vote_account,
                     "clock_sysvar": clock_sysvar,
-                    "vote_authority": vote_authority,
+                    "authority": authority,
                     "new_authorized_pubkey": pubkey.to_string(),
                     "authority_type": authority_type,
                 }),
@@ -225,7 +225,7 @@ pub fn resolve(instruction: VoteInstruction, accounts: Vec<String>) -> Result<Va
                 json!({
                     "vote_account": vote_account,
                     "clock_sysvar": clock_sysvar,
-                    "authority": vote_authority,
+                    "authority": authority,
                     "new_authority": new_authority,
                     "authority_type": authority_type,
                 }),

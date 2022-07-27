@@ -94,6 +94,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             let destination_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
                 format!("Transfer.destination_account"),
             ))?;
+            let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(
                     format!("Transfer.multisig_account"),
@@ -132,6 +133,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             let delegate_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
                 "Approve.delegate_account"
             )))?;
+            let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(
                     format!("Approve.multisig_account"),
@@ -247,6 +249,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             let mint_to_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
                 "MintTo.mint_to_account"
             )))?;
+            let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(
                     format!("MintTo.multisig_authority"),
@@ -286,6 +289,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             let mint = accounts
                 .get(1)
                 .ok_or(SolanaError::AccountNotFound(format!("Burn.mint")))?;
+            let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_owner = accounts
                     .get(2)
@@ -457,6 +461,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     format!("{}.multisig_owner", method_name),
                 ))?;
                 let signers = &accounts[4..];
+                let amount = amount.to_string();
                 Ok(template_instruction(
                     program_name,
                     method_name,
@@ -486,7 +491,6 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     "{}.owner",
                     method_name
                 )))?;
-                let signers = &accounts[4..];
                 Ok(template_instruction(
                     program_name,
                     method_name,
@@ -496,7 +500,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                         "destination_account": destination_account,
                         "owner": owner,
                         "decimals": decimals,
-                        "amount": amount,
+                        "amount": amount.to_string(),
                     }),
                 ))
             }
@@ -520,6 +524,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     format!("{}.multisig_owner", method_name),
                 ))?;
                 let signers = &accounts[4..];
+                let amount = amount.to_string();
                 Ok(template_instruction(
                     program_name,
                     method_name,
@@ -550,6 +555,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                     "{}.owner",
                     method_name
                 )))?;
+                let amount = amount.to_string();
                 Ok(template_instruction(
                     program_name,
                     method_name,
@@ -574,6 +580,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                 "{}.mint_to_account",
                 method_name
             )))?;
+            let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(
                     format!("{}.multisig_authority", method_name),
@@ -619,6 +626,7 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
                 "{}.token_mint",
                 method_name
             )))?;
+            let amount = amount.to_string();
             if is_multisig(&accounts, 3) {
                 let multisig_owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(
                     format!("{}.multisig_owner", method_name),

@@ -1,11 +1,7 @@
-use std::error::Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SolanaError {
-    #[error("Solana transaction parse failed, reason: `{0}`")]
-    ParseFailed(String),
-
     #[error("Program `{0}` is not supported yet")]
     UnsupportedProgram(String),
 
@@ -17,9 +13,6 @@ pub enum SolanaError {
 
     #[error("Could not found account for `{0}`")]
     AccountNotFound(String),
-
-    #[error("Unknown program instruction")]
-    UnknownInstruction,
 }
 
 pub type Result<T> = std::result::Result<T, SolanaError>;

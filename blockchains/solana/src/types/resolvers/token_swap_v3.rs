@@ -3,7 +3,6 @@ use crate::types::resolvers::template_instruction;
 use serde_json::{json, Value};
 use spl_token_swap::curve::base::CurveType;
 use spl_token_swap::instruction::{SwapInstruction};
-use crate::error::SolanaError::UnknownInstruction;
 
 pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Value> {
     let program_name = "TokenSwapV3";
@@ -106,8 +105,8 @@ pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Va
             )))?;
             let host_fee_account = accounts.get(10);
             let swap = json!({
-                "amount_in": swap.amount_in,
-                "minimum_amount_out": swap.minimum_amount_out,
+                "amount_in": swap.amount_in.to_string(),
+                "minimum_amount_out": swap.minimum_amount_out.to_string(),
             });
             Ok(template_instruction(
                 program_name,
@@ -220,8 +219,8 @@ pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Va
             )))?;
             let withdraw_all_token_types = json!({
                 "pool_token_amount": args.pool_token_amount,
-                "maximum_token_a_amount": args.maximum_token_a_amount,
-                "maximum_token_b_amount": args.maximum_token_b_amount,
+                "minimum_token_a_amount": args.minimum_token_a_amount,
+                "minimum_token_b_amount": args.minimum_token_b_amount,
             });
             Ok(template_instruction(
                 program_name,
@@ -231,6 +230,7 @@ pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Va
                     "swap_authority": swap_authority,
                     "user_transfer_authority": user_transfer_authority,
                     "pool_mint_account": pool_mint_account,
+                    "source_pool_account": source_pool_account,
                     "token_a_swap_account": token_a_swap_account,
                     "token_b_swap_account": token_b_swap_account,
                     "token_a_user_account": token_a_user_account,
@@ -285,7 +285,7 @@ pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Va
                     "token_a_swap_account": token_a_swap_account,
                     "token_b_swap_account": token_b_swap_account,
                     "pool_mint_account": pool_mint_account,
-                    "fee_account": fee_account,
+                    "pool_account": pool_account,
                     "token_program_id": token_program_id,
                     "arguments": arguments,
                 }),

@@ -1,9 +1,10 @@
 use hex::FromHex;
 use rust_crypto_core_chain::Chain;
-use crate::types::parser::ParserFactory;
+use parser::ParserFactory;
 
-mod types;
 mod error;
+mod parser;
+mod primitives;
 
 struct Near;
 

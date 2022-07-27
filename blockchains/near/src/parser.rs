@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::types::primitives::PrimitivesTxParser;
+use crate::primitives::PrimitivesTxParser;
 
 pub type NearTx = Box<dyn Tx>;
 pub type Parser = Box<dyn TxParser>;

@@ -3,7 +3,7 @@ use near_primitives::borsh::{BorshDeserialize, BorshSerialize};
 use hex::{FromHex, ToHex};
 use serde_json::Value;
 use crate::error::{Result, NearError};
-use crate::types::parser::{TxParser, Tx, NearTx};
+use crate::parser::{TxParser, Tx, NearTx};
 
 
 pub struct PrimitivesTxParser;

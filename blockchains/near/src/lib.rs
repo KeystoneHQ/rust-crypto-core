@@ -1,19 +1,17 @@
 use rust_crypto_core_chain::Chain;
-use parser::ParserFactory;
 
 mod error;
 mod parser;
 mod primitives;
+use crate::parser::Parser;
 
-#[cfg(test)]
-use hex::FromHex;
 
 struct Near;
 
 impl Near {
     fn parse_formatted_data(data: &Vec<u8>) -> Result<String, String> {
-        match ParserFactory::create_parser().deserialize(data) {
-            Ok(parser) => parser.get_formatted_json().map_err(|e| e.to_string()),
+        match Parser::parse(data) {
+            Ok(tx) => tx.get_formatted_json().map_err(|e| e.to_string()),
             Err(e) => Err(e.to_string())
         }
     }
@@ -21,8 +19,8 @@ impl Near {
 
 impl Chain for Near {
     fn parse(data: &Vec<u8>) -> Result<String, String> {
-        match ParserFactory::create_parser().deserialize(data) {
-            Ok(parser) => parser.get_raw_json().map_err(|e| e.to_string()),
+        match Parser::parse(data) {
+            Ok(tx) => tx.get_raw_json().map_err(|e| e.to_string()),
             Err(e) => Err(e.to_string())
         }
     }
@@ -32,6 +30,7 @@ impl Chain for Near {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hex::FromHex;
 
     #[test]
     fn test() {

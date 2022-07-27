@@ -1,22 +1,15 @@
 use near_primitives::transaction;
-use near_primitives::borsh::{BorshDeserialize, BorshSerialize};
+use near_primitives::borsh::BorshDeserialize;
 use serde_json::Value;
 use crate::error::{Result, NearError};
-use crate::parser::{TxParser, Tx, NearTx};
-
-#[cfg(test)]
-use hex::{FromHex, ToHex};
+use crate::parser::{NearTx, Tx};
+use hex::ToHex;
 
 pub struct PrimitivesTxParser;
 
-impl PrimitivesTxParser {
-    pub fn new() -> Self {
-        PrimitivesTxParser
-    }
-}
 
-impl TxParser for PrimitivesTxParser {
-    fn deserialize(&self, data: &Vec<u8>) -> Result<NearTx> {
+impl PrimitivesTxParser {
+    pub fn deserialize(data: &Vec<u8>) -> Result<NearTx> {
         match transaction::Transaction::try_from_slice(data) {
             Ok(tx) => {
                 Ok(Box::new(PrimitivesTx::new(tx)))
@@ -71,21 +64,5 @@ impl PrimitivesTx {
     fn get_hash(&self) -> String {
         let (hash, _) = self.tx.get_hash_and_size();
         Vec::encode_hex(&hash.0.to_vec())
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        let data = "40000000353862633234353938303464326564383736343166626465343062306439363334316362663033313362376466346263346636306661326634326336303263330058bc2459804d2ed87641fbde40b0d96341cbf0313b7df4bc4f60fa2f42c602c389772d10bc5400001000000064656d6f303631372e746573746e65746ce5b0c72ea21d29c9cf8cde859d2ddd466a70e1f8f1069742876e259fb157440100000003000000ed95c28f055a2a000000000000";
-        let buf_message = Vec::from_hex(data).unwrap();
-        let tx = transaction::Transaction::try_from_slice(&buf_message).unwrap();
-        let serialize_data = tx.try_to_vec().unwrap();
-        let buf: String = Vec::encode_hex(&serialize_data);
-        assert_eq!(data, buf);
     }
 }

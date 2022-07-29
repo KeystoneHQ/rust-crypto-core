@@ -1,6 +1,7 @@
 use crate::message::Message;
 use crate::read::Read;
 use rust_crypto_core_chain::Chain;
+use crate::error::SolanaError;
 
 mod compact;
 mod error;
@@ -12,11 +13,11 @@ mod resolvers;
 pub struct Sol {}
 
 impl Sol {
-    fn parse_message(message: &mut Vec<u8>) -> Result<message::Message, String> {
-        Message::read(message).map_err(|e| e.to_string())
+    fn parse_message(message: &mut Vec<u8>) -> Result<message::Message, SolanaError> {
+        Message::read(message)
     }
-    pub fn parse_message_to_json(message: &mut Vec<u8>) -> Result<String, String> {
-        Sol::parse_message(message).and_then(|v| v.to_json_str().map_err(|e| e.to_string()))
+    pub fn parse_message_to_json(message: &mut Vec<u8>) -> Result<String, SolanaError> {
+        Sol::parse_message(message).and_then(|v| v.to_json_str())
     }
 
     pub fn validate_message(message: &mut Vec<u8>) -> bool {
@@ -24,9 +25,9 @@ impl Sol {
     }
 }
 
-impl Chain for Sol {
-    fn parse(data: &Vec<u8>) -> Result<String, String> {
+impl Chain<SolanaError> for Sol {
+    fn parse(data: &Vec<u8>) -> Result<String, SolanaError>{
         Sol::parse_message(data.clone().to_vec().as_mut())
-            .and_then(|v| v.to_json_str().map_err(|e| e.to_string()))
+            .and_then(|v| v.to_json_str())
     }
 }

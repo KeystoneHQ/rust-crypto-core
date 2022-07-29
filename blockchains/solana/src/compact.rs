@@ -1,6 +1,5 @@
-use crate::types::read::Read;
 use crate::error::{Result, SolanaError};
-use std::fmt::format;
+use crate::read::Read;
 
 pub struct Compact<T> {
     compact_length: u32,
@@ -14,7 +13,7 @@ impl<T: Read<T>> Compact<T> {
             compact_length: length,
             data: vec![],
         };
-        for i in 0..compact.compact_length {
+        for _ in 0..compact.compact_length {
             compact.data.push(T::read(raw)?);
         }
         Ok(compact)

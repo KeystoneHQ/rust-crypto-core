@@ -1,11 +1,7 @@
-use std::error::Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum SolanaError {
-    #[error("Solana transaction parse failed, reason: `{0}`")]
-    ParseFailed(String),
-
     #[error("Program `{0}` is not supported yet")]
     UnsupportedProgram(String),
 

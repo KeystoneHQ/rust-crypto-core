@@ -2,13 +2,12 @@ use crate::message::Message;
 use crate::read::Read;
 use rust_crypto_core_chain::Chain;
 
-mod error;
 mod compact;
+mod error;
 mod instruction;
 pub mod message;
 pub(crate) mod read;
 mod resolvers;
-
 
 pub struct Sol {}
 

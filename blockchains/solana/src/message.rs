@@ -1,5 +1,5 @@
-use crate::error::{Result, SolanaError};
 use crate::compact::Compact;
+use crate::error::{Result, SolanaError};
 use crate::instruction::Instruction;
 use crate::read::Read;
 use bs58;

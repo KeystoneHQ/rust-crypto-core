@@ -7,7 +7,6 @@ use serde_json::Value;
 use solana_program;
 use solana_program::stake::instruction::StakeInstruction;
 use solana_program::system_instruction::SystemInstruction;
-use solana_sdk;
 use solana_vote_program::vote_instruction::VoteInstruction;
 
 pub struct Instruction {
@@ -104,7 +103,9 @@ impl Instruction {
     fn parse_native_program_instruction<T: for<'de> serde::de::Deserialize<'de>>(
         instruction_data: Vec<u8>,
     ) -> Result<T> {
-        solana_sdk::program_utils::limited_deserialize::<T>(instruction_data.as_slice())
+        // Copied from solana_sdk
+        // pub const PACKET_DATA_SIZE: usize = 1280 - 40 - 8;
+        solana_program::program_utils::limited_deserialize(instruction_data.as_slice(), 1280 - 40 - 8)
             .map_err(|e| ProgramError(e.to_string()))
     }
 }

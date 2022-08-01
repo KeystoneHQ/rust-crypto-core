@@ -1459,6 +1459,8 @@ dependencies = [
 [[package]]
 name = "rcc-trait-chain"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9d70b20c2acf5e9a04c66ff983e5ac0b7a33fb60efdc68e903288f792240bad"
 
 [[package]]
 name = "redox_syscall"

@@ -1438,6 +1438,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcc-solana"
+version = "0.1.0"
+dependencies = [
+ "bs58",
+ "hex",
+ "rust_crypto_core_chain",
+ "serde",
+ "serde_json",
+ "solana-program",
+ "solana-sdk",
+ "solana-stake-program",
+ "solana-vote-program",
+ "spl-token",
+ "spl-token-lending",
+ "spl-token-swap",
+ "thiserror",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1724,25 +1743,6 @@ checksum = "66d72b759436ae32898a2af0a14218dbf55efde3feeb170eb623637db85ee1e0"
 dependencies = [
  "libc",
  "winapi",
-]
-
-[[package]]
-name = "solana"
-version = "0.1.0"
-dependencies = [
- "bs58",
- "hex",
- "rust_crypto_core_chain",
- "serde",
- "serde_json",
- "solana-program",
- "solana-sdk",
- "solana-stake-program",
- "solana-vote-program",
- "spl-token",
- "spl-token-lending",
- "spl-token-swap",
- "thiserror",
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 use near_primitives::transaction;
 use near_primitives::borsh::BorshDeserialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 use crate::error::{Result, NearError};
 use crate::parser::{NearTx, Tx};
 use hex::ToHex;
@@ -25,12 +25,14 @@ pub struct PrimitivesTx {
 
 
 impl Tx for PrimitivesTx {
-    fn get_raw_json(&self) -> Result<String> {
-        self.to_json_str()
-    }
-
-    fn get_formatted_json(&self) -> Result<String> {
-        self.to_json_str()
+    fn get_result(&self) -> Result<String> {
+        let raw_json = self.get_raw_json()?;
+        let formatted_json = self.get_formatted_json()?;
+        let result = json!({
+            "raw_json" : raw_json,
+            "formatted_json": formatted_json
+        });
+        Ok(result.to_string())
     }
 }
 
@@ -39,7 +41,15 @@ impl PrimitivesTx {
         PrimitivesTx { tx }
     }
 
-    fn to_json_str(&self) -> Result<String> {
+    fn get_raw_json(&self) -> Result<Value> {
+        self.to_json_str()
+    }
+
+    fn get_formatted_json(&self) -> Result<Value> {
+        self.to_json_str()
+    }
+
+    fn to_json_str(&self) -> Result<Value> {
         let json_str: String;
         match serde_json::to_string(&self.tx) {
             Ok(data) => json_str = data,
@@ -55,7 +65,7 @@ impl PrimitivesTx {
 
         if let Some(map) = json_value.as_object_mut() {
             map.insert("hash".to_string(), Value::String(self.get_hash()));
-            Ok(json_value.to_string())
+            Ok(json_value)
         } else {
             Err(NearError::SerializeFailed(format!("to json failed reason: as_object_mut failed")))
         }

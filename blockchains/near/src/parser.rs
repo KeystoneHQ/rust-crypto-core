@@ -4,8 +4,7 @@ use crate::primitives::PrimitivesTxParser;
 pub type NearTx = Box<dyn Tx>;
 
 pub trait Tx {
-    fn get_raw_json(&self) -> Result<String>;
-    fn get_formatted_json(&self) -> Result<String>;
+    fn get_result(&self) -> Result<String>;
 }
 
 

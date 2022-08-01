@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "rust_crypto_core_chain"
+name = "rcc-trait-chain"
 version = "0.1.0"

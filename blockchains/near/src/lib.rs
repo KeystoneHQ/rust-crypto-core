@@ -1,4 +1,4 @@
-use rust_crypto_core_chain::Chain;
+use rcc_trait_chain::Chain;
 use crate::error::NearError;
 
 mod error;

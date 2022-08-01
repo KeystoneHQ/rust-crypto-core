@@ -2,6 +2,8 @@
 name = "rcc-solana"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
+description = "A transaction parser for solana."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,5 +19,5 @@ solana-sdk = "1.11.3"
 spl-token = "3.3.0"
 spl-token-swap = "3.0.0"
 spl-token-lending = "0.2.0"
-rust_crypto_core_chain = { path = "../../traits/chain" }
+rcc-trait-chain = "0.1.0"
 thiserror = "1.0.31"

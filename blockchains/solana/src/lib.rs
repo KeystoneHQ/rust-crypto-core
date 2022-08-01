@@ -1,7 +1,8 @@
 use crate::message::Message;
 use crate::read::Read;
-use rust_crypto_core_chain::Chain;
 use crate::error::SolanaError;
+
+use rcc_trait_chain::Chain;
 
 mod compact;
 mod error;

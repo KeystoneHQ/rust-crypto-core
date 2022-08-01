@@ -1443,7 +1443,7 @@ version = "0.1.0"
 dependencies = [
  "bs58",
  "hex",
- "rust_crypto_core_chain",
+ "rcc-trait-chain",
  "serde",
  "serde_json",
  "solana-program",
@@ -1455,6 +1455,10 @@ dependencies = [
  "spl-token-swap",
  "thiserror",
 ]
+
+[[package]]
+name = "rcc-trait-chain"
+version = "0.1.0"
 
 [[package]]
 name = "redox_syscall"
@@ -1537,10 +1541,6 @@ dependencies = [
  "web-sys",
  "winapi",
 ]
-
-[[package]]
-name = "rust_crypto_core_chain"
-version = "0.1.0"
 
 [[package]]
 name = "rustc-hash"

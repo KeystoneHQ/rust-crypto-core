@@ -17,5 +17,5 @@ solana-sdk = "1.11.3"
 spl-token = "3.3.0"
 spl-token-swap = "3.0.0"
 spl-token-lending = "0.2.0"
-rust_crypto_core_chain = { path = "../../traits/chain" }
+rcc-trait-chain = { path = "../../traits/chain" }
 thiserror = "1.0.31"

@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rust_crypto_core_chain = { path = "../../traits/chain" }
+rcc-trait-chain = { path = "../../traits/chain" }
 hex = "0.4.3"
 near-primitives = { path = "primitives/primitives" }
 serde_json = "1.0"

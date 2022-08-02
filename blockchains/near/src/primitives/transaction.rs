@@ -7,14 +7,13 @@ use serde::{Deserialize, Serialize};
 
 use near_crypto::{PublicKey, Signature};
 
-use crate::account::AccessKey;
-use crate::hash::{hash, CryptoHash};
-use crate::logging;
-use crate::serialize::{base64_format, u128_dec_format_compatible};
-use crate::types::{AccountId, Balance, Gas, Nonce};
-use near_primitives_core::profile::ProfileData;
+use near_primitives_core::account::AccessKey;
+use near_primitives_core::hash::{hash, CryptoHash};
+use near_primitives_core::logging;
+use near_primitives_core::serialize::{base64_format, u128_dec_format_compatible};
+use near_primitives_core::types::{AccountId, Balance, Gas, Nonce};
 
-pub type LogEntry = String;
+use near_primitives_core::profile::ProfileData;
 
 #[cfg_attr(feature = "deepsize_feature", derive(deepsize::DeepSizeOf))]
 #[derive(BorshSerialize, BorshDeserialize, Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
@@ -70,21 +69,21 @@ pub enum Action {
     DeleteAccount(DeleteAccountAction),
 }
 
-impl Action {
-    pub fn get_prepaid_gas(&self) -> Gas {
-        match self {
-            Action::FunctionCall(a) => a.gas,
-            _ => 0,
-        }
-    }
-    pub fn get_deposit_balance(&self) -> Balance {
-        match self {
-            Action::FunctionCall(a) => a.deposit,
-            Action::Transfer(a) => a.deposit,
-            _ => 0,
-        }
-    }
-}
+// impl Action {
+//     pub fn get_prepaid_gas(&self) -> Gas {
+//         match self {
+//             Action::FunctionCall(a) => a.gas,
+//             _ => 0,
+//         }
+//     }
+//     pub fn get_deposit_balance(&self) -> Balance {
+//         match self {
+//             Action::FunctionCall(a) => a.deposit,
+//             Action::Transfer(a) => a.deposit,
+//             _ => 0,
+//         }
+//     }
+// }
 
 /// Create account action
 #[cfg_attr(feature = "deepsize_feature", derive(deepsize::DeepSizeOf))]
@@ -248,9 +247,9 @@ impl SignedTransaction {
         self.hash
     }
 
-    pub fn get_size(&self) -> u64 {
-        self.size
-    }
+    // pub fn get_size(&self) -> u64 {
+    //     self.size
+    // }
 }
 
 impl Hash for SignedTransaction {
@@ -299,49 +298,50 @@ impl Default for ExecutionMetadata {
 
 
 
-pub fn verify_transaction_signature(
-    transaction: &SignedTransaction,
-    public_keys: &[PublicKey],
-) -> bool {
-    let hash = transaction.get_hash();
-    let hash = hash.as_ref();
-    public_keys.iter().any(|key| transaction.signature.verify(hash, key))
-}
+// pub fn verify_transaction_signature(
+//     transaction: &SignedTransaction,
+//     public_keys: &[PublicKey],
+// ) -> bool {
+//     let hash = transaction.get_hash();
+//     let hash = hash.as_ref();
+//     public_keys.iter().any(|key| transaction.signature.verify(hash, key))
+// }
 
 #[cfg(test)]
 mod tests {
     use borsh::BorshDeserialize;
 
-    use near_crypto::{InMemorySigner, KeyType, Signature, Signer};
+    use near_crypto::{KeyType, Signature};
 
-    use crate::account::{AccessKeyPermission, FunctionCallPermission};
-    use crate::serialize::to_base;
+    use near_primitives_core::account::{AccessKeyPermission, FunctionCallPermission};
+    use near_primitives_core::serialize::to_base;
+    //use crate::primitives::test_utils;
 
     use super::*;
 
-    #[test]
-    fn test_verify_transaction() {
-        let signer = InMemorySigner::from_random("test".parse().unwrap(), KeyType::ED25519);
-        let transaction = Transaction {
-            signer_id: "test".parse().unwrap(),
-            public_key: signer.public_key(),
-            nonce: 0,
-            receiver_id: "test".parse().unwrap(),
-            block_hash: Default::default(),
-            actions: vec![],
-        }
-        .sign(&signer);
-        let wrong_public_key = PublicKey::from_seed(KeyType::ED25519, "wrong");
-        let valid_keys = vec![signer.public_key(), wrong_public_key.clone()];
-        assert!(verify_transaction_signature(&transaction, &valid_keys));
-
-        let invalid_keys = vec![wrong_public_key];
-        assert!(!verify_transaction_signature(&transaction, &invalid_keys));
-
-        let bytes = transaction.try_to_vec().unwrap();
-        let decoded_tx = SignedTransaction::try_from_slice(&bytes).unwrap();
-        assert!(verify_transaction_signature(&decoded_tx, &valid_keys));
-    }
+    // #[test]
+    // fn test_verify_transaction() {
+    //     let signer = InMemorySigner::from_random("test".parse().unwrap(), KeyType::ED25519);
+    //     let transaction = Transaction {
+    //         signer_id: "test".parse().unwrap(),
+    //         public_key: signer.public_key(),
+    //         nonce: 0,
+    //         receiver_id: "test".parse().unwrap(),
+    //         block_hash: Default::default(),
+    //         actions: vec![],
+    //     }
+    //     .sign(&signer);
+    //     let wrong_public_key = PublicKey::from_seed(KeyType::ED25519, "wrong");
+    //     let valid_keys = vec![signer.public_key(), wrong_public_key.clone()];
+    //     assert!(verify_transaction_signature(&transaction, &valid_keys));
+    //
+    //     let invalid_keys = vec![wrong_public_key];
+    //     assert!(!verify_transaction_signature(&transaction, &invalid_keys));
+    //
+    //     let bytes = transaction.try_to_vec().unwrap();
+    //     let decoded_tx = SignedTransaction::try_from_slice(&bytes).unwrap();
+    //     assert!(verify_transaction_signature(&decoded_tx, &valid_keys));
+    // }
 
     /// This test is change checker for a reason - we don't expect transaction format to change.
     /// If it does - you MUST update all of the dependencies: like nearlib and other clients.

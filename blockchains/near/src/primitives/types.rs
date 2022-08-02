@@ -3,8 +3,8 @@ use derive_more::{AsRef as DeriveAsRef};
 use serde::{Deserialize, Serialize};
 use near_crypto::PublicKey;
 
-use crate::hash::CryptoHash;
-use crate::serialize::u128_dec_format;
+use near_primitives_core::hash::CryptoHash;
+use near_primitives_core::serialize::u128_dec_format;
 pub use near_primitives_core::types::*;
 
 /// Epoch identifier -- wrapped hash, to make it easier to distinguish.

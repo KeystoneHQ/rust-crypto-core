@@ -675,7 +675,7 @@ dependencies = [
 
 [[package]]
 name = "rcc-near"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "borsh",
  "derive_more",

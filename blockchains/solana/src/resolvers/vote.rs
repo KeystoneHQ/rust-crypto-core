@@ -1,11 +1,10 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use crate::solana_lib::solana_program::vote::{
-    Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit,
-    VoteInstruction, VoteStateUpdate,
-};
-use crate::solana_lib::solana_program::{Hash, Pubkey};
 use serde_json::{json, Value};
+use crate::solana_lib::solana_program::hash::Hash;
+use crate::solana_lib::solana_program::pubkey::Pubkey;
+use crate::solana_lib::solana_program::vote::instruction::VoteInstruction;
+use crate::solana_lib::solana_program::vote::state::{Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit, VoteStateUpdate};
 
 static PROGRAM_NAME: &str = "Vote";
 

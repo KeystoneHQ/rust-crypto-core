@@ -1,7 +1,8 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use crate::solana_lib::solana_program::{Pubkey, SystemInstruction};
+use crate::solana_lib::solana_program::pubkey::Pubkey;
 use serde_json::{json, Value};
+use crate::solana_lib::solana_program::system_instruction::SystemInstruction;
 
 static PROGRAM_NAME: &str = "System";
 

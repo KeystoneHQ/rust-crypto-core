@@ -1,8 +1,9 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use crate::solana_lib::solana_program::{COption, Pubkey};
 use serde_json::{json, Value};
-use spl_token::instruction::{AuthorityType, TokenInstruction};
+use crate::solana_lib::solana_program::program_option::COption;
+use crate::solana_lib::solana_program::pubkey::Pubkey;
+use crate::solana_lib::spl::token::instruction::{AuthorityType, TokenInstruction};
 
 fn map_coption_to_option<T>(value: COption<T>) -> Option<T> {
     match value {

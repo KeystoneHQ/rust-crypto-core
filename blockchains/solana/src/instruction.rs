@@ -2,12 +2,11 @@ use crate::compact::Compact;
 use crate::error::SolanaError::ProgramError;
 use crate::error::{Result, SolanaError};
 use crate::resolvers;
-use crate::solana_lib::solana_program::stake::StakeInstruction;
-use crate::solana_lib::solana_program::vote::VoteInstruction;
-use crate::solana_lib::solana_program::SystemInstruction;
 use crate::Read;
 
 use serde_json::Value;
+use crate::solana_lib::solana_program::stake::instruction::StakeInstruction;
+use crate::solana_lib::solana_program::system_instruction::SystemInstruction;
 
 pub struct Instruction {
     pub(crate) program_index: u8,

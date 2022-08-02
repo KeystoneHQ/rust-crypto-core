@@ -1,11 +1,9 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use crate::solana_lib::solana_program::stake::{
-    AuthorizeCheckedWithSeedArgs, AuthorizeWithSeedArgs, Authorized, Lockup, LockupArgs,
-    LockupCheckedArgs, StakeAuthorize, StakeInstruction,
-};
-use crate::solana_lib::solana_program::Pubkey;
 use serde_json::{json, Value};
+use crate::solana_lib::solana_program::pubkey::Pubkey;
+use crate::solana_lib::solana_program::stake::instruction::{AuthorizeCheckedWithSeedArgs, AuthorizeWithSeedArgs, LockupArgs, LockupCheckedArgs, StakeInstruction};
+use crate::solana_lib::solana_program::stake::state::{Authorized, Lockup, StakeAuthorize};
 
 static PROGRAM_NAME: &str = "Stake";
 

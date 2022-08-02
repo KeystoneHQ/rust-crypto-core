@@ -7,7 +7,7 @@ mod primitives;
 use crate::parser::Parser;
 
 
-struct Near;
+pub struct Near;
 
 impl Chain<NearError> for Near {
     fn parse(data: &Vec<u8>) -> Result<String, NearError> {

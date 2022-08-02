@@ -1,7 +1,7 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
+use crate::solana_lib::solana_program::Pubkey;
 use serde_json::{json, Value};
-use solana_program::pubkey::Pubkey;
 use spl_token_lending::instruction::LendingInstruction;
 use spl_token_lending::state::ReserveConfig;
 
@@ -28,9 +28,7 @@ pub fn resolve(instruction: LendingInstruction, accounts: Vec<String>) -> Result
             redeem_reserve_collateral(accounts, collateral_amount)
         }
         LendingInstruction::InitObligation => init_obligation(accounts),
-        LendingInstruction::RefreshObligation => {
-            refresh_obligation(accounts)
-        }
+        LendingInstruction::RefreshObligation => refresh_obligation(accounts),
         LendingInstruction::DepositObligationCollateral { collateral_amount } => {
             deposit_obligation_collateral(accounts, collateral_amount)
         }

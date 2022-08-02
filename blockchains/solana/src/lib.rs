@@ -1,6 +1,6 @@
+use crate::error::SolanaError;
 use crate::message::Message;
 use crate::read::Read;
-use crate::error::SolanaError;
 
 use rcc_trait_chain::Chain;
 
@@ -10,6 +10,7 @@ mod instruction;
 pub mod message;
 pub(crate) mod read;
 mod resolvers;
+mod solana_lib;
 
 pub struct Sol {}
 
@@ -27,8 +28,7 @@ impl Sol {
 }
 
 impl Chain<SolanaError> for Sol {
-    fn parse(data: &Vec<u8>) -> Result<String, SolanaError>{
-        Sol::parse_message(data.clone().to_vec().as_mut())
-            .and_then(|v| v.to_json_str())
+    fn parse(data: &Vec<u8>) -> Result<String, SolanaError> {
+        Sol::parse_message(data.clone().to_vec().as_mut()).and_then(|v| v.to_json_str())
     }
 }

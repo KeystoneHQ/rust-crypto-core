@@ -1,5 +1,7 @@
-use near_primitives::transaction;
-use near_primitives::borsh::BorshDeserialize;
+mod transaction;
+mod types;
+
+use borsh::BorshDeserialize;
 use serde_json::{json, Value};
 use crate::error::{Result, NearError};
 use crate::parser::{NearTx, Tx};

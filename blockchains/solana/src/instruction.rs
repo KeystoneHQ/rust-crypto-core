@@ -2,13 +2,12 @@ use crate::compact::Compact;
 use crate::error::SolanaError::ProgramError;
 use crate::error::{Result, SolanaError};
 use crate::resolvers;
+use crate::solana_lib::solana_program::stake::StakeInstruction;
+use crate::solana_lib::solana_program::vote::VoteInstruction;
+use crate::solana_lib::solana_program::SystemInstruction;
 use crate::Read;
+
 use serde_json::Value;
-use solana_program;
-use solana_program::stake::instruction::StakeInstruction;
-use solana_program::system_instruction::SystemInstruction;
-use solana_sdk;
-use solana_vote_program::vote_instruction::VoteInstruction;
 
 pub struct Instruction {
     pub(crate) program_index: u8,
@@ -104,7 +103,12 @@ impl Instruction {
     fn parse_native_program_instruction<T: for<'de> serde::de::Deserialize<'de>>(
         instruction_data: Vec<u8>,
     ) -> Result<T> {
-        solana_sdk::program_utils::limited_deserialize::<T>(instruction_data.as_slice())
-            .map_err(|e| ProgramError(e.to_string()))
+        // Copied from solana_sdk
+        // pub const PACKET_DATA_SIZE: usize = 1280 - 40 - 8;
+        crate::solana_lib::solana_program::limited_deserialize(
+            instruction_data.as_slice(),
+            1280 - 40 - 8,
+        )
+        .map_err(|e| ProgramError(e.to_string()))
     }
 }

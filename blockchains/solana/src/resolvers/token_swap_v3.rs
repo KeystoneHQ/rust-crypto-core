@@ -11,18 +11,10 @@ static PROGRAM_NAME: &str = "TokenSwapV3";
 
 pub fn resolve(instruction: SwapInstruction, accounts: Vec<String>) -> Result<Value> {
     match instruction {
-        SwapInstruction::Initialize(args) => {
-            initialize(accounts, args)
-        },
-        SwapInstruction::Swap(args) => {
-            swap(accounts, args)
-        },
-        SwapInstruction::DepositAllTokenTypes(args) => {
-            deposit_all_token_types(accounts, args)
-        },
-        SwapInstruction::WithdrawAllTokenTypes(args) => {
-            withdraw_all_token_types(accounts, args)
-        },
+        SwapInstruction::Initialize(args) => initialize(accounts, args),
+        SwapInstruction::Swap(args) => swap(accounts, args),
+        SwapInstruction::DepositAllTokenTypes(args) => deposit_all_token_types(accounts, args),
+        SwapInstruction::WithdrawAllTokenTypes(args) => withdraw_all_token_types(accounts, args),
         SwapInstruction::DepositSingleTokenTypeExactAmountIn(args) => {
             deposit_single_token_type_exact_amount_in(accounts, args)
         }

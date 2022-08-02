@@ -1,13 +1,11 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
-use solana_program::hash::Hash;
-use solana_program::pubkey::Pubkey;
-use solana_vote_program::vote_instruction::VoteInstruction;
-use solana_vote_program::vote_state::{
+use crate::solana_lib::solana_program::vote::{
     Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit,
-    VoteStateUpdate,
+    VoteInstruction, VoteStateUpdate,
 };
+use crate::solana_lib::solana_program::{Hash, Pubkey};
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "Vote";
 
@@ -81,6 +79,7 @@ fn resolve_initialize_account(accounts: Vec<String>, vote_init: VoteInit) -> Res
         }),
     ))
 }
+
 fn resolve_authorize(
     accounts: Vec<String>,
     pubkey: Pubkey,
@@ -115,6 +114,7 @@ fn resolve_authorize(
         }),
     ))
 }
+
 fn resolve_vote(accounts: Vec<String>, vote: Vote) -> Result<Value> {
     let method_name = "Vote";
 
@@ -158,6 +158,7 @@ fn resolve_vote(accounts: Vec<String>, vote: Vote) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
     let method_name = "Withdraw";
 
@@ -185,6 +186,7 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_update_validator_identity(accounts: Vec<String>) -> Result<Value> {
     let method_name = "UpdateValidatorIdentity";
 
@@ -210,6 +212,7 @@ fn resolve_update_validator_identity(accounts: Vec<String>) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_update_commission(accounts: Vec<String>, new_commission: u8) -> Result<Value> {
     let method_name = "UpdateCommission";
 
@@ -231,6 +234,7 @@ fn resolve_update_commission(accounts: Vec<String>, new_commission: u8) -> Resul
         }),
     ))
 }
+
 fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> Result<Value> {
     let method_name = "VoteSwitch";
 
@@ -276,6 +280,7 @@ fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> R
         }),
     ))
 }
+
 fn resolve_authorize_checked(
     accounts: Vec<String>,
     vote_authority: VoteAuthorize,
@@ -314,6 +319,7 @@ fn resolve_authorize_checked(
         }),
     ))
 }
+
 fn resolve_update_vote_state(accounts: Vec<String>, state: VoteStateUpdate) -> Result<Value> {
     let method_name = "UpdateVoteState";
 
@@ -354,6 +360,7 @@ fn resolve_update_vote_state(accounts: Vec<String>, state: VoteStateUpdate) -> R
         }),
     ))
 }
+
 fn resolve_update_vote_state_switch(
     accounts: Vec<String>,
     state: VoteStateUpdate,
@@ -399,6 +406,7 @@ fn resolve_update_vote_state_switch(
         }),
     ))
 }
+
 fn resolve_authorize_with_seed(
     accounts: Vec<String>,
     args: VoteAuthorizeWithSeedArgs,
@@ -442,6 +450,7 @@ fn resolve_authorize_with_seed(
         }),
     ))
 }
+
 fn resolve_authorize_checked_with_seed(
     accounts: Vec<String>,
     args: VoteAuthorizeCheckedWithSeedArgs,

@@ -1,12 +1,11 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
-use solana_program::pubkey::Pubkey;
-use solana_program::stake::instruction::{
-    AuthorizeCheckedWithSeedArgs, AuthorizeWithSeedArgs, LockupArgs, LockupCheckedArgs,
-    StakeInstruction,
+use crate::solana_lib::solana_program::stake::{
+    AuthorizeCheckedWithSeedArgs, AuthorizeWithSeedArgs, Authorized, Lockup, LockupArgs,
+    LockupCheckedArgs, StakeAuthorize, StakeInstruction,
 };
-use solana_program::stake::state::{Authorized, Lockup, StakeAuthorize};
+use crate::solana_lib::solana_program::Pubkey;
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "Stake";
 
@@ -83,6 +82,7 @@ fn resolve_initialize(
         }),
     ))
 }
+
 fn resolve_authorize(
     accounts: Vec<String>,
     pubkey: Pubkey,
@@ -117,6 +117,7 @@ fn resolve_authorize(
         }),
     ))
 }
+
 fn resolve_delegate_stake(accounts: Vec<String>) -> Result<Value> {
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
         "DelegateStake.stake_account"
@@ -149,6 +150,7 @@ fn resolve_delegate_stake(accounts: Vec<String>) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_split(accounts: Vec<String>, lamports: u64) -> Result<Value> {
     let method_name = "Split";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -175,6 +177,7 @@ fn resolve_split(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
     let method_name = "Withdraw";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -213,6 +216,7 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_deactivate(accounts: Vec<String>) -> Result<Value> {
     let method_name = "Deactivate";
     let delegated_stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -237,6 +241,7 @@ fn resolve_deactivate(accounts: Vec<String>) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_set_lockup(accounts: Vec<String>, lockup: LockupArgs) -> Result<Value> {
     let method_name = "SetLockup";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -264,6 +269,7 @@ fn resolve_set_lockup(accounts: Vec<String>, lockup: LockupArgs) -> Result<Value
         }),
     ))
 }
+
 fn resolve_merge(accounts: Vec<String>) -> Result<Value> {
     let method_name = "Merge";
     let destination_stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
@@ -297,6 +303,7 @@ fn resolve_merge(accounts: Vec<String>) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_authorize_with_seed(
     accounts: Vec<String>,
     args: AuthorizeWithSeedArgs,
@@ -339,6 +346,7 @@ fn resolve_authorize_with_seed(
         }),
     ))
 }
+
 fn resolve_initialize_checked(accounts: Vec<String>) -> Result<Value> {
     let method_name = "InitializeChecked";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -368,6 +376,7 @@ fn resolve_initialize_checked(accounts: Vec<String>) -> Result<Value> {
         }),
     ))
 }
+
 fn resolve_authorize_checked(
     accounts: Vec<String>,
     stake_authorize: StakeAuthorize,
@@ -407,6 +416,7 @@ fn resolve_authorize_checked(
         }),
     ))
 }
+
 fn resolve_authorize_checked_with_seed(
     accounts: Vec<String>,
     args: AuthorizeCheckedWithSeedArgs,
@@ -452,6 +462,7 @@ fn resolve_authorize_checked_with_seed(
         }),
     ))
 }
+
 fn resolve_set_lockup_checked(accounts: Vec<String>, args: LockupCheckedArgs) -> Result<Value> {
     let method_name = "SetLockupChecked";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(

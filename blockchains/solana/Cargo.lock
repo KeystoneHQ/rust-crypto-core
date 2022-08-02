@@ -1439,15 +1439,14 @@ dependencies = [
 
 [[package]]
 name = "rcc-solana"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
+ "bincode",
  "bs58",
  "hex",
  "rcc-trait-chain",
  "serde",
  "serde_json",
- "solana-program",
- "solana-sdk",
  "solana-stake-program",
  "solana-vote-program",
  "spl-token",

@@ -1,9 +1,9 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use crate::solana_lib::solana_program::Pubkey;
 use serde_json::{json, Value};
-use spl_token_lending::instruction::LendingInstruction;
-use spl_token_lending::state::ReserveConfig;
+use crate::solana_lib::solana_program::pubkey::Pubkey;
+use crate::solana_lib::spl::token_lending::instruction::LendingInstruction;
+use crate::solana_lib::spl::token_lending::state::ReserveConfig;
 
 static PROGRAM_NAME: &str = "TokenLending";
 

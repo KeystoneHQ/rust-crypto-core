@@ -4,3 +4,4 @@
 */
 
 pub mod solana_program;
+pub mod spl;

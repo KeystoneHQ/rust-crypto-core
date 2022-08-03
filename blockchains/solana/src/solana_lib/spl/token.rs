@@ -1,6 +1,91 @@
+pub mod error {
+    use thiserror::Error;
+    use crate::solana_lib::solana_program::program_error::ProgramError;
+
+    /// Errors that may be returned by the Token program.
+    #[derive(Clone, Debug, Eq, Error, PartialEq)]
+    pub enum TokenError {
+        // 0
+        /// Lamport balance below rent-exempt threshold.
+        #[error("Lamport balance below rent-exempt threshold")]
+        NotRentExempt,
+        /// Insufficient funds for the operation requested.
+        #[error("Insufficient funds")]
+        InsufficientFunds,
+        /// Invalid Mint.
+        #[error("Invalid Mint")]
+        InvalidMint,
+        /// Account not associated with this Mint.
+        #[error("Account not associated with this Mint")]
+        MintMismatch,
+        /// Owner does not match.
+        #[error("Owner does not match")]
+        OwnerMismatch,
+
+        // 5
+        /// This token's supply is fixed and new tokens cannot be minted.
+        #[error("Fixed supply")]
+        FixedSupply,
+        /// The account cannot be initialized because it is already being used.
+        #[error("Already in use")]
+        AlreadyInUse,
+        /// Invalid number of provided signers.
+        #[error("Invalid number of provided signers")]
+        InvalidNumberOfProvidedSigners,
+        /// Invalid number of required signers.
+        #[error("Invalid number of required signers")]
+        InvalidNumberOfRequiredSigners,
+        /// State is uninitialized.
+        #[error("State is unititialized")]
+        UninitializedState,
+
+        // 10
+        /// Instruction does not support native tokens
+        #[error("Instruction does not support native tokens")]
+        NativeNotSupported,
+        /// Non-native account can only be closed if its balance is zero
+        #[error("Non-native account can only be closed if its balance is zero")]
+        NonNativeHasBalance,
+        /// Invalid instruction
+        #[error("Invalid instruction")]
+        InvalidInstruction,
+        /// State is invalid for requested operation.
+        #[error("State is invalid for requested operation")]
+        InvalidState,
+        /// Operation overflowed
+        #[error("Operation overflowed")]
+        Overflow,
+
+        // 15
+        /// Account does not support specified authority type.
+        #[error("Account does not support specified authority type")]
+        AuthorityTypeNotSupported,
+        /// This token mint cannot freeze accounts.
+        #[error("This token mint cannot freeze accounts")]
+        MintCannotFreeze,
+        /// Account is frozen; all account operations will fail
+        #[error("Account is frozen")]
+        AccountFrozen,
+        /// Mint decimals mismatch between the client and mint
+        #[error("The provided decimals value different from the Mint decimals")]
+        MintDecimalsMismatch,
+        /// Instruction does not support non-native tokens
+        #[error("Instruction does not support non-native tokens")]
+        NonNativeNotSupported,
+    }
+
+    impl From<TokenError> for ProgramError {
+        fn from(e: TokenError) -> Self {
+            ProgramError::Custom(e as u32)
+        }
+    }
+}
+
 pub mod instruction {
+    use crate::solana_lib::solana_program::program_error::ProgramError;
     use crate::solana_lib::solana_program::program_option::COption;
     use crate::solana_lib::solana_program::pubkey::Pubkey;
+    use crate::solana_lib::spl::token::error::TokenError;
 
     /// Specifies the authority type for SetAuthority instructions
     #[repr(u8)]
@@ -15,6 +100,28 @@ pub mod instruction {
         /// Authority to close a token account
         CloseAccount,
     }
+
+    impl AuthorityType {
+        fn into(&self) -> u8 {
+            match self {
+                AuthorityType::MintTokens => 0,
+                AuthorityType::FreezeAccount => 1,
+                AuthorityType::AccountOwner => 2,
+                AuthorityType::CloseAccount => 3,
+            }
+        }
+
+        fn from(index: u8) -> Result<Self, ProgramError> {
+            match index {
+                0 => Ok(AuthorityType::MintTokens),
+                1 => Ok(AuthorityType::FreezeAccount),
+                2 => Ok(AuthorityType::AccountOwner),
+                3 => Ok(AuthorityType::CloseAccount),
+                _ => Err(TokenError::InvalidInstruction.into()),
+            }
+        }
+    }
+
 
     /// Instructions supported by the token program.
     #[repr(C)]
@@ -409,5 +516,151 @@ pub mod instruction {
             /// The freeze authority/multisignature of the mint.
             freeze_authority: COption<Pubkey>,
         },
+    }
+
+    impl TokenInstruction {
+        /// Unpacks a byte buffer into a [TokenInstruction](enum.TokenInstruction.html).
+        pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
+            use TokenError::InvalidInstruction;
+
+            let (&tag, rest) = input.split_first().ok_or(InvalidInstruction)?;
+            Ok(match tag {
+                0 => {
+                    let (&decimals, rest) = rest.split_first().ok_or(InvalidInstruction)?;
+                    let (mint_authority, rest) = Self::unpack_pubkey(rest)?;
+                    let (freeze_authority, _rest) = Self::unpack_pubkey_option(rest)?;
+                    Self::InitializeMint {
+                        mint_authority,
+                        freeze_authority,
+                        decimals,
+                    }
+                }
+                1 => Self::InitializeAccount,
+                2 => {
+                    let &m = rest.get(0).ok_or(InvalidInstruction)?;
+                    Self::InitializeMultisig { m }
+                }
+                3 | 4 | 7 | 8 => {
+                    let amount = rest
+                        .get(..8)
+                        .and_then(|slice| slice.try_into().ok())
+                        .map(u64::from_le_bytes)
+                        .ok_or(InvalidInstruction)?;
+                    match tag {
+                        3 => Self::Transfer { amount },
+                        4 => Self::Approve { amount },
+                        7 => Self::MintTo { amount },
+                        8 => Self::Burn { amount },
+                        _ => unreachable!(),
+                    }
+                }
+                5 => Self::Revoke,
+                6 => {
+                    let (authority_type, rest) = rest
+                        .split_first()
+                        .ok_or_else(|| ProgramError::from(InvalidInstruction))
+                        .and_then(|(&t, rest)| Ok((AuthorityType::from(t)?, rest)))?;
+                    let (new_authority, _rest) = Self::unpack_pubkey_option(rest)?;
+
+                    Self::SetAuthority {
+                        authority_type,
+                        new_authority,
+                    }
+                }
+                9 => Self::CloseAccount,
+                10 => Self::FreezeAccount,
+                11 => Self::ThawAccount,
+                12 => {
+                    let (amount, rest) = rest.split_at(8);
+                    let amount = amount
+                        .try_into()
+                        .ok()
+                        .map(u64::from_le_bytes)
+                        .ok_or(InvalidInstruction)?;
+                    let (&decimals, _rest) = rest.split_first().ok_or(InvalidInstruction)?;
+
+                    Self::TransferChecked { amount, decimals }
+                }
+                13 => {
+                    let (amount, rest) = rest.split_at(8);
+                    let amount = amount
+                        .try_into()
+                        .ok()
+                        .map(u64::from_le_bytes)
+                        .ok_or(InvalidInstruction)?;
+                    let (&decimals, _rest) = rest.split_first().ok_or(InvalidInstruction)?;
+
+                    Self::ApproveChecked { amount, decimals }
+                }
+                14 => {
+                    let (amount, rest) = rest.split_at(8);
+                    let amount = amount
+                        .try_into()
+                        .ok()
+                        .map(u64::from_le_bytes)
+                        .ok_or(InvalidInstruction)?;
+                    let (&decimals, _rest) = rest.split_first().ok_or(InvalidInstruction)?;
+
+                    Self::MintToChecked { amount, decimals }
+                }
+                15 => {
+                    let (amount, rest) = rest.split_at(8);
+                    let amount = amount
+                        .try_into()
+                        .ok()
+                        .map(u64::from_le_bytes)
+                        .ok_or(InvalidInstruction)?;
+                    let (&decimals, _rest) = rest.split_first().ok_or(InvalidInstruction)?;
+
+                    Self::BurnChecked { amount, decimals }
+                }
+                16 => {
+                    let (owner, _rest) = Self::unpack_pubkey(rest)?;
+                    Self::InitializeAccount2 { owner }
+                }
+                17 => Self::SyncNative,
+                18 => {
+                    let (owner, _rest) = Self::unpack_pubkey(rest)?;
+                    Self::InitializeAccount3 { owner }
+                }
+                19 => {
+                    let &m = rest.get(0).ok_or(InvalidInstruction)?;
+                    Self::InitializeMultisig2 { m }
+                }
+                20 => {
+                    let (&decimals, rest) = rest.split_first().ok_or(InvalidInstruction)?;
+                    let (mint_authority, rest) = Self::unpack_pubkey(rest)?;
+                    let (freeze_authority, _rest) = Self::unpack_pubkey_option(rest)?;
+                    Self::InitializeMint2 {
+                        mint_authority,
+                        freeze_authority,
+                        decimals,
+                    }
+                }
+                _ => return Err(TokenError::InvalidInstruction.into()),
+            })
+        }
+
+        fn unpack_pubkey(input: &[u8]) -> Result<(Pubkey, &[u8]), ProgramError> {
+            if input.len() >= 32 {
+                let (key, rest) = input.split_at(32);
+                let pk = Pubkey::new(key);
+                Ok((pk, rest))
+            } else {
+                Err(TokenError::InvalidInstruction.into())
+            }
+        }
+
+        fn unpack_pubkey_option(input: &[u8]) -> Result<(COption<Pubkey>, &[u8]), ProgramError> {
+            match input.split_first() {
+                Option::Some((&0, rest)) => Ok((COption::None, rest)),
+                Option::Some((&1, rest)) if rest.len() >= 32 => {
+                    let (key, rest) = rest.split_at(32);
+                    let pk = Pubkey::new(key);
+                    Ok((COption::Some(pk), rest))
+                }
+                _ => Err(TokenError::InvalidInstruction.into()),
+            }
+        }
     }
 }

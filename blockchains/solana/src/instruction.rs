@@ -7,6 +7,7 @@ use crate::Read;
 use serde_json::Value;
 use crate::solana_lib::solana_program::stake::instruction::StakeInstruction;
 use crate::solana_lib::solana_program::system_instruction::SystemInstruction;
+use crate::solana_lib::solana_program::vote::instruction::VoteInstruction;
 
 pub struct Instruction {
     pub(crate) program_index: u8,
@@ -78,19 +79,19 @@ impl Instruction {
             }
             SupportedProgram::TokenProgram => {
                 let instruction =
-                    spl_token::instruction::TokenInstruction::unpack(self.data.clone().as_slice())
+                    crate::solana_lib::spl::token::instruction::TokenInstruction::unpack(self.data.clone().as_slice())
                         .map_err(|e| ProgramError(e.to_string()))?;
                 resolvers::token::resolve(instruction, accounts)
             }
             SupportedProgram::TokenSwapProgramV3 => {
-                let instruction = spl_token_swap::instruction::SwapInstruction::unpack(
+                let instruction = crate::solana_lib::spl::token_swap::instruction::SwapInstruction::unpack(
                     self.data.clone().as_slice(),
                 )
                 .map_err(|e| ProgramError(e.to_string()))?;
                 resolvers::token_swap_v3::resolve(instruction, accounts)
             }
             SupportedProgram::TokenLendingProgram => {
-                let instruction = spl_token_lending::instruction::LendingInstruction::unpack(
+                let instruction = crate::solana_lib::spl::token_lending::instruction::LendingInstruction::unpack(
                     self.data.clone().as_slice(),
                 )
                 .map_err(|e| ProgramError(e.to_string()))?;
@@ -104,7 +105,7 @@ impl Instruction {
     ) -> Result<T> {
         // Copied from solana_sdk
         // pub const PACKET_DATA_SIZE: usize = 1280 - 40 - 8;
-        crate::solana_lib::solana_program::limited_deserialize(
+        crate::solana_lib::solana_program::program_utils::limited_deserialize(
             instruction_data.as_slice(),
             1280 - 40 - 8,
         )

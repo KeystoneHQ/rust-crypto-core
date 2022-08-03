@@ -1,8 +1,11 @@
+pub mod curve;
+
 pub mod error {
     use thiserror::Error;
-    use num_derive::FromPrimitive;
+    use crate::solana_lib::solana_program::program_error::ProgramError;
+
     /// Errors that may be returned by the TokenSwap program.
-    #[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
+    #[derive(Clone, Debug, Eq, Error, PartialEq)]
     pub enum SwapError {
         // 0.
         /// The account cannot be initialized because it is already being used.
@@ -101,251 +104,23 @@ pub mod error {
         UnsupportedCurveOperation,
     }
 
-}
-
-pub mod curve {
-    pub mod calculator {
-        use std::fmt::Debug;
-        use crate::solana_lib::spl::token_swap::error::SwapError;
-
-        pub const INITIAL_SWAP_POOL_AMOUNT: u128 = 1_000_000_000;
-
-        /// Trait for packing of trait objects, required because structs that implement
-        /// `Pack` cannot be used as trait objects (as `dyn Pack`).
-        pub trait DynPack {
-            /// Only required function is to pack given a trait object
-            fn pack_into_slice(&self, dst: &mut [u8]);
-        }
-
-
-        /// The direction of a trade, since curves can be specialized to treat each
-        /// token differently (by adding offsets or weights)
-        #[cfg_attr(feature = "fuzz", derive(Arbitrary))]
-        #[repr(C)]
-        #[derive(Clone, Copy, Debug, PartialEq)]
-        pub enum TradeDirection {
-            /// Input token A, output token B
-            AtoB,
-            /// Input token B, output token A
-            BtoA,
-        }
-
-        /// The direction to round.  Used for pool token to trading token conversions to
-        /// avoid losing value on any deposit or withdrawal.
-        #[repr(C)]
-        #[derive(Clone, Copy, Debug, PartialEq)]
-        pub enum RoundDirection {
-            /// Floor the value, ie. 1.9 => 1, 1.1 => 1, 1.5 => 1
-            Floor,
-            /// Ceiling the value, ie. 1.9 => 2, 1.1 => 2, 1.5 => 2
-            Ceiling,
-        }
-
-        /// Encodes results of depositing both sides at once
-        #[derive(Debug, PartialEq)]
-        pub struct TradingTokenResult {
-            /// Amount of token A
-            pub token_a_amount: u128,
-            /// Amount of token B
-            pub token_b_amount: u128,
-        }
-
-
-        /// Trait representing operations required on a swap curve
-        pub trait CurveCalculator: Debug + DynPack {
-            /// Calculate how much destination token will be provided given an amount
-            /// of source token.
-            fn swap_without_fees(
-                &self,
-                source_amount: u128,
-                swap_source_amount: u128,
-                swap_destination_amount: u128,
-                trade_direction: TradeDirection,
-            ) -> Option<SwapWithoutFeesResult>;
-
-            /// Get the supply for a new pool
-            /// The default implementation is a Balancer-style fixed initial supply
-            fn new_pool_supply(&self) -> u128 {
-                INITIAL_SWAP_POOL_AMOUNT
-            }
-
-            /// Get the amount of trading tokens for the given amount of pool tokens,
-            /// provided the total trading tokens and supply of pool tokens.
-            fn pool_tokens_to_trading_tokens(
-                &self,
-                pool_tokens: u128,
-                pool_token_supply: u128,
-                swap_token_a_amount: u128,
-                swap_token_b_amount: u128,
-                round_direction: RoundDirection,
-            ) -> Option<TradingTokenResult>;
-
-            /// Get the amount of pool tokens for the deposited amount of token A or B.
-            ///
-            /// This is used for single-sided deposits.  It essentially performs a swap
-            /// followed by a deposit.  Because a swap is implicitly performed, this will
-            /// change the spot price of the pool.
-            ///
-            /// See more background for the calculation at:
-            ///
-            /// <https://balancer.finance/whitepaper/#single-asset-deposit-withdrawal>
-            fn deposit_single_token_type(
-                &self,
-                source_amount: u128,
-                swap_token_a_amount: u128,
-                swap_token_b_amount: u128,
-                pool_supply: u128,
-                trade_direction: TradeDirection,
-            ) -> Option<u128>;
-
-            /// Get the amount of pool tokens for the withdrawn amount of token A or B.
-            ///
-            /// This is used for single-sided withdrawals and owner trade fee
-            /// calculation. It essentially performs a withdrawal followed by a swap.
-            /// Because a swap is implicitly performed, this will change the spot price
-            /// of the pool.
-            ///
-            /// See more background for the calculation at:
-            ///
-            /// <https://balancer.finance/whitepaper/#single-asset-deposit-withdrawal>
-            fn withdraw_single_token_type_exact_out(
-                &self,
-                source_amount: u128,
-                swap_token_a_amount: u128,
-                swap_token_b_amount: u128,
-                pool_supply: u128,
-                trade_direction: TradeDirection,
-            ) -> Option<u128>;
-
-            /// Validate that the given curve has no invalid parameters
-            fn validate(&self) -> Result<(), SwapError>;
-
-            /// Validate the given supply on initialization. This is useful for curves
-            /// that allow zero supply on one or both sides, since the standard constant
-            /// product curve must have a non-zero supply on both sides.
-            fn validate_supply(&self, token_a_amount: u64, token_b_amount: u64) -> Result<(), SwapError> {
-                if token_a_amount == 0 {
-                    return Err(SwapError::EmptySupply);
-                }
-                if token_b_amount == 0 {
-                    return Err(SwapError::EmptySupply);
-                }
-                Ok(())
-            }
-
-            /// Some curves function best and prevent attacks if we prevent deposits
-            /// after initialization.  For example, the offset curve in `offset.rs`,
-            /// which fakes supply on one side of the swap, allows the swap creator
-            /// to steal value from all other depositors.
-            fn allows_deposits(&self) -> bool {
-                true
-            }
-
-            /// Calculates the total normalized value of the curve given the liquidity
-            /// parameters.
-            ///
-            /// This value must have the dimension of `tokens ^ 1` For example, the
-            /// standard Uniswap invariant has dimension `tokens ^ 2` since we are
-            /// multiplying two token values together.  In order to normalize it, we
-            /// also need to take the square root.
-            ///
-            /// This is useful for testing the curves, to make sure that value is not
-            /// lost on any trade.  It can also be used to find out the relative value
-            /// of pool tokens or liquidity tokens.
-            fn normalized_value(
-                &self,
-                swap_token_a_amount: u128,
-                swap_token_b_amount: u128,
-            ) -> Option<PreciseNumber>;
-        }
-
-        /// Encodes all results of swapping from a source token to a destination token
-        #[derive(Debug, PartialEq)]
-        pub struct SwapWithoutFeesResult {
-            /// Amount of source token swapped
-            pub source_amount_swapped: u128,
-            /// Amount of destination token swapped
-            pub destination_amount_swapped: u128,
-        }
-
-    }
-
-    pub mod base {
-        use std::sync::Arc;
-        use crate::solana_lib::spl::token_swap::curve::calculator::CurveCalculator;
-
-        /// Curve types supported by the token-swap program.
-        #[cfg_attr(feature = "fuzz", derive(Arbitrary))]
-        #[repr(C)]
-        #[derive(Clone, Copy, Debug, PartialEq)]
-        pub enum CurveType {
-            /// Uniswap-style constant product curve, invariant = token_a_amount * token_b_amount
-            ConstantProduct,
-            /// Flat line, always providing 1:1 from one token to another
-            ConstantPrice,
-            /// Stable, like uniswap, but with wide zone of 1:1 instead of one point
-            Stable,
-            /// Offset curve, like Uniswap, but the token B side has a faked offset
-            Offset,
-        }
-
-        /// Concrete struct to wrap around the trait object which performs calculation.
-        #[repr(C)]
-        #[derive(Debug)]
-        pub struct SwapCurve {
-            /// The type of curve contained in the calculator, helpful for outside
-            /// queries
-            pub curve_type: CurveType,
-            /// The actual calculator, represented as a trait object to allow for many
-            /// different types of curves
-            pub calculator: Arc<dyn CurveCalculator + Sync + Send>,
-        }
-
-    }
-    pub mod fees {
-        /// Encapsulates all fee information and calculations for swap operations
-        #[derive(Clone, Debug, Default, PartialEq)]
-        pub struct Fees {
-            /// Trade fees are extra token amounts that are held inside the token
-            /// accounts during a trade, making the value of liquidity tokens rise.
-            /// Trade fee numerator
-            pub trade_fee_numerator: u64,
-            /// Trade fee denominator
-            pub trade_fee_denominator: u64,
-
-            /// Owner trading fees are extra token amounts that are held inside the token
-            /// accounts during a trade, with the equivalent in pool tokens minted to
-            /// the owner of the program.
-            /// Owner trade fee numerator
-            pub owner_trade_fee_numerator: u64,
-            /// Owner trade fee denominator
-            pub owner_trade_fee_denominator: u64,
-
-            /// Owner withdraw fees are extra liquidity pool token amounts that are
-            /// sent to the owner on every withdrawal.
-            /// Owner withdraw fee numerator
-            pub owner_withdraw_fee_numerator: u64,
-            /// Owner withdraw fee denominator
-            pub owner_withdraw_fee_denominator: u64,
-
-            /// Host fees are a proportion of the owner trading fees, sent to an
-            /// extra account provided during the trade.
-            /// Host trading fee numerator
-            pub host_fee_numerator: u64,
-            /// Host trading fee denominator
-            pub host_fee_denominator: u64,
+    impl From<SwapError> for ProgramError {
+        fn from(e: SwapError) -> Self {
+            ProgramError::Custom(e as u32)
         }
     }
 }
-
 
 pub mod instruction {
+    use crate::solana_lib::solana_program::program_error::ProgramError;
+    use crate::solana_lib::solana_program::program_pack::Pack;
     use crate::solana_lib::spl::token_swap::curve::base::SwapCurve;
     use crate::solana_lib::spl::token_swap::curve::fees::Fees;
+    use crate::solana_lib::spl::token_swap::error::SwapError;
 
     /// Initialize instruction data
     #[repr(C)]
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug)]
     pub struct Initialize {
         /// all swap fees
         pub fees: Fees,
@@ -419,7 +194,7 @@ pub mod instruction {
 
     /// Instructions supported by the token swap program.
     #[repr(C)]
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug)]
     pub enum SwapInstruction {
         ///   Initializes a new swap
         ///
@@ -512,6 +287,84 @@ pub mod instruction {
         ///   8. `[writable]` Fee account, to receive withdrawal fees
         ///   9. `[]` Token program id
         WithdrawSingleTokenTypeExactAmountOut(WithdrawSingleTokenTypeExactAmountOut),
+    }
+
+    impl SwapInstruction {
+        /// Unpacks a byte buffer into a [SwapInstruction](enum.SwapInstruction.html).
+        pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
+            let (&tag, rest) = input.split_first().ok_or(SwapError::InvalidInstruction)?;
+            Ok(match tag {
+                0 => {
+                    if rest.len() >= Fees::LEN {
+                        let (fees, rest) = rest.split_at(Fees::LEN);
+                        let fees = Fees::unpack_unchecked(fees)?;
+                        let swap_curve = SwapCurve::unpack_unchecked(rest)?;
+                        Self::Initialize(Initialize { fees, swap_curve })
+                    } else {
+                        return Err(SwapError::InvalidInstruction.into());
+                    }
+                }
+                1 => {
+                    let (amount_in, rest) = Self::unpack_u64(rest)?;
+                    let (minimum_amount_out, _rest) = Self::unpack_u64(rest)?;
+                    Self::Swap(Swap {
+                        amount_in,
+                        minimum_amount_out,
+                    })
+                }
+                2 => {
+                    let (pool_token_amount, rest) = Self::unpack_u64(rest)?;
+                    let (maximum_token_a_amount, rest) = Self::unpack_u64(rest)?;
+                    let (maximum_token_b_amount, _rest) = Self::unpack_u64(rest)?;
+                    Self::DepositAllTokenTypes(DepositAllTokenTypes {
+                        pool_token_amount,
+                        maximum_token_a_amount,
+                        maximum_token_b_amount,
+                    })
+                }
+                3 => {
+                    let (pool_token_amount, rest) = Self::unpack_u64(rest)?;
+                    let (minimum_token_a_amount, rest) = Self::unpack_u64(rest)?;
+                    let (minimum_token_b_amount, _rest) = Self::unpack_u64(rest)?;
+                    Self::WithdrawAllTokenTypes(WithdrawAllTokenTypes {
+                        pool_token_amount,
+                        minimum_token_a_amount,
+                        minimum_token_b_amount,
+                    })
+                }
+                4 => {
+                    let (source_token_amount, rest) = Self::unpack_u64(rest)?;
+                    let (minimum_pool_token_amount, _rest) = Self::unpack_u64(rest)?;
+                    Self::DepositSingleTokenTypeExactAmountIn(DepositSingleTokenTypeExactAmountIn {
+                        source_token_amount,
+                        minimum_pool_token_amount,
+                    })
+                }
+                5 => {
+                    let (destination_token_amount, rest) = Self::unpack_u64(rest)?;
+                    let (maximum_pool_token_amount, _rest) = Self::unpack_u64(rest)?;
+                    Self::WithdrawSingleTokenTypeExactAmountOut(WithdrawSingleTokenTypeExactAmountOut {
+                        destination_token_amount,
+                        maximum_pool_token_amount,
+                    })
+                }
+                _ => return Err(SwapError::InvalidInstruction.into()),
+            })
+        }
+
+        fn unpack_u64(input: &[u8]) -> Result<(u64, &[u8]), ProgramError> {
+            if input.len() >= 8 {
+                let (amount, rest) = input.split_at(8);
+                let amount = amount
+                    .get(..8)
+                    .and_then(|slice| slice.try_into().ok())
+                    .map(u64::from_le_bytes)
+                    .ok_or(SwapError::InvalidInstruction)?;
+                Ok((amount, rest))
+            } else {
+                Err(SwapError::InvalidInstruction.into())
+            }
+        }
     }
 
 }

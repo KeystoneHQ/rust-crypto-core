@@ -1,8 +1,30 @@
 pub mod program_option;
 pub mod stake;
-pub mod clock;
 pub mod system_instruction;
 pub mod vote;
+pub mod program_pack;
+
+pub mod clock {
+    pub type Slot = u64;
+
+    /// Uniquely distinguishes every version of a slot, even if the
+    /// slot number is the same, i.e. duplicate slots
+    pub type BankId = u64;
+
+    /// Epoch is a unit of time a given leader schedule is honored,
+    ///  some number of Slots.
+    pub type Epoch = u64;
+
+    /// SlotIndex is an index to the slots of a epoch
+    pub type SlotIndex = u64;
+
+    /// SlotCount is the number of slots in a epoch
+    pub type SlotCount = u64;
+
+    /// UnixTimestamp is an approximate measure of real-world time,
+    /// expressed as Unix time (ie. seconds since the Unix epoch)
+    pub type UnixTimestamp = i64;
+}
 
 pub mod program_utils {
     use bincode::Options;
@@ -24,6 +46,7 @@ pub mod program_utils {
 }
 
 pub mod instruction {
+    use thiserror::Error;
     /// Reasons the runtime might have rejected an instruction.
     ///
     /// Instructions errors are included in the bank hashes and therefore are
@@ -265,7 +288,9 @@ pub mod instruction {
 
 pub mod pubkey {
     use std::fmt;
-    use serde::{Deserialize, Serialize};
+    use serde_derive::{Serialize, Deserialize};
+
+    pub const PUBKEY_BYTES: usize = 32;
 
     #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
     pub struct Pubkey(pub(crate) [u8; 32]);
@@ -281,9 +306,19 @@ pub mod pubkey {
             write!(f, "{}", bs58::encode(self.0).into_string())
         }
     }
+
+    impl Pubkey {
+        pub fn new(pubkey_vec: &[u8]) -> Self {
+            Self(
+                <[u8; 32]>::try_from(<&[u8]>::clone(&pubkey_vec))
+                    .expect("Slice must be the same length as a Pubkey"),
+            )
+        }
+    }
 }
 
 pub mod hash {
+    use serde_derive::{Serialize, Deserialize};
     use std::fmt;
 
     pub const HASH_BYTES: usize = 32;
@@ -301,5 +336,57 @@ pub mod hash {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(f, "{}", bs58::encode(self.0).into_string())
         }
+    }
+}
+
+pub mod program_error {
+    use thiserror::Error;
+    use serde_derive::{Serialize, Deserialize};
+    /// Reasons the program may fail
+    #[derive(Clone, Debug, Deserialize, Eq, Error, PartialEq, Serialize)]
+    pub enum ProgramError {
+        /// Allows on-chain programs to implement program-specific error types and see them returned
+        /// by the Solana runtime. A program-specific error may be any type that is represented as
+        /// or serialized to a u32 integer.
+        #[error("Custom program error: {0:#x}")]
+        Custom(u32),
+        #[error("The arguments provided to a program instruction where invalid")]
+        InvalidArgument,
+        #[error("An instruction's data contents was invalid")]
+        InvalidInstructionData,
+        #[error("An account's data contents was invalid")]
+        InvalidAccountData,
+        #[error("An account's data was too small")]
+        AccountDataTooSmall,
+        #[error("An account's balance was too small to complete the instruction")]
+        InsufficientFunds,
+        #[error("The account did not have the expected program id")]
+        IncorrectProgramId,
+        #[error("A signature was required but not found")]
+        MissingRequiredSignature,
+        #[error("An initialize instruction was sent to an account that has already been initialized")]
+        AccountAlreadyInitialized,
+        #[error("An attempt to operate on an account that hasn't been initialized")]
+        UninitializedAccount,
+        #[error("The instruction expected additional account keys")]
+        NotEnoughAccountKeys,
+        #[error("Failed to borrow a reference to account data, already borrowed")]
+        AccountBorrowFailed,
+        #[error("Length of the seed is too long for address generation")]
+        MaxSeedLengthExceeded,
+        #[error("Provided seeds do not result in a valid address")]
+        InvalidSeeds,
+        #[error("IO Error: {0}")]
+        BorshIoError(String),
+        #[error("An account does not have enough lamports to be rent-exempt")]
+        AccountNotRentExempt,
+        #[error("Unsupported sysvar")]
+        UnsupportedSysvar,
+        #[error("Provided owner is not allowed")]
+        IllegalOwner,
+        #[error("Account data allocation exceeded the maximum accounts data size limit")]
+        MaxAccountsDataSizeExceeded,
+        #[error("Account data reallocation was invalid")]
+        InvalidRealloc,
     }
 }

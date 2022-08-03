@@ -1,6 +1,7 @@
 pub mod state {
     use crate::solana_lib::solana_program::clock::{Epoch, UnixTimestamp};
     use crate::solana_lib::solana_program::pubkey::Pubkey;
+    use serde_derive::{Serialize, Deserialize};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
     pub struct Authorized {
@@ -32,6 +33,7 @@ pub mod instruction {
     use crate::solana_lib::solana_program::clock::{Epoch, UnixTimestamp};
     use crate::solana_lib::solana_program::pubkey::Pubkey;
     use crate::solana_lib::solana_program::stake::state::{Authorized, Lockup, StakeAuthorize};
+    use serde_derive::{Serialize, Deserialize};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
     pub struct LockupArgs {

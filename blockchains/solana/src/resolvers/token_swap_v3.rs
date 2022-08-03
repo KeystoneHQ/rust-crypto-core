@@ -2,10 +2,7 @@ use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
 use serde_json::{json, Value};
 use crate::solana_lib::spl::token_swap::curve::base::CurveType;
-use crate::solana_lib::spl::token_swap::instruction::{
-    DepositAllTokenTypes, DepositSingleTokenTypeExactAmountIn, Initialize, Swap, SwapInstruction,
-    WithdrawAllTokenTypes, WithdrawSingleTokenTypeExactAmountOut,
-};
+use crate::solana_lib::spl::token_swap::instruction::{DepositAllTokenTypes, DepositSingleTokenTypeExactAmountIn, Initialize, Swap, SwapInstruction, WithdrawAllTokenTypes, WithdrawSingleTokenTypeExactAmountOut};
 
 static PROGRAM_NAME: &str = "TokenSwapV3";
 

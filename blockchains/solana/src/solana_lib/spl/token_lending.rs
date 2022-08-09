@@ -1,6 +1,6 @@
 pub mod error {
-    use thiserror::Error;
     use crate::solana_lib::solana_program::program_error::ProgramError;
+    use thiserror::Error;
 
     /// Errors that may be returned by the TokenLending program.
     #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -210,7 +210,6 @@ pub mod state {
         /// Amount of fee going to host account, if provided in liquidate and repay
         pub host_fee_percentage: u8,
     }
-
 }
 
 pub mod instruction {
@@ -604,7 +603,6 @@ pub mod instruction {
                     return Err(LendingError::InstructionUnpackError.into());
                 }
             })
-
         }
 
         fn unpack_u64(input: &[u8]) -> Result<(u64, &[u8]), ProgramError> {
@@ -655,6 +653,4 @@ pub mod instruction {
             Ok((pk, rest))
         }
     }
-
-
 }

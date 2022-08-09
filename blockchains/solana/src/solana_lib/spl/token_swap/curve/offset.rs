@@ -1,10 +1,16 @@
-use arrayref::{array_mut_ref, array_ref};
 use crate::solana_lib::solana_program::program_error::ProgramError;
 use crate::solana_lib::solana_program::program_pack::{IsInitialized, Pack, Sealed};
-use crate::solana_lib::spl::token_swap::curve::calculator::{CurveCalculator, DynPack, RoundDirection, SwapWithoutFeesResult, TradeDirection, TradingTokenResult};
-use crate::solana_lib::spl::token_swap::curve::constant_product::{deposit_single_token_type, normalized_value, pool_tokens_to_trading_tokens, swap, withdraw_single_token_type_exact_out};
+use crate::solana_lib::spl::token_swap::curve::calculator::{
+    CurveCalculator, DynPack, RoundDirection, SwapWithoutFeesResult, TradeDirection,
+    TradingTokenResult,
+};
+use crate::solana_lib::spl::token_swap::curve::constant_product::{
+    deposit_single_token_type, normalized_value, pool_tokens_to_trading_tokens, swap,
+    withdraw_single_token_type_exact_out,
+};
 use crate::solana_lib::spl::token_swap::curve::math::PreciseNumber;
 use crate::solana_lib::spl::token_swap::error::SwapError;
+use arrayref::{array_mut_ref, array_ref};
 
 /// Offset curve, uses ConstantProduct under the hood, but adds an offset to
 /// one side on swap calculations

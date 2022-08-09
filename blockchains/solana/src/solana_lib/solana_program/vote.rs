@@ -1,9 +1,9 @@
 pub mod state {
-    use std::collections::VecDeque;
     use crate::solana_lib::solana_program::clock::{Slot, UnixTimestamp};
     use crate::solana_lib::solana_program::hash::Hash;
     use crate::solana_lib::solana_program::pubkey::Pubkey;
-    use serde_derive::{Serialize, Deserialize};
+    use serde_derive::{Deserialize, Serialize};
+    use std::collections::VecDeque;
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
     pub struct VoteInit {
@@ -69,12 +69,14 @@ pub mod state {
     }
 }
 
-
 pub mod instruction {
     use crate::solana_lib::solana_program::hash::Hash;
     use crate::solana_lib::solana_program::pubkey::Pubkey;
-    use crate::solana_lib::solana_program::vote::state::{Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit, VoteStateUpdate};
-    use serde_derive::{Serialize, Deserialize};
+    use crate::solana_lib::solana_program::vote::state::{
+        Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit,
+        VoteStateUpdate,
+    };
+    use serde_derive::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
     pub enum VoteInstruction {

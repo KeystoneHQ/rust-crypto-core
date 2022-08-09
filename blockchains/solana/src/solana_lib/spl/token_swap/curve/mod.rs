@@ -1,7 +1,7 @@
 pub mod constant_price;
 pub mod constant_product;
-pub mod stable;
 pub mod offset;
+pub mod stable;
 
 pub mod fees;
 
@@ -77,7 +77,6 @@ pub mod math {
             Some((quotient, rhs))
         }
     }
-
 
     type InnerUint = U256;
 
@@ -324,7 +323,8 @@ pub mod math {
             let mut negative = false;
             for k in 1..max_iterations {
                 let k = Self::new(k)?;
-                let (current_exponent, current_exponent_negative) = exponent_plus_one.unsigned_sub(&k);
+                let (current_exponent, current_exponent_negative) =
+                    exponent_plus_one.unsigned_sub(&k);
                 term = term.checked_mul(&current_exponent)?;
                 term = term.checked_mul(&x_minus_a)?;
                 term = term.checked_div(&k)?;
@@ -361,8 +361,10 @@ pub mod math {
             if remainder_exponent.value == InnerUint::from(0) {
                 return Some(precise_whole);
             }
-            let precise_remainder = self
-                .checked_pow_approximation(&remainder_exponent, Self::MAX_APPROXIMATION_ITERATIONS)?;
+            let precise_remainder = self.checked_pow_approximation(
+                &remainder_exponent,
+                Self::MAX_APPROXIMATION_ITERATIONS,
+            )?;
             precise_whole.checked_mul(&precise_remainder)
         }
 
@@ -436,5 +438,4 @@ pub mod math {
             self.newtonian_root_approximation(&two, guess, Self::MAX_APPROXIMATION_ITERATIONS)
         }
     }
-
 }

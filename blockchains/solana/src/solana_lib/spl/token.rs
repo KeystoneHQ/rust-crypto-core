@@ -1,6 +1,6 @@
 pub mod error {
-    use thiserror::Error;
     use crate::solana_lib::solana_program::program_error::ProgramError;
+    use thiserror::Error;
 
     /// Errors that may be returned by the Token program.
     #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -121,7 +121,6 @@ pub mod instruction {
             }
         }
     }
-
 
     /// Instructions supported by the token program.
     #[repr(C)]

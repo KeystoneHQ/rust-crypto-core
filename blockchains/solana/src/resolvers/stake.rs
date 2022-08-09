@@ -1,9 +1,12 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
 use crate::solana_lib::solana_program::pubkey::Pubkey;
-use crate::solana_lib::solana_program::stake::instruction::{AuthorizeCheckedWithSeedArgs, AuthorizeWithSeedArgs, LockupArgs, LockupCheckedArgs, StakeInstruction};
+use crate::solana_lib::solana_program::stake::instruction::{
+    AuthorizeCheckedWithSeedArgs, AuthorizeWithSeedArgs, LockupArgs, LockupCheckedArgs,
+    StakeInstruction,
+};
 use crate::solana_lib::solana_program::stake::state::{Authorized, Lockup, StakeAuthorize};
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "Stake";
 
@@ -34,10 +37,12 @@ pub fn resolve(instruction: StakeInstruction, accounts: Vec<String>) -> Result<V
             PROGRAM_NAME,
             "GetMinimumDelegation",
             json!({}),
+            json!({}),
         )),
         StakeInstruction::DeactivateDelinquent => Ok(template_instruction(
             PROGRAM_NAME,
             "DeactivateDelinquent",
+            json!({}),
             json!({}),
         )),
     }
@@ -53,8 +58,8 @@ fn resolve_initialize(
         "{}.stake_account",
         method_name
     )))?;
-    let rent_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.rent_sysvar",
+    let sysvar_rent = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_rent",
         method_name
     )))?;
     let staker = authorized.staker.to_string();
@@ -67,7 +72,19 @@ fn resolve_initialize(
         method_name,
         json!({
             "stake_account": stake_account,
-            "rent_sysvar": rent_sysvar,
+            "sysvar_rent": sysvar_rent,
+            "authorized": {
+                "staker": staker,
+                "withdrawer": withdrawer,
+            },
+            "lockup": {
+                "timestamp": unix_timestamp,
+                "epoch": epoch,
+                "custodian": custodian
+            }
+        }),
+        json!({
+            "stake_account": stake_account,
             "authorized": {
                 "staker": staker,
                 "withdrawer": withdrawer,
@@ -91,14 +108,15 @@ fn resolve_authorize(
         "{}.stake_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let authority = accounts
-        .get(2)
-        .ok_or(SolanaError::AccountNotFound(format!("Authorize.authority")))?;
-    let new_authorized_pubkey = pubkey.to_string();
+    let old_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "Authorize.old_authority_pubkey"
+    )))?;
+    let lockup_authority_pubkey = accounts.get(3);
+    let new_authority_pubkey = pubkey.to_string();
     let authorize_type = match stake_authorize {
         StakeAuthorize::Staker => "staker",
         StakeAuthorize::Withdrawer => "withdrawer",
@@ -108,43 +126,62 @@ fn resolve_authorize(
         method_name,
         json!({
             "stake_account": stake_account,
-            "clock_sysvar": clock_sysvar,
-            "authority": authority,
-            "new_authorized_pubkey": new_authorized_pubkey,
+            "sysvar_clock": sysvar_clock,
+            "old_authority_pubkey": old_authority_pubkey,
+            "lockup_authority_pubkey": lockup_authority_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
+            "authorize_type": authorize_type,
+        }),
+        json!({
+            "stake_account": stake_account,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
             "authorize_type": authorize_type,
         }),
     ))
 }
 
 fn resolve_delegate_stake(accounts: Vec<String>) -> Result<Value> {
+    let method_name = "DelegateStake";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "DelegateStake.stake_account"
+        "{}.stake_account",
+        method_name
     )))?;
     let vote_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "DelegateStake.vote_account"
+        "{}.vote_account",
+        method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "DelegateStake.clock_sysvar"
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
+        method_name
     )))?;
-    let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "DelegateStake.stake_history_sysvar"
+    let sysvar_stake_history = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_stake_history",
+        method_name
     )))?;
     let config_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "DelegateStake.config_account"
+        "{}.config_account",
+        method_name
     )))?;
-    let authority = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
-        "DelegateStake.authority"
+    let stake_authority_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.stake_authority_pubkey",
+        method_name
     )))?;
     Ok(template_instruction(
         PROGRAM_NAME,
-        "DelegateStake",
+        method_name,
         json!({
             "stake_account": stake_account,
             "vote_account": vote_account,
-            "clock_sysvar": clock_sysvar,
-            "stake_history_sysvar": stake_history_sysvar,
+            "sysvar_clock": sysvar_clock,
+            "sysvar_stake_history": sysvar_stake_history,
             "config_account": config_account,
-            "authority": authority,
+            "stake_authority_pubkey": stake_authority_pubkey,
+        }),
+        json!({
+            "stake_account": stake_account,
+            "vote_account": vote_account,
+            "config_account": config_account,
         }),
     ))
 }
@@ -159,8 +196,8 @@ fn resolve_split(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         "{}.target_account",
         method_name
     )))?;
-    let stake_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.stake_authority",
+    let stake_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.stake_authority_pubkey",
         method_name
     )))?;
     let amount = lamports.to_string();
@@ -170,7 +207,12 @@ fn resolve_split(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         json!({
             "stake_account": stake_account,
             "target_account": target_account,
-            "stake_authority": stake_authority,
+            "stake_authority_pubkey": stake_authority_pubkey,
+            "amount": amount,
+        }),
+        json!({
+            "stake_account": stake_account,
+            "target_account": target_account,
             "amount": amount,
         }),
     ))
@@ -182,34 +224,38 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         "{}.stake_account",
         method_name
     )))?;
-    let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.recipient_account",
+    let recipient = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.recipient",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.stake_history_sysvar",
+    let sysvar_stake_history = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_stake_history",
         method_name
     )))?;
-    let withdraw_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority",
-        method_name
-    )))?;
-    let stake_authority = accounts.get(5);
+    let withdraw_authority_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(
+        format!("{}.withdraw_authority_pubkey", method_name),
+    ))?;
+    let stake_authority_pubkey = accounts.get(5);
     let amount = lamports.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
             "stake_account": stake_account,
-            "recipient_account": recipient_account,
-            "clock_sysvar": clock_sysvar,
-            "stake_history_sysvar": stake_history_sysvar,
-            "withdraw_authority": withdraw_authority,
-            "stake_authority": stake_authority,
+            "recipient": recipient,
+            "sysvar_clock": sysvar_clock,
+            "sysvar_stake_history": sysvar_stake_history,
+            "withdraw_authority_pubkey": withdraw_authority_pubkey,
+            "stake_authority_pubkey": stake_authority_pubkey,
+            "amount": amount,
+        }),
+        json!({
+            "stake_account": stake_account,
+            "recipient": recipient,
             "amount": amount,
         }),
     ))
@@ -221,12 +267,12 @@ fn resolve_deactivate(accounts: Vec<String>) -> Result<Value> {
         "{}.delegated_stake_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let stake_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.stake_authority",
+    let stake_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.stake_authority_pubkey",
         method_name
     )))?;
     Ok(template_instruction(
@@ -234,8 +280,11 @@ fn resolve_deactivate(accounts: Vec<String>) -> Result<Value> {
         method_name,
         json!({
             "delegated_stake_account": delegated_stake_account,
-            "clock_sysvar": clock_sysvar,
-            "stake_authority": stake_authority,
+            "sysvar_clock": sysvar_clock,
+            "stake_authority_pubkey": stake_authority_pubkey,
+        }),
+        json!({
+            "delegated_stake_account": delegated_stake_account,
         }),
     ))
 }
@@ -246,8 +295,8 @@ fn resolve_set_lockup(accounts: Vec<String>, lockup: LockupArgs) -> Result<Value
         "{}.stake_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let lockup_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lockup_authority_pubkey",
         method_name
     )))?;
     let unix_timestamp = lockup.unix_timestamp;
@@ -258,8 +307,16 @@ fn resolve_set_lockup(accounts: Vec<String>, lockup: LockupArgs) -> Result<Value
         method_name,
         json!({
             "stake_account": stake_account,
-            "clock_sysvar": clock_sysvar,
-            "lockup": {
+            "lockup_authority_pubkey": lockup_authority_pubkey,
+            "new_lockup": {
+                "unix_timestamp": unix_timestamp,
+                "epoch": epoch,
+                "custodian": custodian,
+            }
+        }),
+        json!({
+            "stake_account": stake_account,
+            "new_lockup": {
                 "unix_timestamp": unix_timestamp,
                 "epoch": epoch,
                 "custodian": custodian,
@@ -277,16 +334,16 @@ fn resolve_merge(accounts: Vec<String>) -> Result<Value> {
         "{}.source_stake_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let stake_history_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.stake_history_sysvar",
+    let sysvar_stake_history = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_stake_history",
         method_name
     )))?;
-    let stake_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.stake_authority",
+    let stake_authority_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.stake_authority_pubkey",
         method_name
     )))?;
     Ok(template_instruction(
@@ -295,9 +352,13 @@ fn resolve_merge(accounts: Vec<String>) -> Result<Value> {
         json!({
             "destination_stake_account": destination_stake_account,
             "source_stake_account": source_stake_account,
-            "clock_sysvar": clock_sysvar,
-            "stake_history_sysvar": stake_history_sysvar,
-            "stake_authority": stake_authority,
+            "sysvar_clock": sysvar_clock,
+            "sysvar_stake_history": sysvar_stake_history,
+            "stake_authority_pubkey": stake_authority_pubkey,
+        }),
+        json!({
+            "destination_stake_account": destination_stake_account,
+            "source_stake_account": source_stake_account,
         }),
     ))
 }
@@ -308,20 +369,20 @@ fn resolve_authorize_with_seed(
 ) -> Result<Value> {
     let method_name = "AuthorizeWithSeed";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+        "{}.stake_account",
         method_name
     )))?;
-    let base_key = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let old_base_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_base_pubkey",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let lockup_authority = accounts.get(3);
+    let lockup_authority_pubkey = accounts.get(3);
 
-    let new_authorized_pubkey = args.new_authorized_pubkey.to_string();
+    let new_authority_pubkey = args.new_authorized_pubkey.to_string();
     let stake_authorize = match args.stake_authorize {
         StakeAuthorize::Staker => "staker",
         StakeAuthorize::Withdrawer => "withdrawer",
@@ -332,14 +393,23 @@ fn resolve_authorize_with_seed(
         method_name,
         json!({
             "stake_account": stake_account,
-            "base_key": base_key,
-            "clock_sysvar": clock_sysvar,
-            "lockup_authority": lockup_authority,
-            "authorize_args": {
-                "new_authorized_pubkey": new_authorized_pubkey,
+            "old_base_pubkey": old_base_pubkey,
+            "sysvar_clock": sysvar_clock,
+            "lockup_authority_pubkey": lockup_authority_pubkey,
+            "arguments": {
+                "new_authority_pubkey": new_authority_pubkey,
                 "authorize_type": stake_authorize,
                 "authority_seed": args.authority_seed,
                 "authority_owner": authority_owner,
+            }
+        }),
+        json!({
+            "stake_account": stake_account,
+            "old_base_pubkey": old_base_pubkey,
+            "arguments": {
+                "new_authority_pubkey": new_authority_pubkey,
+                "authorize_type": stake_authorize,
+                "authority_seed": args.authority_seed,
             }
         }),
     ))
@@ -348,29 +418,33 @@ fn resolve_authorize_with_seed(
 fn resolve_initialize_checked(accounts: Vec<String>) -> Result<Value> {
     let method_name = "InitializeChecked";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+        "{}.stake_account",
         method_name
     )))?;
-    let rent_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let sysvar_rent = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_rent",
         method_name
     )))?;
-    let stake_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let stake_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.stake_authority_pubkey",
         method_name
     )))?;
-    let withdraw_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
-        method_name
-    )))?;
+    let withdraw_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+        format!("{}.withdraw_authority_pubkey", method_name),
+    ))?;
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
             "stake_account": stake_account,
-            "rent_sysvar": rent_sysvar,
-            "stake_authority": stake_authority,
-            "withdraw_authority": withdraw_authority,
+            "sysvar_rent": sysvar_rent,
+            "stake_authority_pubkey": stake_authority_pubkey,
+            "withdraw_authority_pubkey": withdraw_authority_pubkey,
+        }),
+        json!({
+            "stake_account": stake_account,
+            "stake_authority_pubkey": stake_authority_pubkey,
+            "withdraw_authority_pubkey": withdraw_authority_pubkey,
         }),
     ))
 }
@@ -381,22 +455,22 @@ fn resolve_authorize_checked(
 ) -> Result<Value> {
     let method_name = "AuthorizeChecked";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+        "{}.stake_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let old_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let old_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_authority_pubkey",
         method_name
     )))?;
-    let new_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let new_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.new_authority_pubkey",
         method_name
     )))?;
-    let lock_authority = accounts.get(4);
+    let lockup_authority_pubkey = accounts.get(4);
     let authority_type = match stake_authorize {
         StakeAuthorize::Staker => "staker",
         StakeAuthorize::Withdrawer => "withdrawer",
@@ -406,10 +480,16 @@ fn resolve_authorize_checked(
         method_name,
         json!({
             "stake_account": stake_account,
-            "clock_sysvar": clock_sysvar,
-            "old_authority": old_authority,
-            "new_authority": new_authority,
-            "lock_authority": lock_authority,
+            "sysvar_clock": sysvar_clock,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
+            "lockup_authority_pubkey": lockup_authority_pubkey,
+            "authority_type": authority_type
+        }),
+        json!({
+            "stake_account": stake_account,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
             "authority_type": authority_type
         }),
     ))
@@ -421,22 +501,22 @@ fn resolve_authorize_checked_with_seed(
 ) -> Result<Value> {
     let method_name = "AuthorizeCheckedWithSeed";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+        "{}.stake_account",
         method_name
     )))?;
-    let old_base_key = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let old_base_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_base_pubkey",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let new_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let new_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.new_authority_pubkey",
         method_name
     )))?;
-    let lock_authority = accounts.get(4);
+    let lockup_authority = accounts.get(4);
     let authority_type = match args.stake_authorize {
         StakeAuthorize::Staker => "staker",
         StakeAuthorize::Withdrawer => "withdrawer",
@@ -448,14 +528,23 @@ fn resolve_authorize_checked_with_seed(
         method_name,
         json!({
             "stake_account": stake_account,
-            "clock_sysvar": clock_sysvar,
-            "old_base_key": old_base_key,
-            "new_authority": new_authority,
-            "lock_authority": lock_authority,
+            "sysvar_clock": sysvar_clock,
+            "old_base_pubkey": old_base_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
+            "lockup_authority": lockup_authority,
             "arguments": {
                 "authority_type": authority_type,
                 "authority_seed": authority_seed,
                 "authority_owner": authority_owner,
+            }
+        }),
+        json!({
+            "stake_account": stake_account,
+            "old_base_pubkey": old_base_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
+            "arguments": {
+                "authority_type": authority_type,
+                "authority_seed": authority_seed,
             }
         }),
     ))
@@ -464,14 +553,14 @@ fn resolve_authorize_checked_with_seed(
 fn resolve_set_lockup_checked(accounts: Vec<String>, args: LockupCheckedArgs) -> Result<Value> {
     let method_name = "SetLockupChecked";
     let stake_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+        "{}.stake_account",
         method_name
     )))?;
-    let authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.destination_stake_account",
+    let lockup_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.authority_pubkey",
         method_name
     )))?;
-    let new_lockup_authority = accounts.get(2);
+    let new_lockup_authority_pubkey = accounts.get(2);
 
     let unix_timestamp = args.unix_timestamp;
     let epoch = args.epoch;
@@ -480,8 +569,17 @@ fn resolve_set_lockup_checked(accounts: Vec<String>, args: LockupCheckedArgs) ->
         method_name,
         json!({
             "stake_account": stake_account,
-            "authority": authority,
-            "new_lockup_authority": new_lockup_authority,
+            "lockup_authority_pubkey": lockup_authority_pubkey,
+            "new_lockup_authority_pubkey": new_lockup_authority_pubkey,
+            "arguments": {
+                "unix_timestamp": unix_timestamp,
+                "epoch": epoch,
+            },
+        }),
+        json!({
+            "stake_account": stake_account,
+            "lockup_authority_pubkey": lockup_authority_pubkey,
+            "new_lockup_authority_pubkey": new_lockup_authority_pubkey,
             "arguments": {
                 "unix_timestamp": unix_timestamp,
                 "epoch": epoch,

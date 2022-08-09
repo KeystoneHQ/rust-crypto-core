@@ -1,8 +1,8 @@
 pub mod program_option;
+pub mod program_pack;
 pub mod stake;
 pub mod system_instruction;
 pub mod vote;
-pub mod program_pack;
 
 pub mod clock {
     pub type Slot = u64;
@@ -27,14 +27,17 @@ pub mod clock {
 }
 
 pub mod program_utils {
-    use bincode::Options;
     use crate::solana_lib::solana_program::instruction::InstructionError;
+    use bincode::Options;
 
     /// Deserialize with a limit based the maximum amount of data a program can expect to get.
     /// This function should be used in place of direct deserialization to help prevent OOM errors
-    pub fn limited_deserialize<T>(instruction_data: &[u8], limit: u64) -> Result<T, InstructionError>
-        where
-            T: serde::de::DeserializeOwned,
+    pub fn limited_deserialize<T>(
+        instruction_data: &[u8],
+        limit: u64,
+    ) -> Result<T, InstructionError>
+    where
+        T: serde::de::DeserializeOwned,
     {
         bincode::options()
             .with_limit(limit)
@@ -283,16 +286,17 @@ pub mod instruction {
         // Note: For any new error added here an equivalent ProgramError and its
         // conversions must also be added
     }
-
 }
 
 pub mod pubkey {
+    use serde_derive::{Deserialize, Serialize};
     use std::fmt;
-    use serde_derive::{Serialize, Deserialize};
 
     pub const PUBKEY_BYTES: usize = 32;
 
-    #[derive(Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+    #[derive(
+        Clone, Copy, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+    )]
     pub struct Pubkey(pub(crate) [u8; 32]);
 
     impl fmt::Debug for Pubkey {
@@ -318,12 +322,14 @@ pub mod pubkey {
 }
 
 pub mod hash {
-    use serde_derive::{Serialize, Deserialize};
+    use serde_derive::{Deserialize, Serialize};
     use std::fmt;
 
     pub const HASH_BYTES: usize = 32;
 
-    #[derive(Serialize, Deserialize, Clone, Copy, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
+    #[derive(
+        Serialize, Deserialize, Clone, Copy, Default, Eq, PartialEq, Ord, PartialOrd, Hash,
+    )]
     pub struct Hash(pub(crate) [u8; HASH_BYTES]);
 
     impl fmt::Debug for Hash {
@@ -340,8 +346,8 @@ pub mod hash {
 }
 
 pub mod program_error {
+    use serde_derive::{Deserialize, Serialize};
     use thiserror::Error;
-    use serde_derive::{Serialize, Deserialize};
     /// Reasons the program may fail
     #[derive(Clone, Debug, Deserialize, Eq, Error, PartialEq, Serialize)]
     pub enum ProgramError {
@@ -364,7 +370,9 @@ pub mod program_error {
         IncorrectProgramId,
         #[error("A signature was required but not found")]
         MissingRequiredSignature,
-        #[error("An initialize instruction was sent to an account that has already been initialized")]
+        #[error(
+            "An initialize instruction was sent to an account that has already been initialized"
+        )]
         AccountAlreadyInitialized,
         #[error("An attempt to operate on an account that hasn't been initialized")]
         UninitializedAccount,

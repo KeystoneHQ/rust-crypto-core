@@ -1,8 +1,8 @@
 pub mod curve;
 
 pub mod error {
-    use thiserror::Error;
     use crate::solana_lib::solana_program::program_error::ProgramError;
+    use thiserror::Error;
 
     /// Errors that may be returned by the TokenSwap program.
     #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -89,7 +89,9 @@ pub mod error {
         #[error("The provided fee does not match the program owner's constraints")]
         InvalidFee,
         /// The provided token program does not match the token program expected by the swap
-        #[error("The provided token program does not match the token program expected by the swap")]
+        #[error(
+            "The provided token program does not match the token program expected by the swap"
+        )]
         IncorrectTokenProgramId,
 
         // 25.
@@ -343,10 +345,12 @@ pub mod instruction {
                 5 => {
                     let (destination_token_amount, rest) = Self::unpack_u64(rest)?;
                     let (maximum_pool_token_amount, _rest) = Self::unpack_u64(rest)?;
-                    Self::WithdrawSingleTokenTypeExactAmountOut(WithdrawSingleTokenTypeExactAmountOut {
-                        destination_token_amount,
-                        maximum_pool_token_amount,
-                    })
+                    Self::WithdrawSingleTokenTypeExactAmountOut(
+                        WithdrawSingleTokenTypeExactAmountOut {
+                            destination_token_amount,
+                            maximum_pool_token_amount,
+                        },
+                    )
                 }
                 _ => return Err(SwapError::InvalidInstruction.into()),
             })
@@ -366,5 +370,4 @@ pub mod instruction {
             }
         }
     }
-
 }

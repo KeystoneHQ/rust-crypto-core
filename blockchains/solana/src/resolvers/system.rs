@@ -1,8 +1,8 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
 use crate::solana_lib::solana_program::pubkey::Pubkey;
-use serde_json::{json, Value};
 use crate::solana_lib::solana_program::system_instruction::SystemInstruction;
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "System";
 
@@ -58,11 +58,11 @@ fn resolve_create_account(
     owner: Pubkey,
 ) -> Result<Value> {
     let method_name = "CreateAccount";
-    let funder = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "CreateAccount.funder"
+    let funding_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "CreateAccount.funding_account"
     )))?;
-    let account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "CreateAccount.account"
+    let new_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "CreateAccount.new_account"
     )))?;
     let amount = lamports.to_string();
     let space = space.to_string();
@@ -71,24 +71,34 @@ fn resolve_create_account(
         PROGRAM_NAME,
         method_name,
         json!({
-            "funder": funder,
-            "account": account,
+            "funding_account": funding_account,
+            "new_account": new_account,
             "amount": amount,
             "space": space,
             "owner": owner,
+        }),
+        json!({
+            "funding_account": funding_account,
+            "new_account": new_account,
+            "amount": amount,
         }),
     ))
 }
 
 fn resolve_assign(accounts: Vec<String>, owner: Pubkey) -> Result<Value> {
     let method_name = "Assign";
-    let account = accounts
-        .get(0)
-        .ok_or(SolanaError::AccountNotFound(format!("Allocate.account")))?;
+    let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.account",
+        method_name
+    )))?;
     let new_owner = owner.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
+        json!({
+            "account": account,
+            "new_owner": new_owner,
+        }),
         json!({
             "account": account,
             "new_owner": new_owner,
@@ -98,19 +108,26 @@ fn resolve_assign(accounts: Vec<String>, owner: Pubkey) -> Result<Value> {
 
 fn resolve_transfer(accounts: Vec<String>, lamports: u64) -> Result<Value> {
     let method_name = "Transfer";
-    let from = accounts
-        .get(0)
-        .ok_or(SolanaError::AccountNotFound(format!("Transfer.from")))?;
-    let to = accounts
-        .get(1)
-        .ok_or(SolanaError::AccountNotFound(format!("Transfer.to")))?;
+    let from = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.from",
+        method_name
+    )))?;
+    let recipient = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.recipient",
+        method_name
+    )))?;
     let amount = lamports.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
             "from": from,
-            "to": to,
+            "recipient": recipient,
+            "amount": amount
+        }),
+        json!({
+            "from": from,
+            "recipient": recipient,
             "amount": amount
         }),
     ))
@@ -125,29 +142,39 @@ fn resolve_create_account_with_seed(
     owner: Pubkey,
 ) -> Result<Value> {
     let method_name = "CreateAccountWithSeed";
-    let funder = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "CreateAccountWithSeed.funder"
+    let funding_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.funding_account",
+        method_name
     )))?;
-    let account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "CreateAccountWithSeed.account"
+    let new_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.new_account",
+        method_name
     )))?;
-    let signer = accounts.get(2);
+    let base_account = accounts.get(2);
     let amount = lamports.to_string();
     let space = space.to_string();
     let owner = owner.to_string();
-    let base = base.to_string();
+    let base_pubkey = base.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
-            "funder": funder,
-            "account": account,
-            "signer": signer,
-            "base": base,
+            "funding_account": funding_account,
+            "new_account": new_account,
+            "base_account": base_account,
+            "base_pubkey": base_pubkey,
             "seed": seed,
             "amount": amount,
             "space": space,
             "owner": owner,
+        }),
+        json!({
+            "funding_account": funding_account,
+            "new_account": new_account,
+            "base_pubkey": base_pubkey,
+            "seed": seed,
+            "amount": amount,
+            "space": space,
         }),
     ))
 }
@@ -155,13 +182,15 @@ fn resolve_create_account_with_seed(
 fn resolve_advance_nonce_account(accounts: Vec<String>) -> Result<Value> {
     let method_name = "AdvanceNonceAccount";
     let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "AdvanceNonceAccount.nonce_account"
+        "{}.nonce_account",
+        method_name
     )))?;
     let recent_blockhashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("AdvanceNonceAccount.recent_blockhashes_sysvar"),
+        format!("{}.recent_blockhashes_sysvar", method_name),
     ))?;
-    let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "AdvanceNonceAccount.authority"
+    let nonce_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.nonce_authority_pubkey",
+        method_name
     )))?;
     Ok(template_instruction(
         PROGRAM_NAME,
@@ -169,7 +198,10 @@ fn resolve_advance_nonce_account(accounts: Vec<String>) -> Result<Value> {
         json!({
             "nonce_account": nonce_account,
             "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
-            "authority": authority,
+            "nonce_authority_pubkey": nonce_authority_pubkey,
+        }),
+        json!({
+            "nonce_account": nonce_account,
         }),
     ))
 }
@@ -177,19 +209,23 @@ fn resolve_advance_nonce_account(accounts: Vec<String>) -> Result<Value> {
 fn resolve_withdraw_nonce_account(accounts: Vec<String>, lamports: u64) -> Result<Value> {
     let method_name = "WithdrawNonceAccount";
     let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "WithdrawNonceAccount.nonce_account"
+        "{}.nonce_account",
+        method_name
     )))?;
-    let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "WithdrawNonceAccount.recipient_account"
+    let recipient = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.recipient",
+        method_name
     )))?;
     let recent_blockhashes_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(
-        format!("WithdrawNonceAccount.recent_blockhashes_sysvar"),
+        format!("{}.recent_blockhashes_sysvar", method_name),
     ))?;
     let rent_sysvar = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "WithdrawNonceAccount.rent_sysvar"
+        "{}.rent_sysvar",
+        method_name
     )))?;
-    let nonce_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "WithdrawNonceAccount.nonce_authority"
+    let nonce_authority_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.nonce_authority_pubkey",
+        method_name
     )))?;
     let amount = lamports.to_string();
     Ok(template_instruction(
@@ -197,10 +233,15 @@ fn resolve_withdraw_nonce_account(accounts: Vec<String>, lamports: u64) -> Resul
         method_name,
         json!({
             "nonce_account": nonce_account,
-            "recipient_account": recipient_account,
+            "recipient": recipient,
             "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
             "rent_sysvar": rent_sysvar,
-            "nonce_authority": nonce_authority,
+            "nonce_authority_pubkey": nonce_authority_pubkey,
+            "amount": amount,
+        }),
+        json!({
+            "nonce_account": nonce_account,
+            "recipient": recipient,
             "amount": amount,
         }),
     ))
@@ -209,23 +250,29 @@ fn resolve_withdraw_nonce_account(accounts: Vec<String>, lamports: u64) -> Resul
 fn resolve_initialize_nonce_account(accounts: Vec<String>, pubkey: Pubkey) -> Result<Value> {
     let method_name = "InitializeNonceAccount";
     let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "InitializeNonceAccount.nonce_account"
+        "{}.nonce_account",
+        method_name
     )))?;
-    let recent_blockhashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("InitializeNonceAccount.recent_blockhashes_sysvar"),
+    let sysvar_recent_blockhashes = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.sysvar_recent_blockhashes", method_name),
     ))?;
-    let rent_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "InitializeNonceAccount.rent_sysvar"
+    let sysvar_rent = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_rent",
+        method_name
     )))?;
-    let authority = pubkey.to_string();
+    let nonce_authority_pubkey = pubkey.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
             "nonce_account": nonce_account,
-            "recent_blockhashes_sysvar": recent_blockhashes_sysvar,
-            "rent_sysvar": rent_sysvar,
-            "authority": authority,
+            "sysvar_recent_blockhashes": sysvar_recent_blockhashes,
+            "sysvar_rent": sysvar_rent,
+            "nonce_authority_pubkey": nonce_authority_pubkey,
+        }),
+        json!({
+            "nonce_account": nonce_account,
+            "nonce_authority_pubkey": nonce_authority_pubkey,
         }),
     ))
 }
@@ -233,33 +280,44 @@ fn resolve_initialize_nonce_account(accounts: Vec<String>, pubkey: Pubkey) -> Re
 fn resolve_authorize_nonce_account(accounts: Vec<String>, pubkey: Pubkey) -> Result<Value> {
     let method_name = "AuthorizeNonceAccount";
     let nonce_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "AuthorizeNonceAccount.nonce_account"
+        "{}.nonce_account",
+        method_name
     )))?;
-    let nonce_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "AuthorizeNonceAccount.nonce_authority"
-    )))?;
-    let new_authority = pubkey.to_string();
+    let old_nonce_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.old_nonce_authority_pubkey", method_name),
+    ))?;
+    let new_nonce_authority_pubkey = pubkey.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
             "nonce_account": nonce_account,
-            "nonce_authority": nonce_authority,
-            "new_authority": new_authority,
+            "old_nonce_authority_pubkey": old_nonce_authority_pubkey,
+            "new_nonce_authority_pubkey": new_nonce_authority_pubkey,
+        }),
+        json!({
+            "nonce_account": nonce_account,
+            "old_nonce_authority_pubkey": old_nonce_authority_pubkey,
+            "new_nonce_authority_pubkey": new_nonce_authority_pubkey,
         }),
     ))
 }
 
 fn resolve_allocate(accounts: Vec<String>, space: u64) -> Result<Value> {
     let method_name = "Allocate";
-    let account = accounts
-        .get(0)
-        .ok_or(SolanaError::AccountNotFound(format!("Allocate.account")))?;
+    let new_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.account",
+        method_name
+    )))?;
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
-            "account": account,
+            "new_account": new_account,
+            "space": space.to_string(),
+        }),
+        json!({
+            "new_account": new_account,
             "space": space.to_string(),
         }),
     ))
@@ -268,19 +326,21 @@ fn resolve_allocate(accounts: Vec<String>, space: u64) -> Result<Value> {
 fn resolve_allocate_with_seed(
     accounts: Vec<String>,
     owner: Pubkey,
-    base: Pubkey,
+    base_pubkey: Pubkey,
     seed: String,
     space: u64,
 ) -> Result<Value> {
     let method_name = "AllocateWithSeed";
     let allocated_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "AllocateWithSeed.allocated_account"
+        "{}.allocated_account",
+        method_name
     )))?;
     let base_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "AllocateWithSeed.base_account"
+        "{}.base_account",
+        method_name
     )))?;
     let owner = owner.to_string();
-    let base = base.to_string();
+    let base = base_pubkey.to_string();
     let space = space.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
@@ -288,8 +348,15 @@ fn resolve_allocate_with_seed(
         json!({
             "allocated_account": allocated_account,
             "base_account": base_account,
+            "base_pubkey": base,
+            "seed": seed,
+            "space": space,
             "owner": owner,
-            "base": base,
+        }),
+        json!({
+            "allocated_account": allocated_account,
+            "base_account": base_account,
+            "base_pubkey": base,
             "seed": seed,
             "space": space
         }),
@@ -300,14 +367,16 @@ fn resolve_assign_with_seed(
     accounts: Vec<String>,
     owner: Pubkey,
     seed: String,
-    base: Pubkey,
+    base_pubkey: Pubkey,
 ) -> Result<Value> {
     let method_name = "AssignWithSeed";
     let assigned_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "AssignWithSeed.assigned_account"
+        "{}.assigned_account",
+        method_name
     )))?;
     let base_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "AssignWithSeed.base_account"
+        "{}.base_account",
+        method_name
     )))?;
     Ok(template_instruction(
         PROGRAM_NAME,
@@ -315,9 +384,15 @@ fn resolve_assign_with_seed(
         json!({
             "assigned_account": assigned_account,
             "base_account": base_account,
+            "base_pubkey": base_pubkey.to_string(),
             "seed": seed,
-            "base": base.to_string(),
             "owner": owner.to_string(),
+        }),
+        json!({
+            "assigned_account": assigned_account,
+            "base_account": base_account,
+            "base_pubkey": base_pubkey.to_string(),
+            "seed": seed,
         }),
     ))
 }
@@ -329,14 +404,17 @@ fn resolve_transfer_with_seed(
     from_owner: Pubkey,
 ) -> Result<Value> {
     let method_name = "TransferWithSeed";
-    let fund_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "TransferWithSeed.fund_account"
+    let from = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.from",
+        method_name
     )))?;
-    let from_base = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "TransferWithSeed.from_base"
+    let from_base_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.from_base_pubkey",
+        method_name
     )))?;
-    let recipient_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "TransferWithSeed.recipient_account"
+    let recipient = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.recipient",
+        method_name
     )))?;
     let amount = lamports.to_string();
     let from_owner = from_owner.to_string();
@@ -344,11 +422,18 @@ fn resolve_transfer_with_seed(
         PROGRAM_NAME,
         method_name,
         json!({
-            "fund_account": fund_account,
-            "recipient_account": recipient_account,
+            "from": from,
+            "recipient": recipient,
             "amount": amount,
-            "from_base": from_base,
+            "from_base_pubkey": from_base_pubkey,
             "from_owner": from_owner,
+            "from_seed": from_seed,
+        }),
+        json!({
+            "from": from,
+            "recipient": recipient,
+            "amount": amount,
+            "from_base_pubkey": from_base_pubkey,
             "from_seed": from_seed,
         }),
     ))
@@ -362,6 +447,9 @@ fn resolve_upgrade_nonce_account(accounts: Vec<String>) -> Result<Value> {
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
+        json!({
+            "nonce_account": nonce_account,
+        }),
         json!({
             "nonce_account": nonce_account,
         }),

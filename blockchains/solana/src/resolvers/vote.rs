@@ -45,12 +45,12 @@ fn resolve_initialize_account(accounts: Vec<String>, vote_init: VoteInit) -> Res
         "{}.account",
         method_name
     )))?;
-    let rent_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.rent_sysvar",
+    let sysvar_rent = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_rent",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
     let new_validator_identity = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
@@ -66,16 +66,26 @@ fn resolve_initialize_account(accounts: Vec<String>, vote_init: VoteInit) -> Res
         method_name,
         json!({
             "vote_account": account,
-            "rent_sysvar": rent_sysvar,
-            "clock_sysvar": clock_sysvar,
+            "sysvar_rent": sysvar_rent,
+            "sysvar_clock": sysvar_clock,
             "new_validator_identity": new_validator_identity,
-            "vote_init": {
+            "config": {
                 "node_pubkey": node_pubkey,
                 "authorized_voter": authorized_voter,
                 "authorized_withdrawer": authorized_withdrawer,
                 "commission": commission,
             }
         }),
+        json!({
+            "vote_account": account,
+            "new_validator_identity": new_validator_identity,
+            "config": {
+                "node_pubkey": node_pubkey,
+                "authorized_voter": authorized_voter,
+                "authorized_withdrawer": authorized_withdrawer,
+                "commission": commission,
+            }
+        })
     ))
 }
 
@@ -89,12 +99,12 @@ fn resolve_authorize(
         "{}.vote_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.authority",
+    let old_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_authority_pubkey",
         method_name
     )))?;
     let authority_type = match vote_authority {
@@ -106,11 +116,17 @@ fn resolve_authorize(
         method_name,
         json!({
             "vote_account": vote_account,
-            "clock_sysvar": clock_sysvar,
-            "authority": authority,
-            "new_authorized_pubkey": pubkey.to_string(),
+            "sysvar_clock": sysvar_clock,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": pubkey.to_string(),
             "authority_type": authority_type,
         }),
+        json!({
+            "vote_account": vote_account,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": pubkey.to_string(),
+            "authority_type": authority_type,
+        })
     ))
 }
 
@@ -121,16 +137,16 @@ fn resolve_vote(accounts: Vec<String>, vote: Vote) -> Result<Value> {
         "{}.vote_account",
         method_name
     )))?;
-    let slot_hashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.slot_hashes_sysvar",
+    let sysvar_slot_hashes = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_slot_hashes",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let vote_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.vote_authority",
+    let vote_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.vote_authority_pubkey",
         method_name
     )))?;
     let vote_slots = vote
@@ -146,15 +162,23 @@ fn resolve_vote(accounts: Vec<String>, vote: Vote) -> Result<Value> {
         method_name,
         json!({
             "vote_account": vote_account,
-            "slot_hashes_sysvar": slot_hashes_sysvar,
-            "clock_sysvar": clock_sysvar,
-            "vote_authority": vote_authority,
+            "sysvar_slot_hashes": sysvar_slot_hashes,
+            "sysvar_clock": sysvar_clock,
+            "vote_authority_pubkey": vote_authority_pubkey,
             "vote": {
                 "slots": vote_slots,
                 "hash": vote_hash,
                 "timestamp": timestamp,
             }
         }),
+        json!({
+            "vote_account": vote_account,
+            "vote": {
+                "slots": vote_slots,
+                "hash": vote_hash,
+                "timestamp": timestamp,
+            }
+        })
     ))
 }
 
@@ -165,12 +189,12 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         "{}.vote_account",
         method_name
     )))?;
-    let recipient_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.recipient_account",
+    let recipient = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.recipient",
         method_name
     )))?;
-    let withdraw_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority",
+    let withdraw_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.withdraw_authority_pubkey",
         method_name
     )))?;
     let amount = lamports.to_string();
@@ -179,10 +203,15 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         method_name,
         json!({
             "vote_account": vote_account,
-            "recipient_account": recipient_account,
-            "withdraw_authority": withdraw_authority,
+            "recipient": recipient,
+            "withdraw_authority_pubkey": withdraw_authority_pubkey,
             "amount": amount,
         }),
+        json!({
+            "vote_account": vote_account,
+            "recipient": recipient,
+            "amount": amount,
+        })
     ))
 }
 
@@ -197,8 +226,8 @@ fn resolve_update_validator_identity(accounts: Vec<String>) -> Result<Value> {
         "{}.new_validator_identity",
         method_name
     )))?;
-    let withdraw_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority",
+    let withdraw_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.withdraw_authority_pubkey",
         method_name
     )))?;
     Ok(template_instruction(
@@ -207,8 +236,12 @@ fn resolve_update_validator_identity(accounts: Vec<String>) -> Result<Value> {
         json!({
             "vote_account": vote_account,
             "new_validator_identity": new_validator_identity,
-            "withdraw_authority": withdraw_authority,
+            "withdraw_authority": withdraw_authority_pubkey,
         }),
+        json!({
+            "vote_account": vote_account,
+            "new_validator_identity": new_validator_identity,
+        })
     ))
 }
 
@@ -219,8 +252,8 @@ fn resolve_update_commission(accounts: Vec<String>, new_commission: u8) -> Resul
         "{}.vote_account",
         method_name
     )))?;
-    let withdraw_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority",
+    let withdraw_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.withdraw_authority_pubkey",
         method_name
     )))?;
     Ok(template_instruction(
@@ -228,9 +261,13 @@ fn resolve_update_commission(accounts: Vec<String>, new_commission: u8) -> Resul
         method_name,
         json!({
             "vote_account": vote_account,
-            "withdraw_authority": withdraw_authority,
+            "withdraw_authority_pubkey": withdraw_authority_pubkey,
             "new_commission": new_commission,
         }),
+        json!({
+            "vote_account": vote_account,
+            "new_commission": new_commission,
+        })
     ))
 }
 
@@ -241,16 +278,16 @@ fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> R
         "{}.vote_account",
         method_name
     )))?;
-    let slot_hashes_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.slot_hashes_sysvar",
+    let sysvar_slot_hashes = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_slot_hashes",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let vote_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.vote_authority",
+    let vote_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.vote_authority_pubkey",
         method_name
     )))?;
     let vote_slots = vote
@@ -267,9 +304,9 @@ fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> R
         method_name,
         json!({
             "vote_account": vote_account,
-            "slot_hashes_sysvar": slot_hashes_sysvar,
-            "clock_sysvar": clock_sysvar,
-            "vote_authority": vote_authority,
+            "sysvar_slot_hashes": sysvar_slot_hashes,
+            "sysvar_clock": sysvar_clock,
+            "vote_authority_pubkey": vote_authority_pubkey,
             "vote": {
                 "slots": vote_slots,
                 "hash": vote_hash,
@@ -277,6 +314,15 @@ fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> R
             },
             "proof_hash": proof_hash,
         }),
+        json!({
+            "vote_account": vote_account,
+            "vote": {
+                "slots": vote_slots,
+                "hash": vote_hash,
+                "timestamp": timestamp,
+            },
+            "proof_hash": proof_hash,
+        })
     ))
 }
 
@@ -290,16 +336,16 @@ fn resolve_authorize_checked(
         "{}.vote_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.authority",
+    let old_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_authority_pubkey",
         method_name
     )))?;
-    let new_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.new_authority",
+    let new_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.new_authority_pubkey",
         method_name
     )))?;
     let authority_type = match vote_authority {
@@ -311,11 +357,17 @@ fn resolve_authorize_checked(
         method_name,
         json!({
             "vote_account": vote_account,
-            "clock_sysvar": clock_sysvar,
-            "authority": authority,
-            "new_authority": new_authority,
+            "sysvar_clock": sysvar_clock,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
             "authority_type": authority_type,
         }),
+        json!({
+            "vote_account": vote_account,
+            "old_authority_pubkey": old_authority_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
+            "authority_type": authority_type,
+        })
     ))
 }
 
@@ -326,8 +378,8 @@ fn resolve_update_vote_state(accounts: Vec<String>, state: VoteStateUpdate) -> R
         "{}.vote_account",
         method_name
     )))?;
-    let vote_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.vote_authority",
+    let vote_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.vote_authority_pubkey",
         method_name
     )))?;
 
@@ -349,14 +401,23 @@ fn resolve_update_vote_state(accounts: Vec<String>, state: VoteStateUpdate) -> R
         method_name,
         json!({
             "vote_account": vote_account,
-            "vote_authority": vote_authority,
-            "new_vote_state": {
+            "vote_authority_pubkey": vote_authority_pubkey,
+            "new_state": {
                 "lockouts": lockouts,
                 "root": root,
                 "hash": hash,
                 "timestamp": timestamp,
             }
         }),
+        json!({
+            "vote_account": vote_account,
+            "new_state": {
+                "lockouts": lockouts,
+                "root": root,
+                "hash": hash,
+                "timestamp": timestamp,
+            }
+        })
     ))
 }
 
@@ -371,8 +432,8 @@ fn resolve_update_vote_state_switch(
         "{}.vote_account",
         method_name
     )))?;
-    let vote_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.vote_authority",
+    let vote_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.vote_authority_pubkey",
         method_name
     )))?;
     let lockouts = state
@@ -394,8 +455,8 @@ fn resolve_update_vote_state_switch(
         method_name,
         json!({
             "vote_account": vote_account,
-            "vote_authority": vote_authority,
-            "new_vote_state": {
+            "vote_authority_pubkey": vote_authority_pubkey,
+            "new_state": {
                 "lockouts": lockouts,
                 "root": root,
                 "hash": hash,
@@ -403,6 +464,16 @@ fn resolve_update_vote_state_switch(
             },
             "proof_hash": proof_hash
         }),
+        json!({
+            "vote_account": vote_account,
+            "new_state": {
+                "lockouts": lockouts,
+                "root": root,
+                "hash": hash,
+                "timestamp": timestamp,
+            },
+            "proof_hash": proof_hash
+        })
     ))
 }
 
@@ -416,12 +487,12 @@ fn resolve_authorize_with_seed(
         "{}.vote_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let base_key = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.base_key",
+    let old_base_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_base_pubkey",
         method_name
     )))?;
 
@@ -431,22 +502,31 @@ fn resolve_authorize_with_seed(
     };
     let current_authority_derived_key_owner = args.current_authority_derived_key_owner.to_string();
     let current_authority_derived_key_seed = args.current_authority_derived_key_seed;
-    let new_authority = args.new_authority.to_string();
+    let new_authority_pubkey = args.new_authority.to_string();
 
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
             "vote_account": vote_account,
-            "clock_sysvar": clock_sysvar,
-            "base_key": base_key,
-            "authorize_arguments": {
+            "sysvar_clock": sysvar_clock,
+            "old_base_pubkey": old_base_pubkey,
+            "arguments": {
                 "authorization_type": authorization_type,
                 "current_authority_derived_key_owner": current_authority_derived_key_owner,
                 "current_authority_derived_key_seed": current_authority_derived_key_seed,
-                "new_authority": new_authority,
+                "new_authority_pubkey": new_authority_pubkey,
             },
         }),
+        json!({
+            "vote_account": vote_account,
+            "old_base_pubkey": old_base_pubkey,
+            "arguments": {
+                "authorization_type": authorization_type,
+                "current_authority_derived_key_seed": current_authority_derived_key_seed,
+                "new_authority_pubkey": new_authority_pubkey,
+            },
+        })
     ))
 }
 
@@ -460,16 +540,16 @@ fn resolve_authorize_checked_with_seed(
         "{}.vote_account",
         method_name
     )))?;
-    let clock_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.clock_sysvar",
+    let sysvar_clock = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.sysvar_clock",
         method_name
     )))?;
-    let base_key = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.base_key",
+    let old_base_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.old_base_pubkey",
         method_name
     )))?;
-    let new_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.new_authority",
+    let new_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.new_authority_pubkey",
         method_name
     )))?;
 
@@ -485,14 +565,23 @@ fn resolve_authorize_checked_with_seed(
         method_name,
         json!({
             "vote_account": vote_account,
-            "clock_sysvar": clock_sysvar,
-            "base_key": base_key,
-            "new_authority": new_authority,
+            "sysvar_clock": sysvar_clock,
+            "old_base_pubkey": old_base_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
             "authorize_arguments": {
                 "authorization_type": authorization_type,
                 "current_authority_derived_key_owner": current_authority_derived_key_owner,
                 "current_authority_derived_key_seed": current_authority_derived_key_seed,
             },
         }),
+        json!({
+            "vote_account": vote_account,
+            "old_base_pubkey": old_base_pubkey,
+            "new_authority_pubkey": new_authority_pubkey,
+            "authorize_arguments": {
+                "authorization_type": authorization_type,
+                "current_authority_derived_key_seed": current_authority_derived_key_seed,
+            },
+        })
     ))
 }

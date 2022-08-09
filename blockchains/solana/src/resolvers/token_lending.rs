@@ -58,7 +58,7 @@ fn init_lending_market(
         "{}.lending_market_account",
         method_name,
     )))?;
-    let rent_sysvar = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+    let sysvar_rent = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
         "{}.account",
         method_name
     )))?;
@@ -78,12 +78,16 @@ fn init_lending_market(
         method_name,
         json!({
             "lending_market_account": lending_market_account,
-            "rent_sysvar": rent_sysvar,
+            "sysvar_rent": sysvar_rent,
             "token_program_id": token_program_id,
             "oracle_program_id": oracle_program_id,
             "owner": owner,
             "quote_currency": quote_currency,
         }),
+        json!({
+            "lending_market_account": lending_market_account,
+            "quote_currency": quote_currency,
+        })
     ))
 }
 
@@ -106,6 +110,11 @@ fn set_lending_market_owner(accounts: Vec<String>, new_owner: Pubkey) -> Result<
             "current_owner": current_owner,
             "new_owner": new_owner,
         }),
+        json!({
+            "lending_market_account": lending_market_account,
+            "current_owner": current_owner,
+            "new_owner": new_owner,
+        })
     ))
 }
 
@@ -115,83 +124,83 @@ fn init_reserve(
     config: ReserveConfig,
 ) -> Result<Value> {
     let method_name = "SetLendingMarketOwner";
-    let source_liquidity_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_account",
+    let source_liquidity_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_liquidity_account",
         method_name,
     )))?;
-    let destination_collateral_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.current_owner", method_name),
+    let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_collateral_account", method_name),
     ))?;
-    let reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.reserve_liquidity_mint_pubkey",
+    let reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_account",
         method_name
     )))?;
-    let reserve_liquidity_mint_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.current_owner", method_name),
+    let reserve_liquidity_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_liquidity_mint", method_name),
     ))?;
-    let reserve_liquidity_supply_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-        format!("{}.current_owner", method_name),
+    let reserve_liquidity_supply_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_liquidity_supply_account", method_name),
     ))?;
-    let reserve_liquidity_fee_receiver_pubkey = accounts.get(5).ok_or(
-        SolanaError::AccountNotFound(format!("{}.current_owner", method_name)),
+    let reserve_liquidity_fee_receiver = accounts.get(5).ok_or(
+        SolanaError::AccountNotFound(format!("{}.reserve_liquidity_fee_receiver", method_name)),
     )?;
-    let reserve_collateral_mint_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(
-        format!("{}.current_owner", method_name),
+    let reserve_collateral_mint = accounts.get(6).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_collateral_mint", method_name),
     ))?;
     let reserve_collateral_supply_pubkey = accounts.get(7).ok_or(SolanaError::AccountNotFound(
-        format!("{}.current_owner", method_name),
+        format!("{}.reserve_collateral_supply_pubkey", method_name),
     ))?;
-    let pyth_product_pubkey = accounts.get(8).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.current_owner",
+    let pyth_product_account = accounts.get(8).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pyth_product_account",
         method_name
     )))?;
-    let pyth_price_pubkey = accounts.get(9).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.current_owner",
+    let pyth_price_account = accounts.get(9).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pyth_price_account",
         method_name
     )))?;
-    let lending_market_pubkey = accounts
+    let lending_market_account = accounts
         .get(10)
         .ok_or(SolanaError::AccountNotFound(format!(
-            "{}.current_owner",
+            "{}.lending_market_account",
             method_name
         )))?;
     let lending_market_authority_pubkey =
         accounts
             .get(11)
             .ok_or(SolanaError::AccountNotFound(format!(
-                "{}.current_owner",
+                "{}.lending_market_authority_pubkey",
                 method_name
             )))?;
-    let lending_market_owner_pubkey =
+    let lending_market_owner =
         accounts
             .get(12)
             .ok_or(SolanaError::AccountNotFound(format!(
-                "{}.current_owner",
+                "{}.lending_market_owner",
                 method_name
             )))?;
     let user_transfer_authority_pubkey =
         accounts
             .get(13)
             .ok_or(SolanaError::AccountNotFound(format!(
-                "{}.current_owner",
+                "{}.user_transfer_authority_pubkey",
                 method_name
             )))?;
     let sysvar_clock = accounts
         .get(14)
         .ok_or(SolanaError::AccountNotFound(format!(
-            "{}.current_owner",
+            "{}.sysvar_clock",
             method_name
         )))?;
     let sysvar_rent = accounts
         .get(15)
         .ok_or(SolanaError::AccountNotFound(format!(
-            "{}.current_owner",
+            "{}.sysvar_rent",
             method_name
         )))?;
     let token_program_id = accounts
         .get(16)
         .ok_or(SolanaError::AccountNotFound(format!(
-            "{}.current_owner",
+            "{}.token_program_id",
             method_name
         )))?;
     let liquidity_amount = liquidity_amount.to_string();
@@ -213,19 +222,19 @@ fn init_reserve(
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_liquidity_pubkey": source_liquidity_pubkey,
-            "destination_collateral_pubkey": destination_collateral_pubkey,
-            "reserve_pubkey": reserve_pubkey,
-            "reserve_liquidity_mint_pubkey": reserve_liquidity_mint_pubkey,
-            "reserve_liquidity_supply_pubkey": reserve_liquidity_supply_pubkey,
-            "reserve_liquidity_fee_receiver_pubkey": reserve_liquidity_fee_receiver_pubkey,
-            "reserve_collateral_mint_pubkey": reserve_collateral_mint_pubkey,
+            "source_liquidity_account": source_liquidity_account,
+            "destination_collateral_account": destination_collateral_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_mint": reserve_liquidity_mint,
+            "reserve_liquidity_supply_account": reserve_liquidity_supply_account,
+            "reserve_liquidity_fee_receiver": reserve_liquidity_fee_receiver,
+            "reserve_collateral_mint": reserve_collateral_mint,
             "reserve_collateral_supply_pubkey": reserve_collateral_supply_pubkey,
-            "pyth_product_pubkey": pyth_product_pubkey,
-            "pyth_price_pubkey": pyth_price_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "pyth_product_account": pyth_product_account,
+            "pyth_price_account": pyth_price_account,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
-            "lending_market_owner_pubkey": lending_market_owner_pubkey,
+            "lending_market_owner": lending_market_owner,
             "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "sysvar_clock": sysvar_clock,
             "sysvar_rent": sysvar_rent,
@@ -233,6 +242,22 @@ fn init_reserve(
             "liquidity_amount": liquidity_amount,
             "reserve_config": reserve_config,
         }),
+        json!({
+            "source_liquidity_account": source_liquidity_account,
+            "destination_collateral_account": destination_collateral_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_mint": reserve_liquidity_mint,
+            "reserve_liquidity_supply_account": reserve_liquidity_supply_account,
+            "reserve_liquidity_fee_receiver": reserve_liquidity_fee_receiver,
+            "reserve_collateral_mint": reserve_collateral_mint,
+            "reserve_collateral_supply_pubkey": reserve_collateral_supply_pubkey,
+            "pyth_product_account": pyth_product_account,
+            "pyth_price_account": pyth_price_account,
+            "lending_market_account": lending_market_account,
+            "lending_market_owner": lending_market_owner,
+            "liquidity_amount": liquidity_amount,
+            "reserve_config": reserve_config,
+        })
     ))
 }
 
@@ -257,30 +282,34 @@ fn refresh_reserve(accounts: Vec<String>) -> Result<Value> {
             "reserve_liquidity_oracle_account": reserve_liquidity_oracle_account,
             "sysvar_clock": sysvar_clock,
         }),
+        json!({
+            "reserve_account": reserve_account,
+            "reserve_liquidity_oracle_account": reserve_liquidity_oracle_account,
+        })
     ))
 }
 
 fn deposit_reserve_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> Result<Value> {
     let method_name = "DepositReserveLiquidity";
-    let source_liquidity_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_liquidity_pubkey",
+    let source_liquidity_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_liquidity_account",
         method_name,
     )))?;
-    let destination_collateral_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_collateral_pubkey", method_name),
+    let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_collateral_account", method_name),
     ))?;
-    let reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.reserve_pubkey",
+    let reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_account",
         method_name
     )))?;
-    let reserve_liquidity_supply_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_liquidity_supply_pubkey", method_name),
+    let reserve_liquidity_supply_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_liquidity_supply_account", method_name),
     ))?;
-    let reserve_collateral_mint_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_collateral_mint_pubkey", method_name),
+    let reserve_collateral_mint = accounts.get(4).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_collateral_mint", method_name),
     ))?;
-    let lending_market_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let lending_market_authority_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(
@@ -302,42 +331,51 @@ fn deposit_reserve_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> Re
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_liquidity_pubkey": source_liquidity_pubkey,
-            "destination_collateral_pubkey": destination_collateral_pubkey,
-            "reserve_pubkey": reserve_pubkey,
-            "reserve_liquidity_supply_pubkey": reserve_liquidity_supply_pubkey,
-            "reserve_collateral_mint_pubkey": reserve_collateral_mint_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "source_liquidity_account": source_liquidity_account,
+            "destination_collateral_account": destination_collateral_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_supply_account": reserve_liquidity_supply_account,
+            "reserve_collateral_mint": reserve_collateral_mint,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
             "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
             "liquidity_amount": liquidity_amount,
         }),
+        json!({
+            "source_liquidity_account": source_liquidity_account,
+            "destination_collateral_account": destination_collateral_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_supply_account": reserve_liquidity_supply_account,
+            "reserve_collateral_mint": reserve_collateral_mint,
+            "lending_market_account": lending_market_account,
+            "liquidity_amount": liquidity_amount,
+        })
     ))
 }
 
 fn redeem_reserve_collateral(accounts: Vec<String>, collateral_amount: u64) -> Result<Value> {
     let method_name = "RedeemReserveCollateral";
-    let source_collateral_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_collateral_pubkey",
+    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_collateral_account",
         method_name,
     )))?;
-    let destination_liquidity_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_liquidity_pubkey", method_name),
+    let destination_liquidity_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_liquidity_account", method_name),
     ))?;
-    let reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.reserve_pubkey",
+    let reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_account",
         method_name
     )))?;
-    let reserve_collateral_mint_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_collateral_mint_pubkey", method_name),
+    let reserve_collateral_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_collateral_mint", method_name),
     ))?;
-    let reserve_liquidity_supply_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_liquidity_supply_pubkey", method_name),
+    let reserve_liquidity_supply_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_liquidity_supply_account", method_name),
     ))?;
-    let lending_market_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let lending_market_authority_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(
@@ -359,18 +397,27 @@ fn redeem_reserve_collateral(accounts: Vec<String>, collateral_amount: u64) -> R
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_collateral_pubkey": source_collateral_pubkey,
-            "destination_liquidity_pubkey": destination_liquidity_pubkey,
-            "reserve_pubkey": reserve_pubkey,
-            "reserve_liquidity_supply_pubkey": reserve_liquidity_supply_pubkey,
-            "reserve_collateral_mint_pubkey": reserve_collateral_mint_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "source_collateral_account": source_collateral_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_supply_account": reserve_liquidity_supply_account,
+            "reserve_collateral_mint": reserve_collateral_mint,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
             "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
             "collateral_amount": collateral_amount.to_string(),
         }),
+        json!({
+            "source_collateral_account": source_collateral_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_supply_account": reserve_liquidity_supply_account,
+            "reserve_collateral_mint": reserve_collateral_mint,
+            "lending_market_account": lending_market_account,
+            "collateral_amount": collateral_amount.to_string(),
+        })
     ))
 }
 
@@ -412,6 +459,11 @@ fn init_obligation(accounts: Vec<String>) -> Result<Value> {
             "sysvar_rent": sysvar_rent,
             "token_program_id": token_program_id,
         }),
+        json!({
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "obligation_owner": obligation_owner,
+        })
     ))
 }
 
@@ -435,32 +487,35 @@ fn refresh_obligation(accounts: Vec<String>) -> Result<Value> {
             "sysvar_clock": sysvar_clock,
             "keys": keys,
         }),
+        json!({
+            "obligation_account": obligation_account,
+        })
     ))
 }
 
 fn deposit_obligation_collateral(accounts: Vec<String>, collateral_amount: u64) -> Result<Value> {
     let method_name = "DepositObligationCollateral";
-    let source_collateral_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_collateral_pubkey",
+    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_collateral_account",
         method_name,
     )))?;
-    let destination_collateral_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_collateral_pubkey", method_name),
+    let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_collateral_account", method_name),
     ))?;
     let deposit_reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
         "{}.deposit_reserve_pubkey",
         method_name
     )))?;
-    let obligation_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_pubkey",
+    let obligation_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_account",
         method_name
     )))?;
-    let lending_market_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
-    let obligation_owner_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_owner_pubkey",
+    let obligation_owner = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_owner",
         method_name
     )))?;
     let user_transfer_authority_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(
@@ -479,46 +534,55 @@ fn deposit_obligation_collateral(accounts: Vec<String>, collateral_amount: u64) 
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_collateral_pubkey": source_collateral_pubkey,
-            "destination_collateral_pubkey": destination_collateral_pubkey,
+            "source_collateral_account": source_collateral_account,
+            "destination_collateral_account": destination_collateral_account,
             "deposit_reserve_pubkey": deposit_reserve_pubkey,
-            "obligation_pubkey": obligation_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
-            "obligation_owner_pubkey": obligation_owner_pubkey,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "obligation_owner": obligation_owner,
             "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
             "collateral_amount": collateral_amount.to_string(),
         }),
+        json!({
+            "source_collateral_account": source_collateral_account,
+            "destination_collateral_account": destination_collateral_account,
+            "deposit_reserve_pubkey": deposit_reserve_pubkey,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "obligation_owner": obligation_owner,
+            "collateral_amount": collateral_amount.to_string(),
+        })
     ))
 }
 
 fn withdraw_obligation_collateral(accounts: Vec<String>, collateral_amount: u64) -> Result<Value> {
     let method_name = "WithdrawObligationCollateral";
-    let source_collateral_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_collateral_pubkey",
+    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_collateral_account",
         method_name,
     )))?;
-    let destination_collateral_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_collateral_pubkey", method_name),
+    let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_collateral_account", method_name),
     ))?;
-    let withdraw_reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+    let withdraw_reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
         "{}.deposit_reserve_pubkey",
         method_name
     )))?;
-    let obligation_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_pubkey",
+    let obligation_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_account",
         method_name
     )))?;
-    let lending_market_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let lending_market_authority_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(
         format!("{}.lending_market_authority_pubkey", method_name),
     ))?;
-    let obligation_owner_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_owner_pubkey",
+    let obligation_owner = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_owner",
         method_name
     )))?;
     let sysvar_clock = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
@@ -534,31 +598,40 @@ fn withdraw_obligation_collateral(accounts: Vec<String>, collateral_amount: u64)
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_collateral_pubkey": source_collateral_pubkey,
-            "destination_collateral_pubkey": destination_collateral_pubkey,
-            "withdraw_reserve_pubkey": withdraw_reserve_pubkey,
-            "obligation_pubkey": obligation_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "source_collateral_account": source_collateral_account,
+            "destination_collateral_account": destination_collateral_account,
+            "withdraw_reserve_account": withdraw_reserve_account,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
-            "obligation_owner_pubkey": obligation_owner_pubkey,
+            "obligation_owner": obligation_owner,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
             "collateral_amount": collateral_amount.to_string(),
         }),
+        json!({
+            "source_collateral_account": source_collateral_account,
+            "destination_collateral_account": destination_collateral_account,
+            "withdraw_reserve_account": withdraw_reserve_account,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "obligation_owner": obligation_owner,
+            "collateral_amount": collateral_amount.to_string(),
+        })
     ))
 }
 
 fn borrow_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> Result<Value> {
     let method_name = "BorrowObligationLiquidity";
-    let source_liquidity_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_liquidity_pubkey",
+    let source_liquidity_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_liquidity_account",
         method_name,
     )))?;
-    let destination_liquidity_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_liquidity_pubkey", method_name),
+    let destination_liquidity_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_liquidity_account", method_name),
     ))?;
-    let borrow_reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.borrow_reserve_pubkey",
+    let borrow_reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.borrow_reserve_account",
         method_name
     )))?;
     let borrow_reserve_liquidity_fee_receiver_pubkey =
@@ -566,19 +639,19 @@ fn borrow_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> 
             "{}.borrow_reserve_liquidity_fee_receiver_pubkey",
             method_name
         )))?;
-    let obligation_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_pubkey",
+    let obligation_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_account",
         method_name
     )))?;
-    let lending_market_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let lending_market_authority_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(
         format!("{}.lending_market_authority_pubkey", method_name),
     ))?;
-    let obligation_owner_pubkey = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_owner_pubkey",
+    let obligation_owner = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_owner",
         method_name
     )))?;
     let sysvar_clock = accounts.get(9).ok_or(SolanaError::AccountNotFound(format!(
@@ -589,48 +662,59 @@ fn borrow_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> 
         "{}.token_program_id",
         method_name
     )))?;
-    let host_fee_receiver_pubkey = accounts.get(10);
+    let host_fee_receiver = accounts.get(10);
 
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_liquidity_pubkey": source_liquidity_pubkey,
-            "destination_liquidity_pubkey": destination_liquidity_pubkey,
-            "borrow_reserve_pubkey": borrow_reserve_pubkey,
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "borrow_reserve_account": borrow_reserve_account,
             "borrow_reserve_liquidity_fee_receiver_pubkey": borrow_reserve_liquidity_fee_receiver_pubkey,
-            "obligation_pubkey": obligation_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
-            "obligation_owner_pubkey": obligation_owner_pubkey,
+            "obligation_owner": obligation_owner,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
-            "host_fee_receiver_pubkey": host_fee_receiver_pubkey,
+            "host_fee_receiver": host_fee_receiver,
             "liquidity_amount": liquidity_amount.to_string(),
         }),
+        json!({
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "borrow_reserve_account": borrow_reserve_account,
+            "borrow_reserve_liquidity_fee_receiver_pubkey": borrow_reserve_liquidity_fee_receiver_pubkey,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "obligation_owner": obligation_owner,
+            "host_fee_receiver": host_fee_receiver,
+            "liquidity_amount": liquidity_amount.to_string(),
+        })
     ))
 }
 
 fn repay_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> Result<Value> {
     let method_name = "RepayObligationLiquidity";
 
-    let source_liquidity_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_liquidity_pubkey",
+    let source_liquidity_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_liquidity_account",
         method_name,
     )))?;
-    let destination_liquidity_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_liquidity_pubkey", method_name),
+    let destination_liquidity_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_liquidity_account", method_name),
     ))?;
-    let repay_reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.repay_reserve_pubkey",
+    let repay_reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.repay_reserve_account",
         method_name
     )))?;
-    let obligation_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_pubkey",
+    let obligation_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_account",
         method_name
     )))?;
-    let lending_market_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let user_transfer_authority_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(
@@ -649,30 +733,38 @@ fn repay_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> R
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_liquidity_pubkey": source_liquidity_pubkey,
-            "destination_liquidity_pubkey": destination_liquidity_pubkey,
-            "repay_reserve_pubkey": repay_reserve_pubkey,
-            "obligation_pubkey": obligation_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "repay_reserve_account": repay_reserve_account,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
             "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
             "liquidity_amount": liquidity_amount.to_string(),
         }),
+        json!({
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "repay_reserve_account": repay_reserve_account,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "liquidity_amount": liquidity_amount.to_string(),
+        })
     ))
 }
 
 fn liquidate_obligation(accounts: Vec<String>, liquidity_amount: u64) -> Result<Value> {
     let method_name = "LiquidateObligation";
-    let source_liquidity_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_liquidity_pubkey",
+    let source_liquidity_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_liquidity_account",
         method_name,
     )))?;
-    let destination_collateral_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_collateral_pubkey", method_name),
+    let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_collateral_account", method_name),
     ))?;
-    let repay_reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.repay_reserve_pubkey",
+    let repay_reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.repay_reserve_account",
         method_name
     )))?;
     let repay_reserve_liquidity_supply_pubkey =
@@ -680,8 +772,8 @@ fn liquidate_obligation(accounts: Vec<String>, liquidity_amount: u64) -> Result<
             "{}.repay_reserve_liquidity_supply_pubkey",
             method_name
         )))?;
-    let withdraw_reserve_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_reserve_pubkey",
+    let withdraw_reserve_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.withdraw_reserve_account",
         method_name
     )))?;
     let withdraw_reserve_collateral_supply_pubkey =
@@ -689,12 +781,12 @@ fn liquidate_obligation(accounts: Vec<String>, liquidity_amount: u64) -> Result<
             "{}.withdraw_reserve_collateral_supply_pubkey",
             method_name
         )))?;
-    let obligation_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.obligation_pubkey",
+    let obligation_account = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.obligation_account",
         method_name
     )))?;
-    let lending_market_pubkey = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let lending_market_authority_pubkey = accounts.get(8).ok_or(SolanaError::AccountNotFound(
@@ -720,47 +812,58 @@ fn liquidate_obligation(accounts: Vec<String>, liquidity_amount: u64) -> Result<
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_liquidity_pubkey": source_liquidity_pubkey,
-            "destination_liquidity_pubkey": destination_collateral_pubkey,
-            "repay_reserve_pubkey": repay_reserve_pubkey,
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_collateral_account,
+            "repay_reserve_account": repay_reserve_account,
             "repay_reserve_liquidity_supply_pubkey": repay_reserve_liquidity_supply_pubkey,
-            "withdraw_reserve_pubkey": withdraw_reserve_pubkey,
+            "withdraw_reserve_account": withdraw_reserve_account,
             "withdraw_reserve_collateral_supply_pubkey": withdraw_reserve_collateral_supply_pubkey,
-            "obligation_pubkey": obligation_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
             "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "sysvar_clock": sysvar_clock,
             "token_program_id": token_program_id,
             "liquidity_amount": liquidity_amount.to_string(),
         }),
+        json!({
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_collateral_account,
+            "repay_reserve_account": repay_reserve_account,
+            "repay_reserve_liquidity_supply_pubkey": repay_reserve_liquidity_supply_pubkey,
+            "withdraw_reserve_account": withdraw_reserve_account,
+            "withdraw_reserve_collateral_supply_pubkey": withdraw_reserve_collateral_supply_pubkey,
+            "obligation_account": obligation_account,
+            "lending_market_account": lending_market_account,
+            "liquidity_amount": liquidity_amount.to_string(),
+        })
     ))
 }
 
 fn flash_loan(accounts: Vec<String>, amount: u64) -> Result<Value> {
     let method_name = "FlashLoan";
-    let source_liquidity_pubkey = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_liquidity_pubkey",
+    let source_liquidity_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.source_liquidity_account",
         method_name,
     )))?;
-    let destination_liquidity_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
-        format!("{}.destination_liquidity_pubkey", method_name),
+    let destination_liquidity_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.destination_liquidity_account", method_name),
     ))?;
-    let reserve_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.reserve_pubkey",
+    let reserve_account = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_account",
         method_name
     )))?;
-    let reserve_liquidity_fee_receiver_pubkey =
+    let reserve_liquidity_fee_receiver =
         accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-            "{}.reserve_liquidity_fee_receiver_pubkey",
+            "{}.reserve_liquidity_fee_receiver",
             method_name
         )))?;
-    let host_fee_receiver_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.host_fee_receiver_pubkey",
+    let host_fee_receiver = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.host_fee_receiver",
         method_name
     )))?;
-    let lending_market_pubkey = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.lending_market_pubkey",
+    let lending_market_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.lending_market_account",
         method_name
     )))?;
     let lending_market_authority_pubkey = accounts.get(6).ok_or(SolanaError::AccountNotFound(
@@ -779,17 +882,30 @@ fn flash_loan(accounts: Vec<String>, amount: u64) -> Result<Value> {
         PROGRAM_NAME,
         method_name,
         json!({
-            "source_liquidity_pubkey": source_liquidity_pubkey,
-            "destination_liquidity_pubkey": destination_liquidity_pubkey,
-            "reserve_pubkey": reserve_pubkey,
-            "reserve_liquidity_fee_receiver_pubkey": reserve_liquidity_fee_receiver_pubkey,
-            "host_fee_receiver_pubkey": host_fee_receiver_pubkey,
-            "lending_market_pubkey": lending_market_pubkey,
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_fee_receiver": reserve_liquidity_fee_receiver,
+            "host_fee_receiver": host_fee_receiver,
+            "lending_market_account": lending_market_account,
             "lending_market_authority_pubkey": lending_market_authority_pubkey,
             "token_program_id": token_program_id,
             "flash_loan_receiver_program_id": flash_loan_receiver_program_id,
             "flash_loan_receiver_program_accounts": flash_loan_receiver_program_accounts,
             "amount": amount.to_string(),
         }),
+        json!({
+            "source_liquidity_account": source_liquidity_account,
+            "destination_liquidity_account": destination_liquidity_account,
+            "reserve_account": reserve_account,
+            "reserve_liquidity_fee_receiver": reserve_liquidity_fee_receiver,
+            "host_fee_receiver": host_fee_receiver,
+            "lending_market_account": lending_market_account,
+            "lending_market_authority_pubkey": lending_market_authority_pubkey,
+            "token_program_id": token_program_id,
+            "flash_loan_receiver_program_id": flash_loan_receiver_program_id,
+            "flash_loan_receiver_program_accounts": flash_loan_receiver_program_accounts,
+            "amount": amount.to_string(),
+        })
     ))
 }

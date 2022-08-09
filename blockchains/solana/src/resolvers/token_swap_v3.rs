@@ -27,8 +27,8 @@ fn initialize(accounts: Vec<String>, initialize: Initialize) -> Result<Value> {
         "{}.token_swap",
         method_name
     )))?;
-    let swap_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.swap_authority",
+    let swap_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.swap_authority_pubkey",
         method_name
     )))?;
     let token_a = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
@@ -39,8 +39,8 @@ fn initialize(accounts: Vec<String>, initialize: Initialize) -> Result<Value> {
         "{}.token_b",
         method_name
     )))?;
-    let pool_token_mint = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.pool_token_mint",
+    let pool_mint = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pool_mint",
         method_name
     )))?;
     let pool_token_account_1 = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
@@ -82,15 +82,26 @@ fn initialize(accounts: Vec<String>, initialize: Initialize) -> Result<Value> {
         method_name,
         json!({
             "token_swap": token_swap,
-            "swap_authority": swap_authority,
+            "swap_authority_pubkey": swap_authority_pubkey,
             "token_a": token_a,
             "token_b": token_b,
-            "pool_token_mint": pool_token_mint,
+            "pool_mint": pool_mint,
             "pool_token_account_1": pool_token_account_1,
             "pool_token_account_2": pool_token_account_2,
             "token_program_id": token_program_id,
             "initialize": initialize,
         }),
+        json!({
+            "token_swap": token_swap,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "token_a": token_a,
+            "token_b": token_b,
+            "pool_mint": pool_mint,
+            "pool_token_account_1": pool_token_account_1,
+            "pool_token_account_2": pool_token_account_2,
+            "token_program_id": token_program_id,
+            "initialize": initialize,
+        })
     ))
 }
 
@@ -100,12 +111,12 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
         "{}.token_swap",
         method_name
     )))?;
-    let swap_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.swap_authority",
+    let swap_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority",
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.user_transfer_authority_pubkey",
         method_name
     )))?;
     let source_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
@@ -124,8 +135,8 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
         "{}.destination_account",
         method_name
     )))?;
-    let pool_token_mint = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.pool_token_mint",
+    let pool_mint = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pool_mint",
         method_name
     )))?;
     let fee_account = accounts.get(8).ok_or(SolanaError::AccountNotFound(format!(
@@ -146,8 +157,8 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
         method_name,
         json!({
             "token_swap": token_swap,
-            "swap_authority": swap_authority,
-            "user_transfer_authority": user_transfer_authority,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "source_account": source_account,
             "source_token": source_token,
             "destination_token": destination_token,
@@ -158,6 +169,20 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
             "host_fee_account": host_fee_account,
             "swap": swap,
         }),
+        json!({
+            "token_swap": token_swap,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
+            "source_account": source_account,
+            "source_token": source_token,
+            "destination_token": destination_token,
+            "destination_account": destination_account,
+            "pool_token_mint": pool_token_mint,
+            "fee_account": fee_account,
+            "token_program_id": token_program_id,
+            "host_fee_account": host_fee_account,
+            "swap": swap,
+        })
     ))
 }
 
@@ -167,19 +192,19 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
         "{}.token_swap",
         method_name
     )))?;
-    let swap_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.swap_authority",
+    let swap_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority",
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.user_transfer_authority_pubkey",
         method_name
     )))?;
-    let token_a_user_transfer_authority = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.token_a_user_transfer_authority", method_name),
+    let token_a_user_transfer_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+        format!("{}.token_a_user_transfer_authority_pubkey", method_name),
     ))?;
-    let token_b_user_transfer_authority = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-        format!("{}.token_b_user_transfer_authority", method_name),
+    let token_b_user_transfer_authority_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(
+        format!("{}.token_b_user_transfer_authority_pubkey", method_name),
     ))?;
     let token_a_base_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
         "{}.token_a_base_account",
@@ -189,8 +214,8 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
         "{}.token_b_base_account",
         method_name
     )))?;
-    let pool_mint_account = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.pool_mint_account",
+    let pool_mint = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pool_mint",
         method_name
     )))?;
     let pool_account = accounts.get(8).ok_or(SolanaError::AccountNotFound(format!(
@@ -211,17 +236,30 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
         method_name,
         json!({
             "token_swap": token_swap,
-            "swap_authority": swap_authority,
+            "swap_authority_pubkey": swap_authority_pubkey,
             "user_transfer_authority": user_transfer_authority,
-            "token_a_user_transfer_authority": token_a_user_transfer_authority,
-            "token_b_user_transfer_authority": token_b_user_transfer_authority,
+            "token_a_user_transfer_authority_pubkey": token_a_user_transfer_authority_pubkey,
+            "token_b_user_transfer_authority_pubkey": token_b_user_transfer_authority_pubkey,
             "token_a_base_account": token_a_base_account,
             "token_b_base_account": token_b_base_account,
-            "pool_mint_account": pool_mint_account,
+            "pool_mint": pool_mint,
             "pool_account": pool_account,
             "token_program_id": token_program_id,
             "deposit_all_token_types": deposit_all_token_types,
         }),
+        json!({
+            "token_swap": token_swap,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "user_transfer_authority": user_transfer_authority,
+            "token_a_user_transfer_authority_pubkey": token_a_user_transfer_authority_pubkey,
+            "token_b_user_transfer_authority_pubkey": token_b_user_transfer_authority_pubkey,
+            "token_a_base_account": token_a_base_account,
+            "token_b_base_account": token_b_base_account,
+            "pool_mint": pool_mint,
+            "pool_account": pool_account,
+            "token_program_id": token_program_id,
+            "deposit_all_token_types": deposit_all_token_types,
+        })
     ))
 }
 
@@ -231,16 +269,16 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
         "{}.token_swap",
         method_name
     )))?;
-    let swap_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.swap_authority",
+    let swap_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.swap_authority_pubkey",
         method_name
     )))?;
     let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
         "{}.user_transfer_authority",
         method_name
     )))?;
-    let pool_mint_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.pool_mint_account",
+    let pool_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pool_mint",
         method_name
     )))?;
     let source_pool_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
@@ -283,9 +321,9 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
         method_name,
         json!({
             "token_swap": token_swap,
-            "swap_authority": swap_authority,
+            "swap_authority_pubkey": swap_authority_pubkey,
             "user_transfer_authority": user_transfer_authority,
-            "pool_mint_account": pool_mint_account,
+            "pool_mint": pool_mint,
             "source_pool_account": source_pool_account,
             "token_a_swap_account": token_a_swap_account,
             "token_b_swap_account": token_b_swap_account,
@@ -295,6 +333,20 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
             "token_program_id": token_program_id,
             "withdraw_all_token_types": withdraw_all_token_types,
         }),
+        json!({
+            "token_swap": token_swap,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "user_transfer_authority": user_transfer_authority,
+            "pool_mint": pool_mint,
+            "source_pool_account": source_pool_account,
+            "token_a_swap_account": token_a_swap_account,
+            "token_b_swap_account": token_b_swap_account,
+            "token_a_user_account": token_a_user_account,
+            "token_b_user_account": token_b_user_account,
+            "fee_account": fee_account,
+            "token_program_id": token_program_id,
+            "withdraw_all_token_types": withdraw_all_token_types,
+        })
     ))
 }
 
@@ -307,8 +359,8 @@ fn deposit_single_token_type_exact_amount_in(
         "{}.token_swap",
         method_name
     )))?;
-    let swap_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.swap_authority",
+    let swap_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.swap_authority_pubkey",
         method_name
     )))?;
     let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
@@ -327,8 +379,8 @@ fn deposit_single_token_type_exact_amount_in(
         "{}.token_b_swap_account",
         method_name
     )))?;
-    let pool_mint_account = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.pool_mint_account",
+    let pool_mint = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.pool_mint",
         method_name
     )))?;
     let pool_account = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
@@ -348,16 +400,28 @@ fn deposit_single_token_type_exact_amount_in(
         method_name,
         json!({
             "token_swap": token_swap,
-            "swap_authority": swap_authority,
+            "swap_authority_pubkey": swap_authority_pubkey,
             "user_transfer_authority": user_transfer_authority,
             "token_source_account": token_source_account,
             "token_a_swap_account": token_a_swap_account,
             "token_b_swap_account": token_b_swap_account,
-            "pool_mint_account": pool_mint_account,
+            "pool_mint": pool_mint,
             "pool_account": pool_account,
             "token_program_id": token_program_id,
             "arguments": arguments,
         }),
+        json!({
+            "token_swap": token_swap,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "user_transfer_authority": user_transfer_authority,
+            "token_source_account": token_source_account,
+            "token_a_swap_account": token_a_swap_account,
+            "token_b_swap_account": token_b_swap_account,
+            "pool_mint": pool_mint,
+            "pool_account": pool_account,
+            "token_program_id": token_program_id,
+            "arguments": arguments,
+        })
     ))
 }
 
@@ -370,15 +434,15 @@ fn withdraw_single_token_type_exact_amount_out(
         "{}.token_swap",
         method_name
     )))?;
-    let swap_authority = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.swap_authority",
+    let swap_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.swap_authority_pubkey",
         method_name
     )))?;
     let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
         "{}.user_transfer_authority",
         method_name
     )))?;
-    let pool_mint_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+    let pool_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
         "{}.token_source_account",
         method_name
     )))?;
@@ -391,7 +455,7 @@ fn withdraw_single_token_type_exact_amount_out(
         method_name
     )))?;
     let token_b_swap_account = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.pool_mint_account",
+        "{}.pool_mint",
         method_name
     )))?;
     let token_user_account = accounts.get(7).ok_or(SolanaError::AccountNotFound(format!(
@@ -415,9 +479,9 @@ fn withdraw_single_token_type_exact_amount_out(
         method_name,
         json!({
             "token_swap": token_swap,
-            "swap_authority": swap_authority,
+            "swap_authority_pubkey": swap_authority_pubkey,
             "user_transfer_authority": user_transfer_authority,
-            "pool_mint_account": pool_mint_account,
+            "pool_mint": pool_mint,
             "source_pool_account": source_pool_account,
             "token_a_swap_account": token_a_swap_account,
             "token_b_swap_account": token_b_swap_account,
@@ -426,5 +490,18 @@ fn withdraw_single_token_type_exact_amount_out(
             "token_program_id": token_program_id,
             "arguments": arguments,
         }),
+        json!({
+            "token_swap": token_swap,
+            "swap_authority_pubkey": swap_authority_pubkey,
+            "user_transfer_authority": user_transfer_authority,
+            "pool_mint": pool_mint,
+            "source_pool_account": source_pool_account,
+            "token_a_swap_account": token_a_swap_account,
+            "token_b_swap_account": token_b_swap_account,
+            "token_user_account": token_user_account,
+            "fee_account": fee_account,
+            "token_program_id": token_program_id,
+            "arguments": arguments,
+        })
     ))
 }

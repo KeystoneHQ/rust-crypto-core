@@ -4,10 +4,10 @@ use crate::error::{Result, SolanaError};
 use crate::resolvers;
 use crate::Read;
 
-use serde_json::Value;
 use crate::solana_lib::solana_program::stake::instruction::StakeInstruction;
 use crate::solana_lib::solana_program::system_instruction::SystemInstruction;
 use crate::solana_lib::solana_program::vote::instruction::VoteInstruction;
+use serde_json::Value;
 
 pub struct Instruction {
     pub(crate) program_index: u8,
@@ -79,22 +79,26 @@ impl Instruction {
             }
             SupportedProgram::TokenProgram => {
                 let instruction =
-                    crate::solana_lib::spl::token::instruction::TokenInstruction::unpack(self.data.clone().as_slice())
-                        .map_err(|e| ProgramError(e.to_string()))?;
+                    crate::solana_lib::spl::token::instruction::TokenInstruction::unpack(
+                        self.data.clone().as_slice(),
+                    )
+                    .map_err(|e| ProgramError(e.to_string()))?;
                 resolvers::token::resolve(instruction, accounts)
             }
             SupportedProgram::TokenSwapProgramV3 => {
-                let instruction = crate::solana_lib::spl::token_swap::instruction::SwapInstruction::unpack(
-                    self.data.clone().as_slice(),
-                )
-                .map_err(|e| ProgramError(e.to_string()))?;
+                let instruction =
+                    crate::solana_lib::spl::token_swap::instruction::SwapInstruction::unpack(
+                        self.data.clone().as_slice(),
+                    )
+                    .map_err(|e| ProgramError(e.to_string()))?;
                 resolvers::token_swap_v3::resolve(instruction, accounts)
             }
             SupportedProgram::TokenLendingProgram => {
-                let instruction = crate::solana_lib::spl::token_lending::instruction::LendingInstruction::unpack(
-                    self.data.clone().as_slice(),
-                )
-                .map_err(|e| ProgramError(e.to_string()))?;
+                let instruction =
+                    crate::solana_lib::spl::token_lending::instruction::LendingInstruction::unpack(
+                        self.data.clone().as_slice(),
+                    )
+                    .map_err(|e| ProgramError(e.to_string()))?;
                 resolvers::token_lending::resolve(instruction, accounts)
             }
         }

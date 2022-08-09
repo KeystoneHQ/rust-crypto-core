@@ -1,8 +1,11 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
 use crate::solana_lib::spl::token_swap::curve::base::CurveType;
-use crate::solana_lib::spl::token_swap::instruction::{DepositAllTokenTypes, DepositSingleTokenTypeExactAmountIn, Initialize, Swap, SwapInstruction, WithdrawAllTokenTypes, WithdrawSingleTokenTypeExactAmountOut};
+use crate::solana_lib::spl::token_swap::instruction::{
+    DepositAllTokenTypes, DepositSingleTokenTypeExactAmountIn, Initialize, Swap, SwapInstruction,
+    WithdrawAllTokenTypes, WithdrawSingleTokenTypeExactAmountOut,
+};
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "TokenSwapV3";
 
@@ -101,7 +104,7 @@ fn initialize(accounts: Vec<String>, initialize: Initialize) -> Result<Value> {
             "pool_token_account_2": pool_token_account_2,
             "token_program_id": token_program_id,
             "initialize": initialize,
-        })
+        }),
     ))
 }
 
@@ -115,10 +118,9 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
         "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority_pubkey",
-        method_name
-    )))?;
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+        format!("{}.user_transfer_authority_pubkey", method_name),
+    ))?;
     let source_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
         "{}.source_account",
         method_name
@@ -182,7 +184,7 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
             "token_program_id": token_program_id,
             "host_fee_account": host_fee_account,
             "swap": swap,
-        })
+        }),
     ))
 }
 
@@ -196,16 +198,19 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
         "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority_pubkey",
-        method_name
-    )))?;
-    let token_a_user_transfer_authority_pubkey = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.token_a_user_transfer_authority_pubkey", method_name),
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+        format!("{}.user_transfer_authority_pubkey", method_name),
     ))?;
-    let token_b_user_transfer_authority_pubkey = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-        format!("{}.token_b_user_transfer_authority_pubkey", method_name),
-    ))?;
+    let token_a_user_transfer_authority_pubkey =
+        accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+            "{}.token_a_user_transfer_authority_pubkey",
+            method_name
+        )))?;
+    let token_b_user_transfer_authority_pubkey =
+        accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+            "{}.token_b_user_transfer_authority_pubkey",
+            method_name
+        )))?;
     let token_a_base_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
         "{}.token_a_base_account",
         method_name
@@ -259,7 +264,7 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
             "pool_account": pool_account,
             "token_program_id": token_program_id,
             "deposit_all_token_types": deposit_all_token_types,
-        })
+        }),
     ))
 }
 
@@ -346,7 +351,7 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
             "fee_account": fee_account,
             "token_program_id": token_program_id,
             "withdraw_all_token_types": withdraw_all_token_types,
-        })
+        }),
     ))
 }
 
@@ -421,7 +426,7 @@ fn deposit_single_token_type_exact_amount_in(
             "pool_account": pool_account,
             "token_program_id": token_program_id,
             "arguments": arguments,
-        })
+        }),
     ))
 }
 
@@ -502,6 +507,6 @@ fn withdraw_single_token_type_exact_amount_out(
             "fee_account": fee_account,
             "token_program_id": token_program_id,
             "arguments": arguments,
-        })
+        }),
     ))
 }

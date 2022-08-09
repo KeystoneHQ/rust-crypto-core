@@ -1,9 +1,12 @@
-use arrayref::{array_mut_ref, array_ref};
 use crate::solana_lib::solana_program::program_error::ProgramError;
 use crate::solana_lib::solana_program::program_pack::{IsInitialized, Pack, Sealed};
-use crate::solana_lib::spl::token_swap::curve::calculator::{CurveCalculator, DynPack, RoundDirection, SwapWithoutFeesResult, TradeDirection, TradingTokenResult};
+use crate::solana_lib::spl::token_swap::curve::calculator::{
+    CurveCalculator, DynPack, RoundDirection, SwapWithoutFeesResult, TradeDirection,
+    TradingTokenResult,
+};
 use crate::solana_lib::spl::token_swap::curve::math::{CheckedCeilDiv, PreciseNumber, U256};
 use crate::solana_lib::spl::token_swap::error::SwapError;
+use arrayref::{array_mut_ref, array_ref};
 
 const N_COINS: u8 = 2;
 const N_COINS_SQUARED: u8 = 4;

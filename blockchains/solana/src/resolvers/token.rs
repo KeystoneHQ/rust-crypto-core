@@ -1,9 +1,9 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
 use crate::solana_lib::solana_program::program_option::COption;
 use crate::solana_lib::solana_program::pubkey::Pubkey;
 use crate::solana_lib::spl::token::instruction::{AuthorityType, TokenInstruction};
+use serde_json::{json, Value};
 
 fn map_coption_to_option<T>(value: COption<T>) -> Option<T> {
     match value {
@@ -24,7 +24,12 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             mint_authority_pubkey,
             decimals,
             freeze_authority_pubkey,
-        } => initialize_mint(accounts, mint_authority_pubkey, decimals, freeze_authority_pubkey),
+        } => initialize_mint(
+            accounts,
+            mint_authority_pubkey,
+            decimals,
+            freeze_authority_pubkey,
+        ),
         TokenInstruction::InitializeAccount => initialize_account(accounts),
         TokenInstruction::InitializeMultisig { m } => initialize_multisig(accounts, m),
         TokenInstruction::Transfer { amount } => transfer(accounts, amount),
@@ -59,7 +64,12 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
             mint_authority_pubkey,
             decimals,
             freeze_authority_pubkey,
-        } => initialize_mint_2(accounts, mint_authority_pubkey, decimals, freeze_authority_pubkey),
+        } => initialize_mint_2(
+            accounts,
+            mint_authority_pubkey,
+            decimals,
+            freeze_authority_pubkey,
+        ),
     }
 }
 
@@ -79,7 +89,8 @@ fn initialize_mint(
         method_name
     )))?;
     let mint_authority_pubkey = mint_authority_pubkey.to_string();
-    let freeze_authority_pubkey = map_coption_to_option(freeze_authority_pubkey.map(|v| v.to_string()));
+    let freeze_authority_pubkey =
+        map_coption_to_option(freeze_authority_pubkey.map(|v| v.to_string()));
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
@@ -95,7 +106,7 @@ fn initialize_mint(
             "mint_authority_pubkey": mint_authority_pubkey,
             "freeze_authority_pubkey": freeze_authority_pubkey,
             "decimals": decimals,
-        })
+        }),
     ))
 }
 
@@ -130,7 +141,7 @@ fn initialize_account(accounts: Vec<String>) -> Result<Value> {
         json!({
             "account": account,
             "mint": mint,
-        })
+        }),
     ))
 }
 
@@ -160,7 +171,7 @@ fn initialize_multisig(accounts: Vec<String>, m: u8) -> Result<Value> {
             "multisig_account": multisig_account,
             "attendees": attendees,
             "required_signatures": required_signatures,
-        })
+        }),
     ))
 }
 
@@ -196,7 +207,7 @@ fn transfer(accounts: Vec<String>, amount: u64) -> Result<Value> {
                 "source_account": source_account,
                 "recipient": recipient,
                 "amount": amount,
-            })
+            }),
         ));
     }
     let owner = accounts
@@ -215,7 +226,7 @@ fn transfer(accounts: Vec<String>, amount: u64) -> Result<Value> {
             "source_account": source_account,
             "destination_account": destination_account,
             "amount": amount,
-        })
+        }),
     ));
 }
 
@@ -251,7 +262,7 @@ fn approve(accounts: Vec<String>, amount: u64) -> Result<Value> {
                 "source_account": source_account,
                 "delegate_account": delegate_account,
                 "amount": amount,
-            })
+            }),
         ));
     }
     let owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
@@ -271,7 +282,7 @@ fn approve(accounts: Vec<String>, amount: u64) -> Result<Value> {
             "source_account": source_account,
             "delegate_account": delegate_account,
             "amount": amount,
-        })
+        }),
     ))
 }
 
@@ -298,7 +309,7 @@ fn revoke(accounts: Vec<String>) -> Result<Value> {
             }),
             json!({
                 "source_account": source_account,
-            })
+            }),
         ));
     }
     let owner = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
@@ -314,7 +325,7 @@ fn revoke(accounts: Vec<String>) -> Result<Value> {
         }),
         json!({
             "source_account": source_account,
-        })
+        }),
     ));
 }
 
@@ -357,7 +368,7 @@ fn set_authority(
                 "old_authority_pubkey": old_authority_pubkey,
                 "authority_type": authority_type,
                 "new_authority_pubkey": new_authority_pubkey,
-            })
+            }),
         ))
     } else {
         let old_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
@@ -378,7 +389,7 @@ fn set_authority(
                 "old_authority_pubkey": old_authority_pubkey,
                 "authority_type": authority_type,
                 "new_authority_pubkey": new_authority_pubkey,
-            })
+            }),
         ))
     }
 }
@@ -396,10 +407,9 @@ fn mint_to(accounts: Vec<String>, amount: u64) -> Result<Value> {
     )))?;
     let amount = amount.to_string();
     if is_multisig(&accounts, 3) {
-        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-            "{}.mint_authority_pubkey",
-            method_name
-        )))?;
+        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+            format!("{}.mint_authority_pubkey", method_name),
+        ))?;
         let signers = &accounts[3..];
         Ok(template_instruction(
             PROGRAM_NAME,
@@ -415,13 +425,12 @@ fn mint_to(accounts: Vec<String>, amount: u64) -> Result<Value> {
                 "mint": mint,
                 "mint_to_account": mint_to_account,
                 "amount": amount,
-            })
+            }),
         ))
     } else {
-        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-            "{}.mint_authority_pubkey",
-            method_name
-        )))?;
+        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+            format!("{}.mint_authority_pubkey", method_name),
+        ))?;
         Ok(template_instruction(
             PROGRAM_NAME,
             method_name,
@@ -435,7 +444,7 @@ fn mint_to(accounts: Vec<String>, amount: u64) -> Result<Value> {
                 "mint": mint,
                 "mint_to_account": mint_to_account,
                 "amount": amount,
-            })
+            }),
         ))
     }
 }
@@ -472,7 +481,7 @@ fn burn(accounts: Vec<String>, amount: u64) -> Result<Value> {
                 "account": account,
                 "mint": mint,
                 "amount": amount,
-            })
+            }),
         ))
     } else {
         let owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
@@ -492,7 +501,7 @@ fn burn(accounts: Vec<String>, amount: u64) -> Result<Value> {
                 "account": account,
                 "mint": mint,
                 "amount": amount,
-            })
+            }),
         ))
     }
 }
@@ -525,7 +534,7 @@ fn close_account(accounts: Vec<String>) -> Result<Value> {
             json!({
                 "account": account,
                 "recipient": recipient,
-            })
+            }),
         ))
     } else {
         let owner = accounts
@@ -542,7 +551,7 @@ fn close_account(accounts: Vec<String>) -> Result<Value> {
             json!({
                 "account": account,
                 "recipient": recipient,
-            })
+            }),
         ))
     }
 }
@@ -558,9 +567,9 @@ fn freeze_account(accounts: Vec<String>) -> Result<Value> {
         method_name
     )))?;
     if is_multisig(&accounts, 3) {
-        let mint_freeze_authority_pubkey = accounts.get(2).ok_or(
-            SolanaError::AccountNotFound(format!("{}.mint_freeze_authority_pubkey", method_name)),
-        )?;
+        let mint_freeze_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+            format!("{}.mint_freeze_authority_pubkey", method_name),
+        ))?;
         let signers = &accounts[3..];
         Ok(template_instruction(
             PROGRAM_NAME,
@@ -574,7 +583,7 @@ fn freeze_account(accounts: Vec<String>) -> Result<Value> {
             json!({
                 "account": account,
                 "mint": mint,
-            })
+            }),
         ))
     } else {
         let mint_freeze_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
@@ -591,7 +600,7 @@ fn freeze_account(accounts: Vec<String>) -> Result<Value> {
             json!({
                 "account": account,
                 "mint": mint,
-            })
+            }),
         ))
     }
 }
@@ -607,9 +616,9 @@ fn thaw_account(accounts: Vec<String>) -> Result<Value> {
         method_name
     )))?;
     if is_multisig(&accounts, 3) {
-        let mint_freeze_authority_pubkey = accounts.get(2).ok_or(
-            SolanaError::AccountNotFound(format!("{}.mint_freeze_authority_pubkey", method_name)),
-        )?;
+        let mint_freeze_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+            format!("{}.mint_freeze_authority_pubkey", method_name),
+        ))?;
         let signers = &accounts[3..];
         Ok(template_instruction(
             PROGRAM_NAME,
@@ -623,7 +632,7 @@ fn thaw_account(accounts: Vec<String>) -> Result<Value> {
             json!({
                 "account": account,
                 "mint": mint,
-            })
+            }),
         ))
     } else {
         let mint_freeze_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
@@ -640,7 +649,7 @@ fn thaw_account(accounts: Vec<String>) -> Result<Value> {
             json!({
                 "account": account,
                 "mint": mint,
-            })
+            }),
         ))
     }
 }
@@ -684,7 +693,7 @@ fn transfer_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<
                 "recipient": recipient,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     } else {
         let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -721,7 +730,7 @@ fn transfer_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<
                 "recipient": recipient,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     }
 }
@@ -758,13 +767,14 @@ fn approve_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<V
                 "signers": signers,
                 "decimals": decimals,
                 "amount": amount,
-            }), json!({
+            }),
+            json!({
                 "account": account,
                 "mint": mint,
                 "delegate": delegate,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     } else {
         let account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
@@ -801,7 +811,7 @@ fn approve_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<V
                 "delegate": delegate,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     }
 }
@@ -818,10 +828,9 @@ fn mint_to_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<V
     )))?;
     let amount = amount.to_string();
     if is_multisig(&accounts, 3) {
-        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-            "{}.mint_authority_pubkey",
-            method_name
-        )))?;
+        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+            format!("{}.mint_authority_pubkey", method_name),
+        ))?;
         let signers = &accounts[3..];
         Ok(template_instruction(
             PROGRAM_NAME,
@@ -833,18 +842,18 @@ fn mint_to_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<V
                 "signers": signers,
                 "decimals": decimals,
                 "amount": amount,
-            }), json!({
+            }),
+            json!({
                 "mint": mint,
                 "mint_to_account": mint_to_account,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     } else {
-        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-            "{}.mint_authority_pubkey",
-            method_name
-        )))?;
+        let mint_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+            format!("{}.mint_authority_pubkey", method_name),
+        ))?;
         Ok(template_instruction(
             PROGRAM_NAME,
             method_name,
@@ -860,7 +869,7 @@ fn mint_to_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<V
                 "mint_to_account": mint_to_account,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     }
 }
@@ -898,7 +907,7 @@ fn burn_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<Valu
                 "mint": mint,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     } else {
         let owner = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
@@ -920,7 +929,7 @@ fn burn_checked(accounts: Vec<String>, decimals: u8, amount: u64) -> Result<Valu
                 "mint": mint,
                 "decimals": decimals,
                 "amount": amount,
-            })
+            }),
         ))
     }
 }
@@ -952,7 +961,7 @@ fn initialize_account_2(accounts: Vec<String>, owner: Pubkey) -> Result<Value> {
         json!({
             "account": account,
             "mint": mint,
-        })
+        }),
     ))
 }
 
@@ -970,7 +979,7 @@ fn sync_native(accounts: Vec<String>) -> Result<Value> {
         }),
         json!({
             "account_to_sync": account_to_sync,
-        })
+        }),
     ))
 }
 
@@ -996,7 +1005,7 @@ fn initialize_account_3(accounts: Vec<String>, owner: Pubkey) -> Result<Value> {
         json!({
             "account": account,
             "mint": mint,
-        })
+        }),
     ))
 }
 
@@ -1020,7 +1029,7 @@ fn initialize_multisig_2(accounts: Vec<String>, m: u8) -> Result<Value> {
             "multisig_account": multisig_account,
             "attendees": attendees,
             "required_signatures": required_signatures,
-        })
+        }),
     ))
 }
 
@@ -1036,7 +1045,8 @@ fn initialize_mint_2(
         method_name
     )))?;
     let mint_authority_pubkey = mint_authority_pubkey.to_string();
-    let freeze_authority_pubkey = map_coption_to_option(freeze_authority_pubkey.map(|v| v.to_string()));
+    let freeze_authority_pubkey =
+        map_coption_to_option(freeze_authority_pubkey.map(|v| v.to_string()));
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
@@ -1051,6 +1061,6 @@ fn initialize_mint_2(
             "mint_authority_pubkey": mint_authority_pubkey,
             "freeze_authority_pubkey": freeze_authority_pubkey,
             "decimals": decimals,
-        })
+        }),
     ))
 }

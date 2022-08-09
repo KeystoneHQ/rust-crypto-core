@@ -1,10 +1,13 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
 use crate::solana_lib::solana_program::hash::Hash;
 use crate::solana_lib::solana_program::pubkey::Pubkey;
 use crate::solana_lib::solana_program::vote::instruction::VoteInstruction;
-use crate::solana_lib::solana_program::vote::state::{Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit, VoteStateUpdate};
+use crate::solana_lib::solana_program::vote::state::{
+    Vote, VoteAuthorize, VoteAuthorizeCheckedWithSeedArgs, VoteAuthorizeWithSeedArgs, VoteInit,
+    VoteStateUpdate,
+};
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "Vote";
 
@@ -85,7 +88,7 @@ fn resolve_initialize_account(accounts: Vec<String>, vote_init: VoteInit) -> Res
                 "authorized_withdrawer": authorized_withdrawer,
                 "commission": commission,
             }
-        })
+        }),
     ))
 }
 
@@ -126,7 +129,7 @@ fn resolve_authorize(
             "old_authority_pubkey": old_authority_pubkey,
             "new_authority_pubkey": pubkey.to_string(),
             "authority_type": authority_type,
-        })
+        }),
     ))
 }
 
@@ -178,7 +181,7 @@ fn resolve_vote(accounts: Vec<String>, vote: Vote) -> Result<Value> {
                 "hash": vote_hash,
                 "timestamp": timestamp,
             }
-        })
+        }),
     ))
 }
 
@@ -193,10 +196,9 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
         "{}.recipient",
         method_name
     )))?;
-    let withdraw_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority_pubkey",
-        method_name
-    )))?;
+    let withdraw_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+        format!("{}.withdraw_authority_pubkey", method_name),
+    ))?;
     let amount = lamports.to_string();
     Ok(template_instruction(
         PROGRAM_NAME,
@@ -211,7 +213,7 @@ fn resolve_withdraw(accounts: Vec<String>, lamports: u64) -> Result<Value> {
             "vote_account": vote_account,
             "recipient": recipient,
             "amount": amount,
-        })
+        }),
     ))
 }
 
@@ -226,10 +228,9 @@ fn resolve_update_validator_identity(accounts: Vec<String>) -> Result<Value> {
         "{}.new_validator_identity",
         method_name
     )))?;
-    let withdraw_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority_pubkey",
-        method_name
-    )))?;
+    let withdraw_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(
+        format!("{}.withdraw_authority_pubkey", method_name),
+    ))?;
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
@@ -241,7 +242,7 @@ fn resolve_update_validator_identity(accounts: Vec<String>) -> Result<Value> {
         json!({
             "vote_account": vote_account,
             "new_validator_identity": new_validator_identity,
-        })
+        }),
     ))
 }
 
@@ -252,10 +253,9 @@ fn resolve_update_commission(accounts: Vec<String>, new_commission: u8) -> Resul
         "{}.vote_account",
         method_name
     )))?;
-    let withdraw_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.withdraw_authority_pubkey",
-        method_name
-    )))?;
+    let withdraw_authority_pubkey = accounts.get(1).ok_or(SolanaError::AccountNotFound(
+        format!("{}.withdraw_authority_pubkey", method_name),
+    ))?;
     Ok(template_instruction(
         PROGRAM_NAME,
         method_name,
@@ -267,7 +267,7 @@ fn resolve_update_commission(accounts: Vec<String>, new_commission: u8) -> Resul
         json!({
             "vote_account": vote_account,
             "new_commission": new_commission,
-        })
+        }),
     ))
 }
 
@@ -322,7 +322,7 @@ fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> R
                 "timestamp": timestamp,
             },
             "proof_hash": proof_hash,
-        })
+        }),
     ))
 }
 
@@ -367,7 +367,7 @@ fn resolve_authorize_checked(
             "old_authority_pubkey": old_authority_pubkey,
             "new_authority_pubkey": new_authority_pubkey,
             "authority_type": authority_type,
-        })
+        }),
     ))
 }
 
@@ -417,7 +417,7 @@ fn resolve_update_vote_state(accounts: Vec<String>, state: VoteStateUpdate) -> R
                 "hash": hash,
                 "timestamp": timestamp,
             }
-        })
+        }),
     ))
 }
 
@@ -473,7 +473,7 @@ fn resolve_update_vote_state_switch(
                 "timestamp": timestamp,
             },
             "proof_hash": proof_hash
-        })
+        }),
     ))
 }
 
@@ -526,7 +526,7 @@ fn resolve_authorize_with_seed(
                 "current_authority_derived_key_seed": current_authority_derived_key_seed,
                 "new_authority_pubkey": new_authority_pubkey,
             },
-        })
+        }),
     ))
 }
 
@@ -582,6 +582,6 @@ fn resolve_authorize_checked_with_seed(
                 "authorization_type": authorization_type,
                 "current_authority_derived_key_seed": current_authority_derived_key_seed,
             },
-        })
+        }),
     ))
 }

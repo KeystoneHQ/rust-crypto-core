@@ -1,5 +1,5 @@
 use crate::solana_lib::solana_program::pubkey::Pubkey;
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum SystemInstruction {

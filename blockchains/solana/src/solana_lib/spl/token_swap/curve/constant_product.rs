@@ -1,6 +1,9 @@
 use crate::solana_lib::solana_program::program_error::ProgramError;
 use crate::solana_lib::solana_program::program_pack::{IsInitialized, Pack, Sealed};
-use crate::solana_lib::spl::token_swap::curve::calculator::{CurveCalculator, DynPack, map_zero_to_none, RoundDirection, SwapWithoutFeesResult, TradeDirection, TradingTokenResult};
+use crate::solana_lib::spl::token_swap::curve::calculator::{
+    map_zero_to_none, CurveCalculator, DynPack, RoundDirection, SwapWithoutFeesResult,
+    TradeDirection, TradingTokenResult,
+};
 use crate::solana_lib::spl::token_swap::curve::math::{CheckedCeilDiv, PreciseNumber};
 use crate::solana_lib::spl::token_swap::error::SwapError;
 

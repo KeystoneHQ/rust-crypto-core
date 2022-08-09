@@ -1,9 +1,9 @@
 use crate::error::{Result, SolanaError};
 use crate::resolvers::template_instruction;
-use serde_json::{json, Value};
 use crate::solana_lib::solana_program::pubkey::Pubkey;
 use crate::solana_lib::spl::token_lending::instruction::LendingInstruction;
 use crate::solana_lib::spl::token_lending::state::ReserveConfig;
+use serde_json::{json, Value};
 
 static PROGRAM_NAME: &str = "TokenLending";
 
@@ -87,7 +87,7 @@ fn init_lending_market(
         json!({
             "lending_market_account": lending_market_account,
             "quote_currency": quote_currency,
-        })
+        }),
     ))
 }
 
@@ -114,7 +114,7 @@ fn set_lending_market_owner(accounts: Vec<String>, new_owner: Pubkey) -> Result<
             "lending_market_account": lending_market_account,
             "current_owner": current_owner,
             "new_owner": new_owner,
-        })
+        }),
     ))
 }
 
@@ -135,18 +135,20 @@ fn init_reserve(
         "{}.reserve_account",
         method_name
     )))?;
-    let reserve_liquidity_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_liquidity_mint", method_name),
-    ))?;
+    let reserve_liquidity_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_liquidity_mint",
+        method_name
+    )))?;
     let reserve_liquidity_supply_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(
         format!("{}.reserve_liquidity_supply_account", method_name),
     ))?;
-    let reserve_liquidity_fee_receiver = accounts.get(5).ok_or(
-        SolanaError::AccountNotFound(format!("{}.reserve_liquidity_fee_receiver", method_name)),
-    )?;
-    let reserve_collateral_mint = accounts.get(6).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_collateral_mint", method_name),
+    let reserve_liquidity_fee_receiver = accounts.get(5).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_liquidity_fee_receiver", method_name),
     ))?;
+    let reserve_collateral_mint = accounts.get(6).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_collateral_mint",
+        method_name
+    )))?;
     let reserve_collateral_supply_pubkey = accounts.get(7).ok_or(SolanaError::AccountNotFound(
         format!("{}.reserve_collateral_supply_pubkey", method_name),
     ))?;
@@ -171,13 +173,12 @@ fn init_reserve(
                 "{}.lending_market_authority_pubkey",
                 method_name
             )))?;
-    let lending_market_owner =
-        accounts
-            .get(12)
-            .ok_or(SolanaError::AccountNotFound(format!(
-                "{}.lending_market_owner",
-                method_name
-            )))?;
+    let lending_market_owner = accounts
+        .get(12)
+        .ok_or(SolanaError::AccountNotFound(format!(
+            "{}.lending_market_owner",
+            method_name
+        )))?;
     let user_transfer_authority_pubkey =
         accounts
             .get(13)
@@ -257,7 +258,7 @@ fn init_reserve(
             "lending_market_owner": lending_market_owner,
             "liquidity_amount": liquidity_amount,
             "reserve_config": reserve_config,
-        })
+        }),
     ))
 }
 
@@ -285,7 +286,7 @@ fn refresh_reserve(accounts: Vec<String>) -> Result<Value> {
         json!({
             "reserve_account": reserve_account,
             "reserve_liquidity_oracle_account": reserve_liquidity_oracle_account,
-        })
+        }),
     ))
 }
 
@@ -305,9 +306,10 @@ fn deposit_reserve_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> Re
     let reserve_liquidity_supply_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(
         format!("{}.reserve_liquidity_supply_account", method_name),
     ))?;
-    let reserve_collateral_mint = accounts.get(4).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_collateral_mint", method_name),
-    ))?;
+    let reserve_collateral_mint = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_collateral_mint",
+        method_name
+    )))?;
     let lending_market_account = accounts.get(5).ok_or(SolanaError::AccountNotFound(format!(
         "{}.lending_market_account",
         method_name
@@ -351,16 +353,15 @@ fn deposit_reserve_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> Re
             "reserve_collateral_mint": reserve_collateral_mint,
             "lending_market_account": lending_market_account,
             "liquidity_amount": liquidity_amount,
-        })
+        }),
     ))
 }
 
 fn redeem_reserve_collateral(accounts: Vec<String>, collateral_amount: u64) -> Result<Value> {
     let method_name = "RedeemReserveCollateral";
-    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_collateral_account",
-        method_name,
-    )))?;
+    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
+        format!("{}.source_collateral_account", method_name,),
+    ))?;
     let destination_liquidity_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
         format!("{}.destination_liquidity_account", method_name),
     ))?;
@@ -368,9 +369,10 @@ fn redeem_reserve_collateral(accounts: Vec<String>, collateral_amount: u64) -> R
         "{}.reserve_account",
         method_name
     )))?;
-    let reserve_collateral_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(
-        format!("{}.reserve_collateral_mint", method_name),
-    ))?;
+    let reserve_collateral_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.reserve_collateral_mint",
+        method_name
+    )))?;
     let reserve_liquidity_supply_account = accounts.get(4).ok_or(SolanaError::AccountNotFound(
         format!("{}.reserve_liquidity_supply_account", method_name),
     ))?;
@@ -417,7 +419,7 @@ fn redeem_reserve_collateral(accounts: Vec<String>, collateral_amount: u64) -> R
             "reserve_collateral_mint": reserve_collateral_mint,
             "lending_market_account": lending_market_account,
             "collateral_amount": collateral_amount.to_string(),
-        })
+        }),
     ))
 }
 
@@ -463,7 +465,7 @@ fn init_obligation(accounts: Vec<String>) -> Result<Value> {
             "obligation_account": obligation_account,
             "lending_market_account": lending_market_account,
             "obligation_owner": obligation_owner,
-        })
+        }),
     ))
 }
 
@@ -489,16 +491,15 @@ fn refresh_obligation(accounts: Vec<String>) -> Result<Value> {
         }),
         json!({
             "obligation_account": obligation_account,
-        })
+        }),
     ))
 }
 
 fn deposit_obligation_collateral(accounts: Vec<String>, collateral_amount: u64) -> Result<Value> {
     let method_name = "DepositObligationCollateral";
-    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_collateral_account",
-        method_name,
-    )))?;
+    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
+        format!("{}.source_collateral_account", method_name,),
+    ))?;
     let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
         format!("{}.destination_collateral_account", method_name),
     ))?;
@@ -553,16 +554,15 @@ fn deposit_obligation_collateral(accounts: Vec<String>, collateral_amount: u64) 
             "lending_market_account": lending_market_account,
             "obligation_owner": obligation_owner,
             "collateral_amount": collateral_amount.to_string(),
-        })
+        }),
     ))
 }
 
 fn withdraw_obligation_collateral(accounts: Vec<String>, collateral_amount: u64) -> Result<Value> {
     let method_name = "WithdrawObligationCollateral";
-    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.source_collateral_account",
-        method_name,
-    )))?;
+    let source_collateral_account = accounts.get(0).ok_or(SolanaError::AccountNotFound(
+        format!("{}.source_collateral_account", method_name,),
+    ))?;
     let destination_collateral_account = accounts.get(1).ok_or(SolanaError::AccountNotFound(
         format!("{}.destination_collateral_account", method_name),
     ))?;
@@ -617,7 +617,7 @@ fn withdraw_obligation_collateral(accounts: Vec<String>, collateral_amount: u64)
             "lending_market_account": lending_market_account,
             "obligation_owner": obligation_owner,
             "collateral_amount": collateral_amount.to_string(),
-        })
+        }),
     ))
 }
 
@@ -691,7 +691,7 @@ fn borrow_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> 
             "obligation_owner": obligation_owner,
             "host_fee_receiver": host_fee_receiver,
             "liquidity_amount": liquidity_amount.to_string(),
-        })
+        }),
     ))
 }
 
@@ -750,7 +750,7 @@ fn repay_obligation_liquidity(accounts: Vec<String>, liquidity_amount: u64) -> R
             "obligation_account": obligation_account,
             "lending_market_account": lending_market_account,
             "liquidity_amount": liquidity_amount.to_string(),
-        })
+        }),
     ))
 }
 
@@ -836,7 +836,7 @@ fn liquidate_obligation(accounts: Vec<String>, liquidity_amount: u64) -> Result<
             "obligation_account": obligation_account,
             "lending_market_account": lending_market_account,
             "liquidity_amount": liquidity_amount.to_string(),
-        })
+        }),
     ))
 }
 
@@ -853,11 +853,9 @@ fn flash_loan(accounts: Vec<String>, amount: u64) -> Result<Value> {
         "{}.reserve_account",
         method_name
     )))?;
-    let reserve_liquidity_fee_receiver =
-        accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
-            "{}.reserve_liquidity_fee_receiver",
-            method_name
-        )))?;
+    let reserve_liquidity_fee_receiver = accounts.get(3).ok_or(SolanaError::AccountNotFound(
+        format!("{}.reserve_liquidity_fee_receiver", method_name),
+    ))?;
     let host_fee_receiver = accounts.get(4).ok_or(SolanaError::AccountNotFound(format!(
         "{}.host_fee_receiver",
         method_name
@@ -906,6 +904,6 @@ fn flash_loan(accounts: Vec<String>, amount: u64) -> Result<Value> {
             "flash_loan_receiver_program_id": flash_loan_receiver_program_id,
             "flash_loan_receiver_program_accounts": flash_loan_receiver_program_accounts,
             "amount": amount.to_string(),
-        })
+        }),
     ))
 }

@@ -21,14 +21,14 @@ static PROGRAM_NAME: &str = "Token";
 pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<Value> {
     match instruction {
         TokenInstruction::InitializeMint {
-            mint_authority_pubkey,
+            mint_authority,
             decimals,
-            freeze_authority_pubkey,
+            freeze_authority,
         } => initialize_mint(
             accounts,
-            mint_authority_pubkey,
+            mint_authority,
             decimals,
-            freeze_authority_pubkey,
+            freeze_authority,
         ),
         TokenInstruction::InitializeAccount => initialize_account(accounts),
         TokenInstruction::InitializeMultisig { m } => initialize_multisig(accounts, m),
@@ -61,14 +61,14 @@ pub fn resolve(instruction: TokenInstruction, accounts: Vec<String>) -> Result<V
         TokenInstruction::InitializeAccount3 { owner } => initialize_account_3(accounts, owner),
         TokenInstruction::InitializeMultisig2 { m } => initialize_multisig_2(accounts, m),
         TokenInstruction::InitializeMint2 {
-            mint_authority_pubkey,
+            mint_authority,
             decimals,
-            freeze_authority_pubkey,
+            freeze_authority,
         } => initialize_mint_2(
             accounts,
-            mint_authority_pubkey,
+            mint_authority,
             decimals,
-            freeze_authority_pubkey,
+            freeze_authority,
         ),
     }
 }
@@ -218,13 +218,13 @@ fn transfer(accounts: Vec<String>, amount: u64) -> Result<Value> {
         method_name,
         json!({
             "source_account": source_account,
-            "destination_account": destination_account,
+            "recipient": recipient,
             "owner": owner,
             "amount": amount,
         }),
         json!({
             "source_account": source_account,
-            "destination_account": destination_account,
+            "recipient": recipient,
             "amount": amount,
         }),
     ));

@@ -72,7 +72,7 @@ fn resolve_create_account(
         method_name,
         json!({
             "funding_account": funding_account,
-            "new_account": account,
+            "new_account": new_account,
             "amount": amount,
             "space": space,
             "owner": owner,

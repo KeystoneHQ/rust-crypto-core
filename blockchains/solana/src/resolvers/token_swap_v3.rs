@@ -165,7 +165,7 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
             "source_token": source_token,
             "destination_token": destination_token,
             "destination_account": destination_account,
-            "pool_token_mint": pool_token_mint,
+            "pool_mint": pool_mint,
             "fee_account": fee_account,
             "token_program_id": token_program_id,
             "host_fee_account": host_fee_account,
@@ -179,7 +179,7 @@ fn swap(accounts: Vec<String>, swap: Swap) -> Result<Value> {
             "source_token": source_token,
             "destination_token": destination_token,
             "destination_account": destination_account,
-            "pool_token_mint": pool_token_mint,
+            "pool_mint": pool_mint,
             "fee_account": fee_account,
             "token_program_id": token_program_id,
             "host_fee_account": host_fee_account,
@@ -242,7 +242,7 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "token_a_user_transfer_authority_pubkey": token_a_user_transfer_authority_pubkey,
             "token_b_user_transfer_authority_pubkey": token_b_user_transfer_authority_pubkey,
             "token_a_base_account": token_a_base_account,
@@ -255,7 +255,7 @@ fn deposit_all_token_types(accounts: Vec<String>, args: DepositAllTokenTypes) ->
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "token_a_user_transfer_authority_pubkey": token_a_user_transfer_authority_pubkey,
             "token_b_user_transfer_authority_pubkey": token_b_user_transfer_authority_pubkey,
             "token_a_base_account": token_a_base_account,
@@ -278,8 +278,8 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
         "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority",
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.user_transfer_authority_pubkey",
         method_name
     )))?;
     let pool_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
@@ -327,7 +327,7 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "pool_mint": pool_mint,
             "source_pool_account": source_pool_account,
             "token_a_swap_account": token_a_swap_account,
@@ -341,7 +341,7 @@ fn withdraw_all_token_types(accounts: Vec<String>, args: WithdrawAllTokenTypes) 
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "pool_mint": pool_mint,
             "source_pool_account": source_pool_account,
             "token_a_swap_account": token_a_swap_account,
@@ -368,8 +368,8 @@ fn deposit_single_token_type_exact_amount_in(
         "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority",
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.user_transfer_authority_pubkey",
         method_name
     )))?;
     let token_source_account = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
@@ -406,7 +406,7 @@ fn deposit_single_token_type_exact_amount_in(
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "token_source_account": token_source_account,
             "token_a_swap_account": token_a_swap_account,
             "token_b_swap_account": token_b_swap_account,
@@ -418,7 +418,7 @@ fn deposit_single_token_type_exact_amount_in(
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "token_source_account": token_source_account,
             "token_a_swap_account": token_a_swap_account,
             "token_b_swap_account": token_b_swap_account,
@@ -443,8 +443,8 @@ fn withdraw_single_token_type_exact_amount_out(
         "{}.swap_authority_pubkey",
         method_name
     )))?;
-    let user_transfer_authority = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
-        "{}.user_transfer_authority",
+    let user_transfer_authority_pubkey = accounts.get(2).ok_or(SolanaError::AccountNotFound(format!(
+        "{}.user_transfer_authority_pubkey",
         method_name
     )))?;
     let pool_mint = accounts.get(3).ok_or(SolanaError::AccountNotFound(format!(
@@ -485,7 +485,7 @@ fn withdraw_single_token_type_exact_amount_out(
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "pool_mint": pool_mint,
             "source_pool_account": source_pool_account,
             "token_a_swap_account": token_a_swap_account,
@@ -498,7 +498,7 @@ fn withdraw_single_token_type_exact_amount_out(
         json!({
             "token_swap": token_swap,
             "swap_authority_pubkey": swap_authority_pubkey,
-            "user_transfer_authority": user_transfer_authority,
+            "user_transfer_authority_pubkey": user_transfer_authority_pubkey,
             "pool_mint": pool_mint,
             "source_pool_account": source_pool_account,
             "token_a_swap_account": token_a_swap_account,

@@ -73,27 +73,19 @@ fn resolve_initialize(
         json!({
             "stake_account": stake_account,
             "sysvar_rent": sysvar_rent,
-            "authorized": {
-                "staker": staker,
-                "withdrawer": withdrawer,
-            },
-            "lockup": {
-                "timestamp": unix_timestamp,
-                "epoch": epoch,
-                "custodian": custodian
-            }
+            "staker": staker,
+            "withdrawer": withdrawer,
+            "timestamp": unix_timestamp,
+            "epoch": epoch,
+            "custodian": custodian
         }),
         json!({
             "stake_account": stake_account,
-            "authorized": {
-                "staker": staker,
-                "withdrawer": withdrawer,
-            },
-            "lockup": {
-                "timestamp": unix_timestamp,
-                "epoch": epoch,
-                "custodian": custodian
-            }
+            "staker": staker,
+            "withdrawer": withdrawer,
+            "timestamp": unix_timestamp,
+            "epoch": epoch,
+            "custodian": custodian
         }),
     ))
 }
@@ -308,19 +300,15 @@ fn resolve_set_lockup(accounts: Vec<String>, lockup: LockupArgs) -> Result<Value
         json!({
             "stake_account": stake_account,
             "lockup_authority_pubkey": lockup_authority_pubkey,
-            "new_lockup": {
-                "unix_timestamp": unix_timestamp,
-                "epoch": epoch,
-                "custodian": custodian,
-            }
+            "unix_timestamp": unix_timestamp,
+            "epoch": epoch,
+            "custodian": custodian,
         }),
         json!({
             "stake_account": stake_account,
-            "new_lockup": {
-                "unix_timestamp": unix_timestamp,
-                "epoch": epoch,
-                "custodian": custodian,
-            }
+            "unix_timestamp": unix_timestamp,
+            "epoch": epoch,
+            "custodian": custodian,
         }),
     ))
 }
@@ -396,21 +384,17 @@ fn resolve_authorize_with_seed(
             "old_base_pubkey": old_base_pubkey,
             "sysvar_clock": sysvar_clock,
             "lockup_authority_pubkey": lockup_authority_pubkey,
-            "arguments": {
-                "new_authority_pubkey": new_authority_pubkey,
-                "authorize_type": stake_authorize,
-                "authority_seed": args.authority_seed,
-                "authority_owner": authority_owner,
-            }
+            "new_authority_pubkey": new_authority_pubkey,
+            "authorize_type": stake_authorize,
+            "authority_seed": args.authority_seed,
+            "authority_owner": authority_owner,
         }),
         json!({
             "stake_account": stake_account,
             "old_base_pubkey": old_base_pubkey,
-            "arguments": {
-                "new_authority_pubkey": new_authority_pubkey,
-                "authorize_type": stake_authorize,
-                "authority_seed": args.authority_seed,
-            }
+            "new_authority_pubkey": new_authority_pubkey,
+            "authorize_type": stake_authorize,
+            "authority_seed": args.authority_seed,
         }),
     ))
 }
@@ -532,20 +516,16 @@ fn resolve_authorize_checked_with_seed(
             "old_base_pubkey": old_base_pubkey,
             "new_authority_pubkey": new_authority_pubkey,
             "lockup_authority": lockup_authority,
-            "arguments": {
-                "authority_type": authority_type,
-                "authority_seed": authority_seed,
-                "authority_owner": authority_owner,
-            }
+            "authority_type": authority_type,
+            "authority_seed": authority_seed,
+            "authority_owner": authority_owner,
         }),
         json!({
             "stake_account": stake_account,
             "old_base_pubkey": old_base_pubkey,
             "new_authority_pubkey": new_authority_pubkey,
-            "arguments": {
-                "authority_type": authority_type,
-                "authority_seed": authority_seed,
-            }
+            "authority_type": authority_type,
+            "authority_seed": authority_seed,
         }),
     ))
 }
@@ -571,19 +551,15 @@ fn resolve_set_lockup_checked(accounts: Vec<String>, args: LockupCheckedArgs) ->
             "stake_account": stake_account,
             "lockup_authority_pubkey": lockup_authority_pubkey,
             "new_lockup_authority_pubkey": new_lockup_authority_pubkey,
-            "arguments": {
-                "unix_timestamp": unix_timestamp,
-                "epoch": epoch,
-            },
+            "timestamp": unix_timestamp,
+            "epoch": epoch,
         }),
         json!({
             "stake_account": stake_account,
             "lockup_authority_pubkey": lockup_authority_pubkey,
             "new_lockup_authority_pubkey": new_lockup_authority_pubkey,
-            "arguments": {
-                "unix_timestamp": unix_timestamp,
-                "epoch": epoch,
-            },
+            "timestamp": unix_timestamp,
+            "epoch": epoch,
         }),
     ))
 }

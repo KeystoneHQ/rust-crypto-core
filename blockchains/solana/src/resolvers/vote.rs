@@ -72,22 +72,18 @@ fn resolve_initialize_account(accounts: Vec<String>, vote_init: VoteInit) -> Res
             "sysvar_rent": sysvar_rent,
             "sysvar_clock": sysvar_clock,
             "new_validator_identity": new_validator_identity,
-            "config": {
-                "node_pubkey": node_pubkey,
-                "authorized_voter": authorized_voter,
-                "authorized_withdrawer": authorized_withdrawer,
-                "commission": commission,
-            }
+            "node_pubkey": node_pubkey,
+            "authorized_voter": authorized_voter,
+            "authorized_withdrawer": authorized_withdrawer,
+            "commission": commission,
         }),
         json!({
             "vote_account": account,
             "new_validator_identity": new_validator_identity,
-            "config": {
-                "node_pubkey": node_pubkey,
-                "authorized_voter": authorized_voter,
-                "authorized_withdrawer": authorized_withdrawer,
-                "commission": commission,
-            }
+            "node_pubkey": node_pubkey,
+            "authorized_voter": authorized_voter,
+            "authorized_withdrawer": authorized_withdrawer,
+            "commission": commission,
         }),
     ))
 }
@@ -168,19 +164,15 @@ fn resolve_vote(accounts: Vec<String>, vote: Vote) -> Result<Value> {
             "sysvar_slot_hashes": sysvar_slot_hashes,
             "sysvar_clock": sysvar_clock,
             "vote_authority_pubkey": vote_authority_pubkey,
-            "vote": {
-                "slots": vote_slots,
-                "hash": vote_hash,
-                "timestamp": timestamp,
-            }
+            "slots": vote_slots,
+            "hash": vote_hash,
+            "timestamp": timestamp,
         }),
         json!({
             "vote_account": vote_account,
-            "vote": {
-                "slots": vote_slots,
-                "hash": vote_hash,
-                "timestamp": timestamp,
-            }
+            "slots": vote_slots,
+            "hash": vote_hash,
+            "timestamp": timestamp,
         }),
     ))
 }
@@ -307,20 +299,16 @@ fn resolve_vote_switch(accounts: Vec<String>, vote: Vote, proof_hash: Hash) -> R
             "sysvar_slot_hashes": sysvar_slot_hashes,
             "sysvar_clock": sysvar_clock,
             "vote_authority_pubkey": vote_authority_pubkey,
-            "vote": {
-                "slots": vote_slots,
-                "hash": vote_hash,
-                "timestamp": timestamp,
-            },
+            "slots": vote_slots,
+            "hash": vote_hash,
+            "timestamp": timestamp,
             "proof_hash": proof_hash,
         }),
         json!({
             "vote_account": vote_account,
-            "vote": {
-                "slots": vote_slots,
-                "hash": vote_hash,
-                "timestamp": timestamp,
-            },
+            "slots": vote_slots,
+            "hash": vote_hash,
+            "timestamp": timestamp,
             "proof_hash": proof_hash,
         }),
     ))
@@ -402,21 +390,17 @@ fn resolve_update_vote_state(accounts: Vec<String>, state: VoteStateUpdate) -> R
         json!({
             "vote_account": vote_account,
             "vote_authority_pubkey": vote_authority_pubkey,
-            "new_state": {
-                "lockouts": lockouts,
-                "root": root,
-                "hash": hash,
-                "timestamp": timestamp,
-            }
+            "lockouts": lockouts,
+            "root": root,
+            "hash": hash,
+            "timestamp": timestamp,
         }),
         json!({
             "vote_account": vote_account,
-            "new_state": {
-                "lockouts": lockouts,
-                "root": root,
-                "hash": hash,
-                "timestamp": timestamp,
-            }
+            "lockouts": lockouts,
+            "root": root,
+            "hash": hash,
+            "timestamp": timestamp,
         }),
     ))
 }
@@ -456,22 +440,18 @@ fn resolve_update_vote_state_switch(
         json!({
             "vote_account": vote_account,
             "vote_authority_pubkey": vote_authority_pubkey,
-            "new_state": {
-                "lockouts": lockouts,
-                "root": root,
-                "hash": hash,
-                "timestamp": timestamp,
-            },
+            "lockouts": lockouts,
+            "root": root,
+            "hash": hash,
+            "timestamp": timestamp,
             "proof_hash": proof_hash
         }),
         json!({
             "vote_account": vote_account,
-            "new_state": {
-                "lockouts": lockouts,
-                "root": root,
-                "hash": hash,
-                "timestamp": timestamp,
-            },
+            "lockouts": lockouts,
+            "root": root,
+            "hash": hash,
+            "timestamp": timestamp,
             "proof_hash": proof_hash
         }),
     ))
@@ -511,21 +491,17 @@ fn resolve_authorize_with_seed(
             "vote_account": vote_account,
             "sysvar_clock": sysvar_clock,
             "old_base_pubkey": old_base_pubkey,
-            "arguments": {
-                "authorization_type": authorization_type,
-                "current_authority_derived_key_owner": current_authority_derived_key_owner,
-                "current_authority_derived_key_seed": current_authority_derived_key_seed,
-                "new_authority_pubkey": new_authority_pubkey,
-            },
+            "authorization_type": authorization_type,
+            "current_authority_derived_key_owner": current_authority_derived_key_owner,
+            "current_authority_derived_key_seed": current_authority_derived_key_seed,
+            "new_authority_pubkey": new_authority_pubkey,
         }),
         json!({
             "vote_account": vote_account,
             "old_base_pubkey": old_base_pubkey,
-            "arguments": {
-                "authorization_type": authorization_type,
-                "current_authority_derived_key_seed": current_authority_derived_key_seed,
-                "new_authority_pubkey": new_authority_pubkey,
-            },
+            "authorization_type": authorization_type,
+            "current_authority_derived_key_seed": current_authority_derived_key_seed,
+            "new_authority_pubkey": new_authority_pubkey,
         }),
     ))
 }
@@ -568,20 +544,16 @@ fn resolve_authorize_checked_with_seed(
             "sysvar_clock": sysvar_clock,
             "old_base_pubkey": old_base_pubkey,
             "new_authority_pubkey": new_authority_pubkey,
-            "authorize_arguments": {
-                "authorization_type": authorization_type,
-                "current_authority_derived_key_owner": current_authority_derived_key_owner,
-                "current_authority_derived_key_seed": current_authority_derived_key_seed,
-            },
+            "authorization_type": authorization_type,
+            "current_authority_derived_key_owner": current_authority_derived_key_owner,
+            "current_authority_derived_key_seed": current_authority_derived_key_seed,
         }),
         json!({
             "vote_account": vote_account,
             "old_base_pubkey": old_base_pubkey,
             "new_authority_pubkey": new_authority_pubkey,
-            "authorize_arguments": {
-                "authorization_type": authorization_type,
-                "current_authority_derived_key_seed": current_authority_derived_key_seed,
-            },
+            "authorization_type": authorization_type,
+            "current_authority_derived_key_seed": current_authority_derived_key_seed,
         }),
     ))
 }

@@ -1,0 +1,20 @@
+[package]
+name = "qr_reader_pc"
+version = "0.2.0"
+authors = ["vera"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hex = "0.4.3"
+qr_reader_phone = {path = "../qr_reader_phone"}
+anyhow = "1.0.62"
+image = "0.24.3"
+quircs = "0.10.0"
+indicatif = "0.17.0"
+
+[dependencies.opencv]
+version = "0.65"
+default-features = false
+features = ["clang-runtime", "videoio", "imgproc", "highgui"]

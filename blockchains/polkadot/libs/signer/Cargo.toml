@@ -1,0 +1,34 @@
+[package]
+name = "signer"
+version = "0.1.0"
+authors = ["debris <marek.kotewicz@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0"
+ffi-support = "0.4"
+hex = "0.4.3"
+uniffi = { version = "0.19.3" }
+
+sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", default-features = false, features = ["full_crypto"] }
+
+db_handling = { path = "../db_handling", default-features = false, features = ["signer"] }
+definitions = { path = "../definitions", default-features = false, features = ["signer"] }
+navigator = { path = "../navigator", default-features = false }
+qr_reader_phone = { path = "..//qr_reader_phone" }
+
+[target.'cfg(not(target_os = "android"))'.dependencies]
+env_logger = "0.9"
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.11"
+log = "0.4.17"
+
+[build-dependencies]
+definitions = {path = "../definitions"}
+generate_message = {path = "../generate_message"}
+uniffi_build = { version = "0.19.3" }
+
+[lib]
+crate-type = ["staticlib", "cdylib"]

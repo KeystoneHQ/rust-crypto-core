@@ -22,9 +22,6 @@
 #![deny(rustdoc::broken_intra_doc_links)]
 #![allow(clippy::let_unit_value)]
 
-mod ffi_types;
-
-use crate::ffi_types::*;
 use std::{fmt::Display, str::FromStr};
 
 /// Container for severe error message
@@ -67,51 +64,6 @@ impl Display for ErrorDisplayed {
     }
 }
 
-include!(concat!(env!("OUT_DIR"), "/signer.uniffi.rs"));
-
-fn action_get_name(action: &Action) -> Option<FooterButton> {
-    match action {
-        Action::NavbarLog => Some(FooterButton::Log),
-        Action::NavbarScan => Some(FooterButton::Scan),
-        Action::NavbarKeys => Some(FooterButton::Keys),
-        Action::NavbarSettings => Some(FooterButton::Settings),
-        Action::GoBack => Some(FooterButton::Back),
-        _ => None,
-    }
-}
-
-/// Perform action in frontend.
-///
-/// This call should be debounced.
-///
-/// Action tries to acquire lock on app state mutex and is ignored on failure.
-///
-/// `seed_phrase` field is zeroized, it is expected to be used for secrets only.
-///
-/// `details` field is not always zeroized.
-///
-/// App view contents are returned as result, this should be sufficient to render view.
-fn backend_action(
-    action: Action,
-    details: &str,
-    seed_phrase: &str,
-) -> Result<Option<ActionResult>, ErrorDisplayed> {
-    navigator::do_action(action, details, seed_phrase).map_err(|s| ErrorDisplayed::Str { s })
-}
-
-/// Should be called once at start of the app and could be called on app reset
-///
-/// Accepts list of seed names to avoid calling [`update_seed_names`] every time
-fn init_navigation(dbname: &str, seed_names: Vec<String>) {
-    navigator::init_navigation(dbname, seed_names)
-}
-
-/// Should be called every time any change could have been done to seeds. Accepts updated list of
-/// seeds, completely disregards previously known list
-fn update_seed_names(seed_names: Vec<String>) {
-    navigator::update_seed_names(seed_names)
-}
-
 /// Determines estimated required number of multiframe QR that should be gathered before decoding
 /// is attempted
 fn qrparser_get_packets_total(data: &str, cleaned: bool) -> anyhow::Result<u32, ErrorDisplayed> {
@@ -128,21 +80,6 @@ fn qrparser_try_decode_qr_sequence(
     cleaned: bool,
 ) -> anyhow::Result<String, anyhow::Error> {
     qr_reader_phone::decode_sequence(data, cleaned)
-}
-
-/// Checks derivation path for validity and collisions
-///
-/// Returns struct that has information on collisions, presence of password and validity of path;
-/// in case of valid path without collisions frontend should make a decision on whether to access
-/// secure storage already or check password by requesting user to re-type it, so this could not be
-/// isolated in backend navigation for now.
-fn substrate_path_check(
-    seed_name: &str,
-    path: &str,
-    network: &str,
-    dbname: &str,
-) -> DerivationCheck {
-    db_handling::interface_signer::dynamic_path_check(dbname, seed_name, path, network)
 }
 
 /// Must be called once on normal first start of the app upon accepting conditions; relies on old
@@ -173,11 +110,6 @@ fn history_get_warnings(dbname: &str) -> anyhow::Result<bool, String> {
 /// Resets network alert flag; makes record of reset in log
 fn history_acknowledge_warnings(dbname: &str) -> anyhow::Result<(), String> {
     db_handling::manage_history::reset_danger_status_to_safe(dbname).map_err(|e| format!("{}", e))
-}
-
-/// Allows frontend to send events into log; TODO: maybe this is not needed
-fn history_entry_system(event: Event, dbname: &str) -> anyhow::Result<(), String> {
-    db_handling::manage_history::history_entry_system(dbname, event).map_err(|e| format!("{}", e))
 }
 
 /// Must be called every time seed backup shows seed to user

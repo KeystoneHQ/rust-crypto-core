@@ -1,13 +1,16 @@
-[package]
-name = "rcc-polkadot"
-version = "0.1.0"
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-
-
-[dependencies]
-parity-scale-codec = "^3.1.5"
-sp-core = "^6.0.0"
-sp-runtime = "^6.0.0"
+members = [
+	"constants",
+	"db_handling",
+	"defaults",
+	"definitions",
+	"generate_message",
+	"parser",
+	"printing_balance",
+	"qr_reader_phone",
+	"qrcode_rtx",
+	"qrcode_static",
+	"signer",
+	"transaction_parsing",
+]

@@ -66,7 +66,7 @@ impl Display for ErrorDisplayed {
 
 /// Determines estimated required number of multiframe QR that should be gathered before decoding
 /// is attempted
-fn qrparser_get_packets_total(data: &str, cleaned: bool) -> anyhow::Result<u32, ErrorDisplayed> {
+pub fn qrparser_get_packets_total(data: &str, cleaned: bool) -> anyhow::Result<u32, ErrorDisplayed> {
     qr_reader_phone::get_length(data, cleaned).map_err(Into::into)
 }
 
@@ -75,7 +75,7 @@ fn qrparser_get_packets_total(data: &str, cleaned: bool) -> anyhow::Result<u32, 
 ///
 /// `cleaned` is platform-specific flag indicating whether QR payloads have QR prefix stripped by
 /// QR parsing code
-fn qrparser_try_decode_qr_sequence(
+pub fn qrparser_try_decode_qr_sequence(
     data: &str,
     cleaned: bool,
 ) -> anyhow::Result<String, anyhow::Error> {
@@ -84,12 +84,12 @@ fn qrparser_try_decode_qr_sequence(
 
 /// Must be called once on normal first start of the app upon accepting conditions; relies on old
 /// data being already removed
-fn history_init_history_with_cert(dbname: &str) -> anyhow::Result<(), String> {
+pub fn history_init_history_with_cert(dbname: &str) -> anyhow::Result<(), String> {
     db_handling::cold_default::signer_init_with_cert(dbname).map_err(|e| format!("{}", e))
 }
 
 /// Must be called once upon jailbreak (removal of general verifier) after all old data was removed
-fn history_init_history_no_cert(dbname: &str) -> anyhow::Result<(), String> {
+pub fn history_init_history_no_cert(dbname: &str) -> anyhow::Result<(), String> {
     db_handling::cold_default::signer_init_no_cert(dbname).map_err(|e| format!("{}", e))
 }
 

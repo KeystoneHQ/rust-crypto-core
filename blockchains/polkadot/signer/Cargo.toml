@@ -24,5 +24,3 @@ definitions = {path = "../definitions"}
 generate_message = {path = "../generate_message"}
 uniffi_build = { version = "0.19.3" }
 
-[lib]
-crate-type = ["staticlib", "cdylib"]

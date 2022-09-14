@@ -13,4 +13,5 @@ members = [
 	"qrcode_static",
 	"signer",
 	"transaction_parsing",
+	"rcc_polkadot",
 ]

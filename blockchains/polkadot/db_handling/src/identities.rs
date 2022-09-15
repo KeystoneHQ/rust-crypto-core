@@ -1257,7 +1257,7 @@ fn prepare_secret_key_for_export(
             if public != &ed25519_pair.public() {
                 return Err(Error::WrongPassword);
             }
-            Ok(*ed25519_pair.seed())
+            Ok(ed25519_pair.seed())
         }
         MultiSigner::Sr25519(public) => {
             let (sr25519_pair, seed) = sr25519::Pair::from_string_with_seed(full_address, pwd)

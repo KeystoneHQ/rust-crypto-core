@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-ffi-support = "0.4"
 
 
 db_handling = { path = "../db_handling", default-features = false, features = ["signer"] }
@@ -22,5 +21,4 @@ log = "0.4.17"
 [build-dependencies]
 definitions = {path = "../definitions"}
 generate_message = {path = "../generate_message"}
-uniffi_build = { version = "0.19.3" }
 

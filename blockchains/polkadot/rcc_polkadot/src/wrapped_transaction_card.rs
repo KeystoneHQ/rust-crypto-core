@@ -5,7 +5,7 @@ use crate::traits::ToJSON;
 use crate::wrapped_card::WrappedCard;
 
 pub struct WrappedTransactionCard {
-    tc: TransactionCard,
+    pub tc: TransactionCard,
 }
 
 impl ToJSON for WrappedTransactionCard {

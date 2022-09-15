@@ -146,8 +146,6 @@ fn init_logging(_tag: String) {
     env_logger::init();
 }
 
-ffi_support::define_string_destructor!(signer_destroy_string);
-
 #[cfg(test)]
 mod tests {
     //use super::*;

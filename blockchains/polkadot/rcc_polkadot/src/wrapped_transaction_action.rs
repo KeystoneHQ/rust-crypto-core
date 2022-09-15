@@ -23,8 +23,8 @@ impl ToJSON for MTransaction {
         json!({
             "content": wrapped_content.to_json(),
             "transaction_type": transaction_type,
-            "author_info": self.author_info.map(|v| v.to_json()),
-            "network_info": self.network_info.map(|v| v.to_json()),
+            "author_info": self.author_info.as_ref().map(|v| v.to_json()),
+            "network_info": self.network_info.as_ref().map(|v| v.to_json()),
         })
     }
 }

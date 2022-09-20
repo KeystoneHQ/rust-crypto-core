@@ -2112,7 +2112,9 @@ checksum = "655b020bbf5c89791160a30f0d4706d8ec7aa5718d6a198f6df19c400e4f4470"
 name = "rcc_polkadot"
 version = "0.1.0"
 dependencies = [
+ "android_logger",
  "definitions",
+ "log",
  "serde_json",
  "signer",
  "transaction_parsing",

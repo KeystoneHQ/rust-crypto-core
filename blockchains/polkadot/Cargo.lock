@@ -2113,6 +2113,7 @@ name = "rcc_polkadot"
 version = "0.1.0"
 dependencies = [
  "android_logger",
+ "db_handling",
  "definitions",
  "log",
  "serde_json",

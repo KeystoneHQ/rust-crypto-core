@@ -30,5 +30,6 @@ fn main() -> Result<(), String> {
 
     // println!("cargo:rerun-if-changed=./src/signer.udl");
     // uniffi_build::generate_scaffolding("./src/signer.udl").unwrap();
-    cold_release()
+    // cold_release()
+    Ok(())
 }

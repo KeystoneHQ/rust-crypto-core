@@ -513,6 +513,8 @@ impl TrDbColdStub {
             .set_transaction(transaction_batch) // clear transaction tree
             .apply(&db_path)?;
         let database = open_db(&db_path)?;
+        let result = crate::manage_history::get_history(&db_path);
+        println!("{:?}", result);
         Ok(database.checksum()?)
     }
 

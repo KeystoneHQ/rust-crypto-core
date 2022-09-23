@@ -254,6 +254,7 @@ pub struct MTransaction {
     pub ttype: TransactionType,
     pub author_info: Option<Address>,
     pub network_info: Option<MSCNetworkInfo>,
+    pub checksum: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

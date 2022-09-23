@@ -8,8 +8,10 @@ edition = "2021"
 [dependencies]
 signer = { path = "../signer" }
 transaction_parsing = { path = "../transaction_parsing" }
+transaction_signing = { path = "../transaction_signing" }
 definitions = { path = "../definitions" }
 serde_json = "1.0"
 android_logger = "0.11.1"
 log = "0.4.17"
 db_handling = {path="../db_handling"}
+generate_message = {path="../generate_message"}

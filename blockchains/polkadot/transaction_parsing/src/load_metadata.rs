@@ -166,10 +166,8 @@ where
         }
     };
     if accept_meta_values(&meta_values, &db_path)? {
-        println!("here");
         stub = stub.add_metadata(&meta_values);
         let checksum = stub.store_and_get_checksum(&db_path)?;
-        println!("{}", checksum);
         let meta_display = MetaValuesDisplay::get(&meta_values);
         let meta_card = Card::Meta(meta_display).card(&mut index, 0);
         match first_card {

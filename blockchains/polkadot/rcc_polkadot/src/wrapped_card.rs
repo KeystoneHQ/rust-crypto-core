@@ -11,7 +11,7 @@ impl ToJSON for WrappedCard {
         match &self.c {
             Card::AuthorCard { f } => {
                 json!({
-                    "card": "Author",
+                    "type": "Author",
                     "value": json!({
                         "base58": f.base58,
                         "path": f.path,
@@ -20,7 +20,7 @@ impl ToJSON for WrappedCard {
             }
             Card::AuthorPlainCard { f } => {
                 json!({
-                    "card": "AuthorPlain",
+                    "type": "AuthorPlain",
                     "value": json!({
                         "base58": f.base58
                     })
@@ -28,7 +28,7 @@ impl ToJSON for WrappedCard {
             }
             Card::AuthorPublicKeyCard { f } => {
                 json!({
-                    "card": "AuthorPublicKey",
+                    "type": "AuthorPublicKey",
                     "value": json!({
                         "public_key": f.public_key,
                     })
@@ -36,7 +36,7 @@ impl ToJSON for WrappedCard {
             }
             Card::BalanceCard { f } => {
                 json!({
-                    "card": "Balance",
+                    "type": "Balance",
                     "value": json!({
                         "amount": f.amount,
                         "units": f.units,
@@ -45,19 +45,19 @@ impl ToJSON for WrappedCard {
             }
             Card::BitVecCard { f } => {
                 json!({
-                    "card": "BitVec",
+                    "type": "BitVec",
                     "value": f,
                 })
             }
             Card::BlockHashCard { f } => {
                 json!({
-                    "card": "BlockHash",
+                    "type": "BlockHash",
                     "value": f
                 })
             }
             Card::CallCard { f } => {
                 json!({
-                    "card": "Call",
+                    "type": "Call",
                     "value": json!({
                         "method_name": f.method_name
                     })
@@ -65,19 +65,19 @@ impl ToJSON for WrappedCard {
             }
             Card::DefaultCard { f } => {
                 json!({
-                    "card": "Default",
+                    "type": "Default",
                     "value": f
                 })
             }
             Card::DerivationsCard { f } => {
                 json!({
-                    "card": "Derivations",
+                    "type": "Derivations",
                     "value": f
                 })
             }
             Card::EnumVariantNameCard { f } => {
                 json!({
-                    "card": "EnumVariantName",
+                    "type": "EnumVariantName",
                     "value": json!({
                         "name": f.name
                     })
@@ -85,13 +85,13 @@ impl ToJSON for WrappedCard {
             }
             Card::EraImmortalCard => {
                 json!({
-                    "card": "Era",
+                    "type": "Era",
                     "value": "Immortal"
                 })
             }
             Card::EraMortalCard { f } => {
                 json!({
-                    "card": "Era",
+                    "type": "Era",
                     "value": json!({
                         "era": f.era,
                         "phase": f.phase,
@@ -101,13 +101,13 @@ impl ToJSON for WrappedCard {
             }
             Card::ErrorCard { f } => {
                 json!({
-                    "card": "Error",
+                    "type": "Error",
                     "value": f
                 })
             }
             Card::FieldNameCard { f } => {
                 json!({
-                    "card": "FieldName",
+                    "type": "FieldName",
                     "value": json!({
                         "name": f.name
                     })
@@ -115,7 +115,7 @@ impl ToJSON for WrappedCard {
             }
             Card::FieldNumberCard { f } => {
                 json!({
-                    "card": "FieldNumber",
+                    "type": "FieldNumber",
                     "value": json!({
                         "number": f.number,
                     })
@@ -123,7 +123,7 @@ impl ToJSON for WrappedCard {
             }
             Card::IdCard { f } => {
                 json!({
-                    "card": "Id",
+                    "type": "Id",
                     "value": json!({
                         "base58": f.base58,
                     })
@@ -131,13 +131,13 @@ impl ToJSON for WrappedCard {
             }
             Card::IdentityFieldCard { f } => {
                 json!({
-                    "card": "IdentityField",
+                    "type": "IdentityField",
                     "value": f,
                 })
             }
             Card::MetaCard { f } => {
                 json!({
-                    "card": "Meta",
+                    "type": "Meta",
                     "value": json!({
                         "specname": f.specname,
                         "specs_version": f.specs_version,
@@ -147,7 +147,7 @@ impl ToJSON for WrappedCard {
             }
             Card::NameVersionCard { f } => {
                 json!({
-                    "card": "NameVersion",
+                    "type": "NameVersion",
                     "value": json!({
                         "name": f.name,
                         "version": f.version,
@@ -156,13 +156,13 @@ impl ToJSON for WrappedCard {
             }
             Card::NetworkGenesisHashCard { f } => {
                 json!({
-                    "card": "NetworkGenesisHash",
+                    "type": "NetworkGenesisHash",
                     "value": f,
                 })
             }
             Card::NetworkInfoCard { f } => {
                 json!({
-                    "card": "NetworkInfo",
+                    "type": "NetworkInfo",
                     "value": json!({
                         "network_title": f.network_title,
                     })
@@ -170,7 +170,7 @@ impl ToJSON for WrappedCard {
             }
             Card::NetworkNameCard { f } => {
                 json!({
-                    "card": "NetworkName",
+                    "type": "NetworkName",
                     "value": f,
                 })
             }
@@ -181,7 +181,7 @@ impl ToJSON for WrappedCard {
                     Encryption::Ecdsa => "Ecdsa",
                 };
                 json!({
-                    "card": "NetSpecs",
+                    "type": "NetSpecs",
                     "value": json!({
                         "base58prefix": f.base58prefix,
                         "decimals": f.decimals,
@@ -195,30 +195,30 @@ impl ToJSON for WrappedCard {
             }
             Card::NonceCard { f } => {
                 json!({
-                    "card": "Nonce",
+                    "type": "Nonce",
                     "value": f,
                 })
             }
             Card::NoneCard => {
                 json!({
-                    "card": "None"
+                    "type": "None"
                 })
             }
             Card::PalletCard { f } => {
                 json!({
-                    "card": "Pallet",
+                    "type": "Pallet",
                     "value": f,
                 })
             }
             Card::TextCard { f } => {
                 json!({
-                    "card": "Text",
+                    "type": "Text",
                     "value": f,
                 })
             }
             Card::TipCard { f } => {
                 json!({
-                    "card": "Tip",
+                    "type": "Tip",
                     "value": json!({
                         "amount": f.amount,
                         "units": f.units,
@@ -227,19 +227,19 @@ impl ToJSON for WrappedCard {
             }
             Card::TipPlainCard { f } => {
                 json!({
-                    "card": "TipPlain",
+                    "type": "TipPlain",
                     "value": f,
                 })
             }
             Card::TxSpecCard { f } => {
                 json!({
-                    "card": "TxSpec",
+                    "type": "TxSpec",
                     "value": f,
                 })
             }
             Card::TxSpecPlainCard { f } => {
                 json!({
-                    "card": "TxSpecPlain",
+                    "type": "TxSpecPlain",
                     "value": json!({
                         "network_genesis_hash": f.network_genesis_hash,
                         "version": f.version,
@@ -249,7 +249,7 @@ impl ToJSON for WrappedCard {
             }
             Card::TypesInfoCard { f } => {
                 json!({
-                    "card": "TypesInfo",
+                    "type": "TypesInfo",
                     "value": json!({
                         "types_on_file": f.types_on_file,
                         "types_hash": f.types_hash,
@@ -258,13 +258,13 @@ impl ToJSON for WrappedCard {
             }
             Card::VarNameCard { f } => {
                 json!({
-                    "card": "VarName",
+                    "type": "VarName",
                     "value": f,
                 })
             }
             Card::VerifierCard { f } => {
                 json!({
-                    "card": "Verifier",
+                    "type": "Verifier",
                     "value": json!({
                         "public_key": f.public_key,
                         "encryption": f.encryption,
@@ -273,7 +273,7 @@ impl ToJSON for WrappedCard {
             }
             Card::WarningCard { f } => {
                 json!({
-                    "card": "Warning",
+                    "type": "Warning",
                     "value": f,
                 })
             }

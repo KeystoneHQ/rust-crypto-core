@@ -45,6 +45,8 @@ use sp_core::{ecdsa, ed25519, sr25519, Pair};
 #[cfg(any(feature = "active", feature = "signer"))]
 use sp_runtime::MultiSigner;
 use std::path::Path;
+use sp_core::crypto::Ss58Codec;
+use sp_core::sr25519::Public;
 #[cfg(any(feature = "active", feature = "signer"))]
 use zeroize::Zeroize;
 
@@ -54,6 +56,7 @@ use constants::ADDRTREE;
 use constants::ALICE_SEED_PHRASE;
 #[cfg(feature = "signer")]
 use constants::TRANSACTION;
+use defaults::default_chainspecs;
 
 #[cfg(feature = "active")]
 use definitions::qr_transfers::ContentDerivations;
@@ -97,9 +100,9 @@ lazy_static! {
 
 /// Get all existing addresses from the database.
 #[cfg(any(feature = "active", feature = "signer"))]
-pub(crate) fn get_all_addresses<P>(db_path: P) -> Result<Vec<(MultiSigner, AddressDetails)>>
-where
-    P: AsRef<Path>,
+pub fn get_all_addresses<P>(db_path: P) -> Result<Vec<(MultiSigner, AddressDetails)>>
+    where
+        P: AsRef<Path>,
 {
     let database = open_db(&db_path)?;
     let identities = open_tree(&database, ADDRTREE)?;
@@ -119,8 +122,8 @@ pub fn get_addresses_by_seed_name<P>(
     db_path: P,
     seed_name: &str,
 ) -> Result<Vec<(MultiSigner, AddressDetails)>>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     Ok(get_all_addresses(&db_path)?
         .into_iter()
@@ -184,19 +187,19 @@ fn has_parent_with_exposed_secret<P>(
     seed_name: &str,
     db_path: P,
 ) -> Result<bool>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     Ok(get_addresses_by_seed_name(db_path, seed_name)?
         .iter()
         .any(|(_, address_details)| {
             address_details.secret_exposed
                 && is_potentially_exposed(
-                    new_cropped_path,
-                    new_is_passworded,
-                    &address_details.path,
-                    address_details.has_pwd,
-                )
+                new_cropped_path,
+                new_is_passworded,
+                &address_details.path,
+                address_details.has_pwd,
+            )
         }))
 }
 
@@ -281,8 +284,8 @@ pub(crate) fn create_address<P>(
     seed_name: &str,
     seed_phrase: &str,
 ) -> Result<PrepData>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     // Check that the seed phrase is not empty.
     // In upstream, empty seed phrase means default Alice seed phrase.
@@ -540,8 +543,8 @@ fn populate_addresses<P>(
     seed_phrase: &str,
     make_seed_keys: bool,
 ) -> Result<PrepData>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     // Set of `(AddressKey, AddressDetails)` to be added into the database.
     // Set is updated and is used on each iteration of `create_address` to check
@@ -614,8 +617,8 @@ pub fn try_create_seed<P>(
     make_seed_keys: bool,
     db_path: P,
 ) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     let mut events: Vec<Event> = vec![Event::SeedCreated {
         seed_created: seed_name.to_string(),
@@ -644,8 +647,8 @@ pub fn remove_key<P>(
     multisigner: &MultiSigner,
     network_specs_key: &NetworkSpecsKey,
 ) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     remove_keys_set(&db_path, &[multisigner.to_owned()], network_specs_key)
 }
@@ -666,8 +669,8 @@ pub fn remove_keys_set<P>(
     multiselect: &[MultiSigner],
     network_specs_key: &NetworkSpecsKey,
 ) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     let mut id_batch = Batch::default();
     let mut events: Vec<Event> = Vec::new();
@@ -764,8 +767,8 @@ pub fn create_increment_set<P>(
     seed_phrase: &str,
     db_path: P,
 ) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     let address_details =
         get_address_details(&db_path, &AddressKey::from_multisigner(multisigner))?;
@@ -870,8 +873,8 @@ pub fn derivation_check<P>(
     network_specs_key: &NetworkSpecsKey,
     db_path: P,
 ) -> Result<DerivationCheck>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     match is_passworded(path) {
         // Proposed derivation has password, no checks could be made, proceed.
@@ -950,8 +953,8 @@ pub fn try_create_address<P>(
     network_specs_key: &NetworkSpecsKey,
     db_path: P,
 ) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     match derivation_check(seed_name, path, network_specs_key, &db_path)? {
         // UI should prevent user from getting into `try_create_address` if
@@ -993,6 +996,78 @@ where
     }
 }
 
+#[cfg(feature = "signer")]
+pub fn try_import_address<P>(
+    public_key: &str,
+    path: &str,
+    db_path: P,
+) -> Result<()>
+    where
+        P: AsRef<Path>,
+{
+    let mut added = false;
+    let result = default_chainspecs().iter().map(|v| {
+        if path.starts_with(&v.path_id) {
+            let network_specs = v.clone();
+            let pubkey = hex::decode(public_key).unwrap();
+            let p = Public::from_raw(<[u8; 32]>::try_from(pubkey).unwrap());
+            let seed_name = "root";
+            let input_batch_prep = &Vec::new();
+            let mut address_prep = input_batch_prep.to_vec();
+
+            let multisigner = MultiSigner::Sr25519(p);
+            let public_key = p.to_vec();
+            let address_key = AddressKey::from_multisigner(&multisigner);
+            let (cropped_path, has_pwd) = match REG_PATH.captures(path) {
+                Some(caps) => match caps.name("path") {
+                    Some(a) => (a.as_str(), caps.name("password").is_some()),
+                    None => ("", caps.name("password").is_some()),
+                },
+                None => ("", false),
+            };
+
+            // prepare history log here
+            let identity_history = IdentityHistory::get(
+                seed_name,
+                &network_specs.encryption,
+                &public_key,
+                cropped_path,
+                network_specs.genesis_hash,
+            );
+            let history_prep = vec![Event::IdentityAdded { identity_history }];
+
+            let network_specs_key = NetworkSpecsKey::from_parts(&network_specs.genesis_hash, &network_specs.encryption);
+
+            let address_details = AddressDetails {
+                seed_name: seed_name.to_string(),
+                path: cropped_path.to_string(),
+                has_pwd: false,
+                network_id: vec![network_specs_key],
+                encryption: network_specs.encryption.to_owned(),
+                secret_exposed: false,
+            };
+            address_prep.push((address_key, address_details));
+            let prep_data = PrepData {
+                address_prep,
+                history_prep,
+            };
+            let id_batch = upd_id_batch(Batch::default(), prep_data.address_prep);
+            added = true;
+            TrDbCold::new()
+                .set_addresses(id_batch) // add created address
+                .set_history(events_to_batch(&db_path, prep_data.history_prep)?) // add corresponding history
+                .apply(&db_path);
+
+        }
+        return Ok(());
+    }).collect::<Result<()>>();
+    return if added {
+        Ok(())
+    } else {
+        result
+    };
+}
+
 /// Generate test Alice addresses in test cold database.
 ///
 /// Function wipes [`ADDRTREE`] and adds:
@@ -1003,8 +1078,8 @@ where
 /// - address with `//Alice` derivation path in Westend network
 #[cfg(feature = "active")]
 pub fn generate_test_identities<P>(db_path: P) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     // clear the tree
     let entry_batch = make_batch_clear_tree(&db_path, ADDRTREE)?;
@@ -1053,8 +1128,8 @@ where
 /// key management system.
 #[cfg(feature = "signer")]
 pub fn remove_seed<P>(db_path: P, seed_name: &str) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     // `Batch` to use
     let mut identity_batch = Batch::default();
@@ -1124,8 +1199,8 @@ pub fn import_derivations<P>(
     seed_phrase: &str,
     db_path: P,
 ) -> Result<()>
-where
-    P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
 {
     // derivations data retrieved from the database
     let content_derivations = TrDbColdDerivations::from_storage(&db_path, checksum)?;
@@ -1424,7 +1499,7 @@ fn generate_secret_qr(
         ),
         DataType::Sensitive,
     )
-    .map_err(|e| Error::Qr(e.to_string()));
+        .map_err(|e| Error::Qr(e.to_string()));
     secret.zeroize();
     qr
 }

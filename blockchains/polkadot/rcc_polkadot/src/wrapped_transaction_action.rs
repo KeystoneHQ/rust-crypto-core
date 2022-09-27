@@ -49,7 +49,7 @@ impl ToJSON for MSCNetworkInfo {
 
 impl WrappedTransactionAction {
     pub fn to_json(&self) -> Value {
-        let (content, ttype, author_info, network_info, checksum) = match &self.t {
+        let (content, ttype, author_info, network_info) = match &self.t {
             TransactionAction::Derivations {
                 content,
                 network_info,
@@ -59,7 +59,6 @@ impl WrappedTransactionAction {
                 TransactionType::ImportDerivations,
                 None,
                 Some(network_info),
-                None,
             ),
             TransactionAction::Sign {
                 content,
@@ -71,10 +70,9 @@ impl WrappedTransactionAction {
                 TransactionType::Sign,
                 Some(author_info),
                 Some(network_info),
-                None,
             ),
-            TransactionAction::Stub { s, u, .. } => (s, TransactionType::Stub, None, None, Some(u)),
-            TransactionAction::Read { r } => (r, TransactionType::Read, None, None, None),
+            TransactionAction::Stub { s, .. } => (s, TransactionType::Stub, None, None),
+            TransactionAction::Read { r } => (r, TransactionType::Read, None, None),
         };
         let result = MTransaction {
             content: content.clone(),

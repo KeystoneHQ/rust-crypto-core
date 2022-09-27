@@ -388,6 +388,12 @@ pub enum Error {
     hex::encode(multisigner_to_public(.multisigner)),
     )]
     NoSeedForKeyPair { multisigner: MultiSigner },
+
+    #[error("Invalid Public key")]
+    InvalidPublicKey,
+
+    #[error("Invalid Path")]
+    InvalidDerivationPath,
 }
 
 /// DB handling result.

@@ -3,8 +3,12 @@ use transaction_parsing;
 use transaction_parsing::TransactionAction;
 use serde_json;
 use serde_json::json;
+use db_handling::db_transactions::SignContent;
 use crate::wrapped_transaction_action::WrappedTransactionAction;
 use transaction_signing;
+use transaction_signing::sign_content;
+use parity_scale_codec::Encode;
+use hex;
 
 pub mod scanner;
 mod wrapped_transaction_action;
@@ -35,10 +39,28 @@ pub fn import_address(db_name: String, public_key: String, path: String) -> Stri
     }.to_string()
 }
 
+pub fn get_sign_content(db_name: String, checksum: u32) -> String {
+    match db_handling::db_transactions::TrDbColdSign::from_storage(db_name, checksum).map_err(|v| v.to_string()) {
+        Ok(v) => {
+            let value = match v.content() {
+                SignContent::Transaction { method, extensions } => {
+                    [method.to_vec(), extensions.to_vec()].concat()
+                }
+                SignContent::Message(a) => a.encode(),
+            };
+            let sign_content = hex::encode(value);
+            json!({"status": "success", "value": sign_content})
+        }
+        Err(e) => {
+            json!({"status": "failed", "reason": e})
+        }
+    }.to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::Path;
-    use crate::{init_polkadot_db, scanner, handle_stub, import_address};
+    use crate::{init_polkadot_db, scanner, handle_stub, import_address, get_sign_content};
     use crate::transaction_parser::parse_transaction;
     use db_handling;
     use generate_message;
@@ -132,6 +154,24 @@ mod tests {
         let json: Value = serde_json::from_str(result.as_str()).unwrap();
         assert_eq!("Sign", json["transaction_type"]);
         println!("{}", json);
+        remove();
+    }
+
+    #[test]
+    fn test_get_sign_content() {
+        init();
+        add_meta();
+        add_address();
+        let db_path = get_db_path();
+        let tx = fs::read_to_string("./test_data/transactions/transfer").unwrap();
+        let result = parse_transaction(tx, db_path.clone());
+        let json: Value = serde_json::from_str(result.as_str()).unwrap();
+        let checksum = json["checksum"].as_u64().unwrap();
+        let sign_content = get_sign_content(db_path.clone(), checksum.clone() as u32);
+        let json2: Value = serde_json::from_str(sign_content.as_str()).unwrap();
+        let result2 = json2["value"].as_str().unwrap();
+        assert_eq!("05030028b9ffce010cff941262f1b5fa5a884a65b2f7324854082abd68aa3d93b0827f0700e40b54025501c90100362400000d00000091b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3e5dc2cf7ac2ab8940ce2607ce9df3ec7bc59f513ea23dba5b956165518c1d4fc",
+                   result2);
         remove();
     }
 }

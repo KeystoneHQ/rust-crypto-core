@@ -21,26 +21,20 @@ impl ToJSON for WrappedCard {
             Card::AuthorPlainCard { f } => {
                 json!({
                     "type": "AuthorPlain",
-                    "value": json!({
-                        "base58": f.base58
-                    })
+                    "value": f.base58
                 })
             }
             Card::AuthorPublicKeyCard { f } => {
                 json!({
                     "type": "AuthorPublicKey",
-                    "value": json!({
-                        "public_key": f.public_key,
-                    })
+                    "value": f.public_key
                 })
             }
             Card::BalanceCard { f } => {
+                let value = format!("{} {}", f.amount, f.units);
                 json!({
                     "type": "Balance",
-                    "value": json!({
-                        "amount": f.amount,
-                        "units": f.units,
-                    })
+                    "value": value,
                 })
             }
             Card::BitVecCard { f } => {
@@ -58,9 +52,7 @@ impl ToJSON for WrappedCard {
             Card::CallCard { f } => {
                 json!({
                     "type": "Call",
-                    "value": json!({
-                        "method_name": f.method_name
-                    })
+                    "value": f.method_name
                 })
             }
             Card::DefaultCard { f } => {
@@ -78,9 +70,7 @@ impl ToJSON for WrappedCard {
             Card::EnumVariantNameCard { f } => {
                 json!({
                     "type": "EnumVariantName",
-                    "value": json!({
-                        "name": f.name
-                    })
+                    "value": f.name,
                 })
             }
             Card::EraImmortalCard => {
@@ -93,7 +83,6 @@ impl ToJSON for WrappedCard {
                 json!({
                     "type": "Era",
                     "value": json!({
-                        "era": f.era,
                         "phase": f.phase,
                         "period": f.period,
                     })
@@ -108,25 +97,19 @@ impl ToJSON for WrappedCard {
             Card::FieldNameCard { f } => {
                 json!({
                     "type": "FieldName",
-                    "value": json!({
-                        "name": f.name
-                    })
+                    "value": f.name
                 })
             }
             Card::FieldNumberCard { f } => {
                 json!({
                     "type": "FieldNumber",
-                    "value": json!({
-                        "number": f.number,
-                    })
+                    "value": f.number,
                 })
             }
             Card::IdCard { f } => {
                 json!({
                     "type": "Id",
-                    "value": json!({
-                        "base58": f.base58,
-                    })
+                    "value": f.base58
                 })
             }
             Card::IdentityFieldCard { f } => {

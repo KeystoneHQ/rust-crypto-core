@@ -131,6 +131,7 @@ mod tests {
         let result = parse_transaction(tx, db_path);
         let json: Value = serde_json::from_str(result.as_str()).unwrap();
         assert_eq!("Sign", json["transaction_type"]);
+        println!("{}", json);
         remove();
     }
 }

@@ -2,9 +2,6 @@ use serde_json;
 use serde_json::json;
 use qr_reader_phone;
 
-use android_logger;
-use log::debug;
-
 pub fn get_packets_total(payload: String) -> String {
     match qr_reader_phone::get_length(payload.as_str(), false).map_err(|e| e.to_string()) {
         Ok(v) => json!({"status": "success", "value": v}),

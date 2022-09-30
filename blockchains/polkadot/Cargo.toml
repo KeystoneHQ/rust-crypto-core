@@ -1,18 +1,22 @@
-[workspace]
+[package]
+name = "rcc_polkadot"
+version = "0.1.0"
+edition = "2021"
 
-members = [
-	"constants",
-	"db_handling",
-	"defaults",
-	"definitions",
-	"generate_message",
-	"parser",
-	"printing_balance",
-	"qr_reader_phone",
-	"qrcode_rtx",
-	"qrcode_static",
-	"signer",
-	"transaction_parsing",
-	"transaction_signing",
-	"rcc_polkadot",
-]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = "1.0"
+android_logger = "0.11.1"
+log = "0.4.17"
+parity-scale-codec = "3.1.5"
+hex = "0.4.3"
+qr_reader_phone = {git = "https://github.com/KeystoneHQ/parity-signer", branch = "keystone-patch"}
+transaction_parsing = {git = "https://github.com/KeystoneHQ/parity-signer", branch = "keystone-patch"}
+transaction_signing = {git = "https://github.com/KeystoneHQ/parity-signer", branch = "keystone-patch"}
+definitions = {git = "https://github.com/KeystoneHQ/parity-signer", branch = "keystone-patch"}
+db_handling = {git = "https://github.com/KeystoneHQ/parity-signer", branch = "keystone-patch"}
+generate_message = {git = "https://github.com/KeystoneHQ/parity-signer", branch = "keystone-patch"}
+
+[dev-dependencies]
+fs_extra = "1.2.0"

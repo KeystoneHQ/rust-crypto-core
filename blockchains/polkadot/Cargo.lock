@@ -379,7 +379,7 @@ checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
 [[package]]
 name = "constants"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "hex",
 ]
@@ -505,7 +505,7 @@ dependencies = [
 [[package]]
 name = "db_handling"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "anyhow",
  "constants",
@@ -529,7 +529,7 @@ dependencies = [
 [[package]]
 name = "defaults"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "definitions",
  "lazy_static",
@@ -542,7 +542,7 @@ dependencies = [
 [[package]]
 name = "definitions"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "frame-metadata",
  "hex",
@@ -850,7 +850,7 @@ dependencies = [
 [[package]]
 name = "generate_message"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "clap",
  "constants",
@@ -1660,7 +1660,7 @@ dependencies = [
 [[package]]
 name = "parser"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "bitvec",
  "definitions",
@@ -1789,7 +1789,7 @@ dependencies = [
 [[package]]
 name = "printing_balance"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 
 [[package]]
 name = "proc-macro-crate"
@@ -1838,7 +1838,7 @@ dependencies = [
 [[package]]
 name = "qr_reader_phone"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "anyhow",
  "constants",
@@ -1851,7 +1851,7 @@ dependencies = [
 [[package]]
 name = "qrcode_rtx"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "bitvec",
  "constants",
@@ -1865,7 +1865,7 @@ dependencies = [
 [[package]]
 name = "qrcode_static"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "anyhow",
  "bitvec",
@@ -3180,7 +3180,7 @@ dependencies = [
 [[package]]
 name = "transaction_parsing"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "constants",
  "db_handling",
@@ -3198,7 +3198,7 @@ dependencies = [
 [[package]]
 name = "transaction_signing"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/parity-signer?branch=keystone-patch#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
+source = "git+https://github.com/KeystoneHQ/parity-signer?tag=keystone-patch@0.1.0#ea8fe6f26bd51d262d5a7a75ad4fec2779ea4945"
 dependencies = [
  "anyhow",
  "db_handling",

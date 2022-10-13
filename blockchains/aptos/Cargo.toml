@@ -1,0 +1,23 @@
+[package]
+name = "rcc-aptos"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rcc-trait-chain = "0.1.0"
+bcs = "0.1.3"
+serde_json = "1.0"
+serde = "1.0.139"
+serde_bytes = "0.11.5"
+thiserror = "1.0.31"
+hex = "0.4.3"
+rand = "0.8.3"
+anyhow = "1.0.52"
+ref-cast = "1.0.6"
+
+[features]
+address32 = []
+address20 = []
+default = ["address32"]

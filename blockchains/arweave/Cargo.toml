@@ -1,0 +1,16 @@
+[package]
+name = "rcc-arweave"
+version = "0.0.1"
+edition = "2021"
+license = "Apache-2.0"
+description = "A transaction parser for arweave."
+
+
+[dependencies]
+rcc-trait-chain = "0.1.0"
+ring = {version = "0.16.20", features = [ "std" ] }
+thiserror = "1.0.31"
+serde = {version="1.0.130", features=["derive"]}
+base64 = "0.13.1"
+hex = "0.4.3"
+serde_json = { version = "1.0.68", features = ["preserve_order"] }

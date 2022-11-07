@@ -12,7 +12,7 @@ impl Chain<ArweaveError> for Arweave {
         let tx = match serde_json::from_slice::<Transaction>(data) {
             Ok(tx) => {
                 json!({
-                    "raw_json": data,
+                    "raw_json": tx,
                     "formatted_json": {
                         "owner": tx.owner,
                         "target": tx.target,
@@ -27,8 +27,6 @@ impl Chain<ArweaveError> for Arweave {
             Err(e) => {
                 let readable = format!("unable to deserialize, reason: {}", e.to_string());
                 json!({
-                    "raw_json": data,
-                    "formatted_json": readable,
                     "status": "failed",
                     "reason": readable
                 })

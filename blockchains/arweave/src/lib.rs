@@ -20,14 +20,17 @@ impl Chain<ArweaveError> for Arweave {
                         "reward": tx.reward,
                         "data_size": tx.data_size,
                         "signature_data": tx.deep_hash().map_or_else(|e| format!("unable to deep hash transaction, reason: {}", e.to_string()), |data| hex::encode(data)),
-                    }
+                    },
+                    "status": "success"
                 })
             },
             Err(e) => {
                 let readable = format!("unable to deserialize, reason: {}", e.to_string());
                 json!({
                     "raw_json": data,
-                    "formatted_json": readable
+                    "formatted_json": readable,
+                    "status": "failed",
+                    "reason": readable
                 })
             }
         };

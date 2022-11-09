@@ -22,7 +22,10 @@ use command::{
 use serial_manager::SerialManager;
 use tags::result;
 use tvl::Packet;
-
+use crate::algorithm::error::AlgError;
+use crate::algorithm::rsa::RSA;
+use crate::keymaster::se::command::SetSecretCommand;
+use super::algorithm;
 
 
 pub struct SecureElement {
@@ -60,6 +63,7 @@ impl SecureElement {
         path: String,
         auth_token: Option<Vec<u8>>,
         curve: u8,
+        is_master_seed: bool,
     ) -> Result<Vec<u8>, KSError> {
         let params = CommandParams {
             wallet_id: Some(menomic_id),
@@ -69,21 +73,38 @@ impl SecureElement {
             ..Default::default()
         };
 
-        let base58_key = String::from_utf8(
-            self.get_se_result(
+        let key = self.get_se_result(
+            GETKeyCommand::build(Some(params))
+                .ok_or(KSError::SEError("compose command error".to_string()))?,
+            result::MASTER_SEED,
+        )?;
+
+        Ok(key)
+    }
+
+    fn get_master_seed(
+        &self,
+        mnemonic_id: u8,
+        path: String,
+        auth_token: Option<Vec<u8>>,
+        curve: u8,
+    ) -> Result<Vec<u8>, KSError> {
+        let params = CommandParams {
+            wallet_id: Some(mnemonic_id),
+            path: Some(path),
+            auth_token,
+            curve: Some(curve),
+            is_master_seed: Some(true),
+            ..Default::default()
+        };
+
+        let master_seed = self.get_se_result(
                 GETKeyCommand::build(Some(params))
                     .ok_or(KSError::SEError("compose command error".to_string()))?,
-                0x020a,
-            )?,
-        )
-        .map_err(|_e| KSError::SEError("decode bs58 key error".to_string()))?;
+                result::MASTER_SEED,
+            )?;
 
-        let key = bs58::decode(base58_key)
-            .into_vec()
-            .map_err(|_| KSError::SEError("decode bs58 key error".to_string()))?;
-        let start = key.len() - (32 + 4);
-        let end = key.len() - 4;
-        Ok(key[start..end].to_vec())
+        Ok(master_seed)
     }
 
     fn test_sign(
@@ -142,8 +163,20 @@ impl KeyMaster for SecureElement {
         )
     }
 
-    fn write_menomic(&self, menomic: String, password: String) -> Result<String, KSError> {
-        Err(KSError::SEError("this function is not supported for now".to_string()))
+    fn write_secret(&self, secret: String, password: String) -> Result<(), KSError> {
+        let password_bytes = hex::decode(&password).unwrap();
+        let secret_bytes = hex::decode(&secret).unwrap();
+        let params = CommandParams {
+            secret: Some(secret_bytes),
+            password: Some(password_bytes),
+            ..Default::default()
+        };
+        self.get_se_result(
+            SetSecretCommand::build(Some(params))
+                .ok_or(KSError::SEError("compose command error".to_string()))?,
+            result::SUCCEED,
+        )?;
+        Ok(())
     }
 
     fn sign_data(
@@ -166,10 +199,16 @@ impl KeyMaster for SecureElement {
             SigningAlgorithm::RSA => 5u8,
         };
 
-        let private_key = self.get_key(menomic_id, derivation_path, Some(auth_token), curve_tag)?;
-        let zeroize_private_key = Zeroizing::new(private_key);
         match algo {
             SigningAlgorithm::Secp256k1 => {
+                let private_key = self.get_key(menomic_id, derivation_path, Some(auth_token), curve_tag, false)?;
+                let base58_key = String::from_utf8(private_key).map_err(|_e| KSError::SEError("decode bs58 key error".to_string()))?;
+                let key = bs58::decode(base58_key)
+                    .into_vec()
+                    .map_err(|_| KSError::SEError("decode bs58 key error".to_string()))?;
+                let start = key.len() - (32 + 4);
+                let end = key.len() - 4;
+                let zeroize_private_key = Zeroizing::new(key[start..end].to_vec());
                 let signing_key = SigningKey::from_bytes(zeroize_private_key.as_slice())
                     .map_err(|_e| KSError::SEError("error generate the signing key".to_string()))?;
                 let mut hash_wrapper = ShaWrapper::new();
@@ -179,6 +218,13 @@ impl KeyMaster for SecureElement {
                     .map_err(|_e| KSError::SEError("signing digest error".to_string()))?;
                 Ok(signature.as_ref().to_vec())
             },
+            SigningAlgorithm::RSA => {
+                let private_key = self.get_key(menomic_id, derivation_path, Some(auth_token), curve_tag, true)?;
+                let zeroize_private_key = Zeroizing::new(private_key);
+                let rsa = RSA::from_secret(zeroize_private_key.as_slice())?;
+                let signature = rsa.sign(&data).map_err(|_e| KSError::SEError("signing digest error".to_string()))?;
+                Ok(signature)
+            }
             _ => Err(KSError::SEError("signing algo is not supported".to_string()))
         }
     }

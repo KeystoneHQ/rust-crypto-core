@@ -1,4 +1,5 @@
 use crate::error::KSError;
+use crate::algorithm;
 pub(crate) mod se;
 pub(crate) mod local;
 pub(crate) mod hash_wraper;
@@ -20,7 +21,7 @@ pub enum SigningAlgorithm {
 pub trait KeyMaster {
     fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
 
-    fn write_menomic(&self, menomic: String, password: String) -> Result<String, KSError>;
+    fn write_secret(&self, secret: String, password: String) -> Result<(), KSError>;
 
     fn sign_data(
         &self,

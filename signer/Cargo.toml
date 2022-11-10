@@ -22,5 +22,7 @@ rsa="0.7.0"
 ring = {version = "0.16.20", features = [ "std" ] }
 rand_chacha = "0.3.1"
 sha2 = "0.9"
-base64ct = "1.5.3"
 base64="0.3.1"
+
+[profile.test]
+opt-level=3

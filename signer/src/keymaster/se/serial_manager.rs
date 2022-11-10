@@ -25,11 +25,11 @@ impl<'a> SerialManager<'a> {
         let mut port = serialport::new(self.port_name, BAUD_RATE)
             .timeout(Duration::from_millis(self.timeout_ms))
             .open()
-            .map_err(|e| KSError::SerialManagerError("Fail open port".to_string()))?;
+            .map_err(|_| KSError::SerialManagerError("Fail open port".to_string()))?;
 
         let mut clone = port
             .try_clone()
-            .map_err(|e| KSError::SerialManagerError("Fail to clone port".to_string()))?;
+            .map_err(|_| KSError::SerialManagerError("Fail to clone port".to_string()))?;
 
         thread::spawn(move || {
             match clone
@@ -83,10 +83,10 @@ mod tests {
         let port_name = "/dev/ttyMT1";
         // set timeout to 100s
         const TIMEOUT_MS: u64 = 100000;
-        let serialManger = SerialManager::new(port_name, TIMEOUT_MS);
+        let serial_manger = SerialManager::new(port_name, TIMEOUT_MS);
         let version_sig: Vec<u8> = vec![02, 00, 00, 06, 00, 01, 00, 02, 01, 02, 03, 07];
 
-        let result = serialManger.send_data(version_sig).unwrap();
+        let result = serial_manger.send_data(version_sig).unwrap();
 
         let expected = hex::decode("020000360001000201020106000c312e302e312e303030303030010f00041010000001180001010102000400000088021000010000020002000003ad").unwrap();
 

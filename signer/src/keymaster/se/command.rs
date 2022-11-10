@@ -69,8 +69,9 @@ impl CommandBuilder for GETKeyCommand {
             Some(true) => builder.add_payload(methods::MASTER_SEED_FLAG_TAG, &[00]),
             _ => (),
         };
+
         match params.is_rsa_secret {
-            Some(true) => builder.add_payload(methods::MASTER_SEED_FLAG_TAG, &[00]),
+            Some(true) => builder.add_payload(methods::RSA_SECRET_FLAG_TAG, &[00]),
             _ => (),
         };
         match params.auth_token {
@@ -148,11 +149,12 @@ impl CommandBuilder for SetSecretCommand {
         let params = params?;
         let password = params.password?;
         let password_slices = password.as_slice();
-        let secret =
+        let secret = params.secret?;
+        let secret_slices = secret.as_slice();
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::SET_SECRET_TAG);
         builder.add_payload(methods::CURRENT_PASSWORD, password_slices);
-        builder.add_payload(methods::SET_SECRET, &[01]);
+        builder.add_payload(methods::WRITE_RSA_SECRET_FLAG, secret_slices);
         let packet = builder.build();
         return Some(Command { packet, tag: methods::SET_SECRET_TAG });
     }
@@ -225,7 +227,7 @@ impl Command {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 

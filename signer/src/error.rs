@@ -23,4 +23,15 @@ pub enum KSError {
     #[error("SEError:{0}")]
     SEError(String),
 
+    #[error("GenerateSigningKeyError: {0}")]
+    GenerateSigningKeyError(String),
+
+    #[error("SignDataError: {0}")]
+    SignDataError(String),
+
+    #[error("WriteSecretError: {0}")]
+    WriteSecretError(String),
+
+    #[error("GetPublicKeyError: {0}")]
+    GetPublicKeyError(String),
 }

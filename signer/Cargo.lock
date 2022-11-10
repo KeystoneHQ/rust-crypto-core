@@ -561,7 +561,6 @@ name = "rcc_signer"
 version = "0.1.1"
 dependencies = [
  "base64",
- "base64ct",
  "bs58",
  "bytes",
  "hex",

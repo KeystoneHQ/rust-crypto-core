@@ -21,11 +21,11 @@ pub enum SigningAlgorithm {
 pub trait KeyMaster {
     fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
 
-    fn write_secret(&self, secret: String, password: String) -> Result<(), KSError>;
+    fn get_public_key(&self, mnemonic_id: u8, password: Option<String>, algo: SigningAlgorithm, derivation_path: Option<String>) -> Result<Vec<u8>, KSError>;
 
     fn sign_data(
         &self,
-        menomic_id: u8,
+        mnemonic_id: u8,
         password: String,
         data: Vec<u8>,
         algo: SigningAlgorithm,

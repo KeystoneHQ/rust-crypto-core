@@ -1,8 +1,10 @@
 
 use super::{KeyMaster, SigningAlgorithm, hash_wraper::ShaWrapper};
 use crate::error::KSError;
+use alloc::{string::{String, ToString}, vec::Vec};
 use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey, digest::Digest};
 use zeroize::Zeroizing;
+use hex;
 
 pub struct Mini;
 

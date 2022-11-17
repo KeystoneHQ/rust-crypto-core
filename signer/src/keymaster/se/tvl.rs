@@ -1,18 +1,22 @@
+use alloc::{vec::Vec, string::ToString};
 use bytes::{Buf, BufMut, Bytes, BytesMut};
+#[cfg(target_os = "android")]
 use indexmap::IndexMap;
-use std::convert::{TryFrom, TryInto};
+use core::convert::{TryFrom};
 
 use crate::error::KSError;
 #[derive(Debug)]
+#[cfg(target_os = "android")]
 pub struct Packet {
     pub stx: u8,
     pub encryption_flag: u8,
     pub length: u16,
-    pub payloads: IndexMap<u16, TVL>,
+    pub payloads: IndexMap<u16, TVL, S>,
     pub etx: u8,
     pub lrc: u8,
 }
 
+#[cfg(target_os = "android")]
 impl Packet {
     pub fn new(payloads: IndexMap<u16, TVL>) -> Self {
         let len: u16 = payloads.iter().fold(0, |len, (_, each_value)| {
@@ -66,6 +70,7 @@ impl Packet {
     }
 }
 
+#[cfg(target_os = "android")]
 impl TryFrom<Vec<u8>> for Packet {
     type Error = KSError;
 
@@ -168,9 +173,11 @@ pub fn lrc<'a, T: IntoIterator<Item = &'a u8>>(bytes: T) -> u8 {
     result
 }
 
-
+#[cfg(target_os = "android")]
 #[cfg(test)]
 mod tests {
+    use alloc::{vec, string::ToString};
+
     use super::*;
 
     #[test]
@@ -189,7 +196,7 @@ mod tests {
         let version_sig: Vec<u8> = vec![00, 01, 00, 02, 01, 02];
         let tvl = TVL::try_from(version_sig).unwrap();
 
-        let mut payloads: IndexMap<u16, TVL> = IndexMap::new();
+        let mut payloads: IndexMap<u16, TVL> = IndexMap::default();
         payloads.insert(1, tvl);
 
         let packet = Packet::new(payloads);

@@ -1,4 +1,7 @@
+use alloc::{string::String, vec::Vec};
+
 use crate::error::KSError;
+#[cfg(target_os = "android")]
 pub(crate) mod se;
 pub(crate) mod local;
 pub(crate) mod hash_wraper;

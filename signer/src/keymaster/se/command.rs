@@ -1,11 +1,15 @@
+use alloc::string::String;
+use alloc::vec::Vec;
 use bytes::{BufMut, BytesMut, Buf, Bytes};
+#[cfg(target_os = "android")]
 use indexmap::IndexMap;
-
+#[cfg(target_os = "android")]
 use super::tvl::{Packet, TVL};
 use super::tags::{COMMAND_TAG, methods, RESPONSE_TAG};
 
 
 #[derive(Default)]
+#[cfg(target_os = "android")]
 pub struct CommandParams {
     pub wallet_id: Option<u8>,
     pub path: Option<String>,
@@ -15,6 +19,7 @@ pub struct CommandParams {
     pub hash: Option<[u8;128]>
 }
 
+#[cfg(target_os = "android")]
 
 pub trait CommandBuilder {
     fn build(params:Option<CommandParams>) -> Option<Command>;
@@ -22,6 +27,7 @@ pub trait CommandBuilder {
 
 pub(crate) struct GetFirmwareStatusCommand;
 
+#[cfg(target_os = "android")]
 impl CommandBuilder for GetFirmwareStatusCommand {
 
     fn build(params:Option<CommandParams>) -> Option<Command> {
@@ -33,7 +39,7 @@ impl CommandBuilder for GetFirmwareStatusCommand {
 }
 
 pub struct GenerateEntropyCommand;
-
+#[cfg(target_os = "android")]
 impl CommandBuilder for GenerateEntropyCommand {
     
     fn build(params:Option<CommandParams>) -> Option<Command> {
@@ -47,7 +53,7 @@ impl CommandBuilder for GenerateEntropyCommand {
 }
 
 pub struct GETKeyCommand;
-
+#[cfg(target_os = "android")]
 impl CommandBuilder for GETKeyCommand {
 
     fn build(params:Option<CommandParams>) -> Option<Command> {
@@ -74,6 +80,7 @@ impl CommandBuilder for GETKeyCommand {
 
 pub struct SignTxCommand;
 
+#[cfg(target_os = "android")]
 impl CommandBuilder for SignTxCommand {
 
     fn build(params:Option<CommandParams>) -> Option<Command> {
@@ -102,6 +109,7 @@ impl CommandBuilder for SignTxCommand {
 
 pub struct GenerateTokenCommand;
 
+#[cfg(target_os = "android")]
 impl CommandBuilder for GenerateTokenCommand {
 
     fn build(params:Option<CommandParams>) -> Option<Command> {
@@ -119,7 +127,7 @@ impl CommandBuilder for GenerateTokenCommand {
 
 
 pub struct ClearTokenCommand;
-
+#[cfg(target_os = "android")]
 impl CommandBuilder for ClearTokenCommand {
     
     fn build(params:Option<CommandParams>) -> Option<Command> {
@@ -130,6 +138,7 @@ impl CommandBuilder for ClearTokenCommand {
     }
 }
 
+#[cfg(target_os = "android")]
 fn build_packet(tag: u16) -> Packet {
     let mut mm = BytesMut::new();
     mm.put_u16(tag);
@@ -139,11 +148,11 @@ fn build_packet(tag: u16) -> Packet {
     payloads.insert(1, tvl);
     Packet::new(payloads)
 }
-
+#[cfg(target_os = "android")]
 struct PacketBuilder {
     payloads: IndexMap<u16, TVL>
 }
-
+#[cfg(target_os = "android")]
 impl PacketBuilder {
     pub fn new() -> Self {
         Self { payloads: IndexMap::new() }
@@ -168,7 +177,7 @@ impl PacketBuilder {
         Packet::new(self.payloads)
     }
 }
-
+#[cfg(target_os = "android")]
 pub fn parse_result(packet: &Packet, request_tag: u16) -> bool {
     if let Some(tag) = packet.payloads.get(&COMMAND_TAG) {
         let mut tmp = Bytes::copy_from_slice(tag.value.chunk());
@@ -185,20 +194,23 @@ pub fn parse_result(packet: &Packet, request_tag: u16) -> bool {
     return false;
 }
 
-
+#[cfg(target_os = "android")]
 pub struct Command {
     packet: Packet,
     pub tag: u16,
 }
-
+#[cfg(target_os = "android")]
 impl Command {
     pub fn to_vec(&self) -> Vec<u8> {
         self.packet.to_vec()
     }
 }
 
+#[cfg(target_os = "android")]
 #[cfg(test)]
 mod tests {
+    use alloc::vec;
+
     use super::*;
 
     #[test]

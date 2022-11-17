@@ -3,9 +3,11 @@ mod serial_manager;
 mod tags;
 mod tvl;
 
-use std::convert::TryFrom;
+use core::convert::TryFrom;
 
 use self::command::CommandBuilder;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 use bs58;
 use k256::ecdsa::digest::Digest;
 use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey};
@@ -19,17 +21,22 @@ use command::{
     parse_result, ClearTokenCommand, Command, CommandParams, GETKeyCommand, GenerateEntropyCommand,
     GenerateTokenCommand, GetFirmwareStatusCommand, SignTxCommand,
 };
+#[cfg(target_os = "android")]
 use serial_manager::SerialManager;
+
 use tags::result;
+
+#[cfg(target_os = "android")]
 use tvl::Packet;
 
 
-
+#[cfg(target_os = "android")]
 pub struct SecureElement {
     version: String,
     port: String,
 }
 
+#[cfg(target_os = "android")]
 impl SecureElement {
     pub fn new(port_name:String) -> Self {
         SecureElement {
@@ -133,6 +140,7 @@ impl SecureElement {
     }
 }
 
+#[cfg(target_os = "android")]
 impl KeyMaster for SecureElement {
     fn generate_entropy(&self, length: super::EntropyLength) -> Result<Vec<u8>, KSError> {
         self.get_se_result(

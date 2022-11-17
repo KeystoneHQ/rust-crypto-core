@@ -1,17 +1,22 @@
 use crate::error::KSError;
+use alloc::string::ToString;
+use alloc::vec::{self, Vec};
+
+#[cfg(target_os = "android")]
+use std::{io::ErrorKind, std::sync::mpsc, std::thread, std::time::Duration};
+
+#[cfg(target_os = "android")]
 use serialport;
-use std::io::ErrorKind;
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
 
 const BAUD_RATE: u32 = 115_200;
 
+#[cfg(target_os = "android")]
 pub struct SerialManager<'a> {
     port_name: &'a str,
     timeout_ms: u64,
 }
 
+#[cfg(target_os = "android")]
 impl<'a> SerialManager<'a> {
     pub fn new(port_name: &'a str, timeout_ms: u64) -> Self {
         SerialManager {

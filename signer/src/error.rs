@@ -1,4 +1,5 @@
-use thiserror::Error;
+use alloc::string::String;
+use thiserror_no_std::Error;
 
 #[derive(Debug, Error)]
 pub enum KSError {

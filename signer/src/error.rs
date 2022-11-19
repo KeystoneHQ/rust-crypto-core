@@ -1,6 +1,5 @@
 use std::array::TryFromSliceError;
 use std::convert::Infallible;
-use ring::error::{KeyRejected, Unspecified};
 use thiserror::Error;
 
 #[derive(Debug, Error)]

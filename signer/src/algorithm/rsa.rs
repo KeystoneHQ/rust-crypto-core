@@ -1,10 +1,12 @@
 use bytes::BytesMut;
-use ring::{rand, signature::{self, KeyPair, RsaKeyPair}};
+use openssl::hash::MessageDigest;
+use openssl::pkey::PKey;
 use rsa::{BigUint, pkcs8::{EncodePrivateKey}, PublicKeyParts, rand_core, RsaPrivateKey};
 use sha2::{Digest, Sha256};
 use rand_core::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use crate::algorithm::SecretKey;
+use openssl::sign::{RsaPssSaltlen, Signer as OpensslSigner, Verifier};
 use crate::KSError;
 
 pub const MODULUS_LENGTH: usize = 4096;
@@ -15,7 +17,7 @@ pub const SECRET_LENGTH_IN_BYTE: usize = PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENG
 pub const RSA_DERIVATION_PATH: &str = "m/44'/472'";
 
 pub struct RSA {
-    keypair: RsaKeyPair,
+    private_key: RsaPrivateKey,
 }
 
 impl SecretKey for RSA {
@@ -37,20 +39,22 @@ impl SecretKey for RSA {
             BigUint::from_bytes_be(&e),
             BigUint::from_bytes_be(&d),
             [BigUint::from_bytes_be(&p), BigUint::from_bytes_be(&q)].to_vec(),
-        ).map_err(|e| KSError::GenerateSigningKeyError("failed to compose rsa signing key".to_string()))?;
-        let private_key_der = private_key.to_pkcs8_der().map_err(|e| KSError::GenerateSigningKeyError("failed to convert rsa private key to pkcs8 der format".to_string()))?;
-        let keypair = RsaKeyPair::from_pkcs8(&private_key_der.as_bytes()).map_err(|e| KSError::GenerateSigningKeyError("failed to recover rsa key pair".to_string()))?;
+        ).map_err(|_| KSError::GenerateSigningKeyError("failed to compose rsa signing key".to_string()))?;
         Ok(Self {
-            keypair
+            private_key: private_key
         })
     }
 
     fn sign(&self, data: Vec<u8>) -> Result<Vec<u8>, KSError> {
-        let rng = rand::SystemRandom::new();
-        let mut signature = vec![0; self.keypair.public_modulus_len()];
-        self.keypair
-            .sign(&signature::RSA_PSS_SHA256, &rng, &data, &mut signature).map_err(|e| KSError::SignDataError(e.to_string()))?;
-        Ok(signature)
+        let private_key_der = self.private_key.to_pkcs8_der().map_err(|e| KSError::GenerateSigningKeyError("failed to convert rsa private key to pkcs8 der format".to_string()))?;
+        let pkey = PKey::private_key_from_der(private_key_der.as_bytes()).unwrap();
+        let mut signer = OpensslSigner::new(MessageDigest::sha256(), &pkey).unwrap();
+        signer.set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS).unwrap();
+        signer
+            .set_rsa_pss_saltlen(openssl::sign::RsaPssSaltlen::custom(0))
+            .unwrap();
+        signer.update(&data).unwrap();
+        Ok(signer.sign_to_vec().unwrap())
     }
 }
 
@@ -74,21 +78,21 @@ impl RSA {
         Ok(secret.to_vec())
     }
 
-    pub fn keypair_modulus(&self) -> Result<Vec<u8>, KSError> {
-        let modulus = self
-            .keypair
-            .public_key()
-            .modulus()
-            .big_endian_without_leading_zero();
-        Ok(modulus.to_vec())
+    pub fn keypair_modulus(&self) -> Vec<u8> {
+        self.private_key.n().to_bytes_be()
     }
 
     pub fn verify(&self, signature: &[u8], message: &[u8]) -> Result<(), KSError> {
-        let public_key = signature::UnparsedPublicKey::new(
-            &signature::RSA_PSS_2048_8192_SHA256,
-            self.keypair.public_key().as_ref(),
-        );
-        public_key.verify(message, signature).map_err(|_| KSError::SignDataError("verify signature failed".to_string()))?;
+        let private_key_der = self.private_key.to_pkcs8_der().map_err(|e| KSError::GenerateSigningKeyError("failed to convert rsa private key to pkcs8 der format".to_string()))?;
+
+        let pkey = PKey::private_key_from_der(private_key_der.as_bytes()).unwrap();
+        let mut verifier = Verifier::new(MessageDigest::sha256(), &pkey).unwrap();
+        verifier.set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS).unwrap();
+        verifier
+            .set_rsa_pss_saltlen(RsaPssSaltlen::custom(0))
+            .unwrap();
+        verifier.update(&message).unwrap();
+        verifier.verify(&signature).unwrap();
         Ok(())
     }
 }
@@ -104,9 +108,9 @@ mod tests {
         let seed_bytes = hex::decode("5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4").unwrap();
         let secret = RSA::from_seed(&seed_bytes).unwrap();
         let rsa = RSA::from_secret(&secret).unwrap();
-        let message = String::from("hello, world");
-        let signature = rsa.sign(message.as_bytes().to_vec()).unwrap();
-        let result = rsa.verify(&signature.as_ref(), &message.as_bytes());
+        let message = hex::decode("00f41cfa7bfad3d7b097fcc28ed08cb4ca7d0c544ec760cc6cc5c4f3780d0ec43cc011eaaab0868393c3c813ab8c04df").unwrap();
+        let signature = rsa.sign(message.clone()).unwrap();
+        let result = rsa.verify(&signature.as_ref(), message.as_slice());
         assert_eq!(result.ok(), Some(()));
     }
 
@@ -128,7 +132,7 @@ mod tests {
         let mut hash = seed.as_slice();
 
         for _ in 0..2 {
-            intermediate = Sha256::digest(&hash);
+            intermediate = sha2::Sha256::digest(&hash);
             hash = &intermediate[..];
         }
 

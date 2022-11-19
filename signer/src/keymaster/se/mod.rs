@@ -23,6 +23,8 @@ use tvl::Packet;
 use crate::algorithm;
 use crate::algorithm::SecretKey;
 use k256::ecdsa::SigningKey;
+use rsa::{BigUint, PublicKeyParts};
+use crate::algorithm::rsa::MODULUS_LENGTH_IN_BYTE;
 use crate::keymaster::se::command::SetSecretCommand;
 
 pub struct SecureElement {
@@ -208,8 +210,7 @@ impl KeyMaster for SecureElement {
                     // save rsa secret
                     self.write_secret(secret.clone(),password)?;
                     let rsa = algorithm::rsa::RSA::from_secret(&secret)?;
-                    let public_key_bytes = rsa.keypair_modulus().map_err(|_| KSError::GenerateSigningKeyError("get rsa public key failed".to_string()))?;
-                    public_key.extend_from_slice(&public_key_bytes);
+                    public_key.extend_from_slice(&rsa.keypair_modulus());
                     Ok(public_key.to_vec())
                 }else{
                     Err(KSError::GetPublicKeyError("password is required".to_string()))
@@ -416,7 +417,6 @@ mod tests {
         let data: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         ).unwrap();
-
         let signature = se
             .sign_data(0, token_string, data, SigningAlgorithm::RSA, path.clone())
             .unwrap();

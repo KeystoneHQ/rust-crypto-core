@@ -21,8 +21,11 @@ zeroize="1.1.0"
 rsa="0.7.0"
 ring = {version = "0.16.20", default-features = false, features=["alloc"] }
 rand_chacha = "0.3.1"
-sha2 = "0.9"
+sha2 = "0.10"
 base64="0.3.1"
+ed25519-bip32="0.4.1"
+pbkdf2="0.11.0"
+hmac="0.12.1"
 
 [profile.test]
 opt-level=3

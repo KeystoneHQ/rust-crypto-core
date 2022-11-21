@@ -34,4 +34,7 @@ pub enum KSError {
 
     #[error("GetPublicKeyError: {0}")]
     GetPublicKeyError(String),
+
+    #[error("KeyDerivationError: {0}")]
+    KeyDerivationError(String)
 }

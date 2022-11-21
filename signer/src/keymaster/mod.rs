@@ -1,15 +1,14 @@
 use crate::error::KSError;
-use crate::algorithm;
-pub(crate) mod se;
-pub(crate) mod local;
 pub(crate) mod hash_wraper;
-
+pub(crate) mod local;
+pub(crate) mod se;
 
 pub enum EntropyLength {
-    Short(u32) ,
+    Short(u32),
     Long(u32),
 }
 
+#[derive(Clone)]
 pub enum SigningAlgorithm {
     Secp256k1,
     Secp256R1,
@@ -18,10 +17,22 @@ pub enum SigningAlgorithm {
     RSA,
 }
 
+pub enum KeyDerivationAlgorithm {
+    Slip10,
+    SUri,
+    Bip32Ed25519,
+}
+
 pub trait KeyMaster {
     fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
 
-    fn get_public_key(&self, mnemonic_id: u8, password: Option<String>, algo: SigningAlgorithm, derivation_path: Option<String>) -> Result<Vec<u8>, KSError>;
+    fn get_public_key(
+        &self,
+        mnemonic_id: u8,
+        password: Option<String>,
+        algo: SigningAlgorithm,
+        derivation_path: Option<String>,
+    ) -> Result<Vec<u8>, KSError>;
 
     fn sign_data(
         &self,
@@ -33,4 +44,13 @@ pub trait KeyMaster {
     ) -> Result<Vec<u8>, KSError>;
 
     fn get_version(&self) -> Result<Vec<u8>, KSError>;
+
+    fn derive(
+        &self,
+        mnemonic_id: u8,
+        auth_token: Option<Vec<u8>>,
+        algo: SigningAlgorithm,
+        derivation_algo: KeyDerivationAlgorithm,
+        derivation_path: String,
+    ) -> Result<Vec<u8>, KSError>;
 }

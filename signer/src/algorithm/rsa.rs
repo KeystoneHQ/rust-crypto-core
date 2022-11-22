@@ -52,8 +52,9 @@ impl SecretKey for RSA {
         signer.set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS).map_err(|_| KSError::RSASignError)?;
         match signing_option {
             Some(SigningOption::RSA {salt_len})=>{
+                let parsed_salt_len: i32 = salt_len.try_into().map_err(|_|KSError::RSASignError)?;
                 signer
-                    .set_rsa_pss_saltlen(salt_len)
+                    .set_rsa_pss_saltlen(RsaPssSaltlen::custom(parsed_salt_len))
                     .map_err(|_| KSError::RSASignError)?;
                 signer.update(&data).map_err(|_| KSError::RSASignError)?;
                 let signature = signer.sign_to_vec().map_err(|_| KSError::RSAVerifyError)?;
@@ -96,8 +97,9 @@ impl RSA {
         verifier.set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS).map_err(|_| KSError::RSAVerifyError)?;
         match signing_option {
             SigningOption::RSA {salt_len}=>{
+                let parsed_salt_len: i32 = salt_len.try_into().map_err(|_|KSError::RSASignError)?;
                 verifier
-                    .set_rsa_pss_saltlen(salt_len)
+                    .set_rsa_pss_saltlen(RsaPssSaltlen::custom(parsed_salt_len))
                     .map_err(|_| KSError::RSAVerifyError)?;
                 verifier.update(&message).map_err(|_| KSError::RSAVerifyError)?;
                 verifier.verify(&signature).map_err(|_| KSError::RSAVerifyError)?;
@@ -120,10 +122,10 @@ mod tests {
         let secret = RSA::from_seed(&seed_bytes).unwrap();
         let rsa = RSA::from_secret(&secret).unwrap();
         let message = hex::decode("00f41cfa7bfad3d7b097fcc28ed08cb4ca7d0c544ec760cc6cc5c4f3780d0ec43cc011eaaab0868393c3c813ab8c04df").unwrap();
-        let signing_option = SigningOption::RSA {salt_len: RsaPssSaltlen::custom(0)};
+        let signing_option = SigningOption::RSA {salt_len: 0};
         let signature = rsa.sign(message.clone(), Some(signing_option)).unwrap();
         assert_eq!(hex::encode(signature.clone()), "a8e58c9aa9a74039f239f49adca18ea5d54b9d28852b7d39b098a96230ebe4b07bf1f66eea2ef3ee29ab912f90508917703ca9838f228b0f75014ea5d41101f7dff194d8086010aa92b6e6d04a56ed6cb7bd63c3dc15f833c0fcbeb03a16892ed715f7b178c20dbb6cd9923ddd0ab4b1c8753a554a8165ff34224fb630445582d3b588581deca41dbcf2144dcf10a362510178af9923e9f6cdf30dfaafa5642a20f777a4a9bff7170517d9a4347a2f0e360a38bf90a8b5d10f80f2581422798aa7b77d959f237a77d71b35558349e35f9c1193154bcf252d79171abeec6f37858584f878503af44a3553eb218b86dc31dfcca66dea947364580515bb2543d2403d53866ee16bba1b8e51ba060a5ecfef3ef4617d96fa3a3f67176621e638ad7e33bf08c56409f0ce01ef345ac4b49ba4fd94dbaf11b544f4ce089d9adcebf5b592afd2f8cecf22f21539975e50441fe3bf5f77d7d0fcfa2bd3c6e2cbf1bb59ed141b5c0f257be5958c5b46c9f08ec1e912b7fa6ff7182aa9010ce9f0cd6fc4845760a37f97197ea8ad3fa8a75b742e9ad61f877acd5771e7c43e0c75a422eb7d96153d4c561469c0f6011d0fe74f718b2db26894e3c5daf72784d34374c4dab78c3ff7619f883085a45efe1781cfcdb80b64b4c8aa96f86225144ca9430a499e96c607a77538ad7fb920fdd1126cdc8c5574ed3c2b1fb1dadac51ad4e13fdd9d");
-        let result = rsa.verify(&signature.as_ref(), message.as_slice(), SigningOption::RSA {salt_len: RsaPssSaltlen::custom(0)});
+        let result = rsa.verify(&signature.as_ref(), message.as_slice(), SigningOption::RSA {salt_len: 0});
         assert_eq!(result.ok(), Some(()));
     }
 
@@ -133,9 +135,9 @@ mod tests {
         let secret = RSA::from_seed(&seed_bytes).unwrap();
         let rsa = RSA::from_secret(&secret).unwrap();
         let message = hex::decode("00f41cfa7bfad3d7b097fcc28ed08cb4ca7d0c544ec760cc6cc5c4f3780d0ec43cc011eaaab0868393c3c813ab8c04df").unwrap();
-        let signing_option = SigningOption::RSA {salt_len: RsaPssSaltlen::DIGEST_LENGTH};
+        let signing_option = SigningOption::RSA {salt_len: 32};
         let signature = rsa.sign(message.clone(), Some(signing_option)).unwrap();
-        let result = rsa.verify(&signature.as_ref(), message.as_slice(),SigningOption::RSA {salt_len: RsaPssSaltlen::DIGEST_LENGTH});
+        let result = rsa.verify(&signature.as_ref(), message.as_slice(),SigningOption::RSA {salt_len: 32});
         assert_eq!(result.ok(), Some(()));
     }
 

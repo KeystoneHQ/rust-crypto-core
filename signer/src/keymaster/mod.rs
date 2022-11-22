@@ -1,5 +1,6 @@
+use openssl::sign::RsaPssSaltlen;
 use crate::error::KSError;
-use crate::{algorithm, SigningOption};
+use crate::algorithm;
 pub(crate) mod se;
 pub(crate) mod local;
 pub(crate) mod hash_wraper;
@@ -16,6 +17,10 @@ pub enum SigningAlgorithm {
     Ed25519,
     SR25519,
     RSA,
+}
+
+pub enum SigningOption {
+    RSA { salt_len: i32 }
 }
 
 pub trait KeyMaster {

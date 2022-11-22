@@ -23,7 +23,7 @@ use crate::algorithm;
 use crate::algorithm::SecretKey;
 use k256::ecdsa::SigningKey;
 use crate::keymaster::se::command::SetSecretCommand;
-use openssl::sign::RsaPssSaltlen;
+use crate::keymaster::SigningOption;
 
 pub struct SecureElement {
     version: String,
@@ -35,10 +35,6 @@ pub enum GetKeyType {
     RSASecret,
     ExtendedPrivateKey,
     ExtendedPublicKey,
-}
-
-pub enum SigningOption {
-    RSA { salt_len: RsaPssSaltlen }
 }
 
 impl SecureElement {
@@ -415,7 +411,7 @@ mod tests {
         let data: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         ).unwrap();
-        let signing_option = SigningOption::RSA { salt_len: RsaPssSaltlen::custom(0) };
+        let signing_option = SigningOption::RSA { salt_len: 0 };
         let signature = se
             .sign_data(0, token_string, data, SigningAlgorithm::RSA, path.clone(), Some(signing_option))
             .unwrap();
@@ -426,7 +422,7 @@ mod tests {
         let data2: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         ).unwrap();
-        let result = rsa.verify(&signature.as_ref(), &data2, SigningOption::RSA { salt_len: RsaPssSaltlen::custom(0) });
+        let result = rsa.verify(&signature.as_ref(), &data2, SigningOption::RSA { salt_len: 0 });
         se.clear_token();
         assert_eq!(result.ok(), Some(()));
     }
@@ -448,7 +444,7 @@ mod tests {
         let data: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         ).unwrap();
-        let signing_option = SigningOption::RSA { salt_len: RsaPssSaltlen::DIGEST_LENGTH };
+        let signing_option = SigningOption::RSA { salt_len: 32 };
         let signature = se
             .sign_data(0, token_string, data, SigningAlgorithm::RSA, path.clone(), Some(signing_option))
             .unwrap();
@@ -458,7 +454,7 @@ mod tests {
         let data2: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         ).unwrap();
-        let result = rsa.verify(&signature.as_ref(), &data2, SigningOption::RSA { salt_len: RsaPssSaltlen::DIGEST_LENGTH });
+        let result = rsa.verify(&signature.as_ref(), &data2, SigningOption::RSA { salt_len: 32 });
         se.clear_token();
         assert_eq!(result.ok(), Some(()));
     }

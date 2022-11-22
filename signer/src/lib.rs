@@ -37,13 +37,13 @@ impl Signer {
             .sign_data(mnemonic_id, password, data, algo, derivation_path, signing_option)
     }
 
-    pub fn get_public_key(
+    pub fn get_rsa_public_key(
         &self,
         mnemonic_id: u8,
         password: String,
     ) -> Result<Vec<u8>, KSError> {
         self.inner
-            .get_public_key(mnemonic_id, password, algo, derivation_path)
+            .get_rsa_public_key(mnemonic_id, password)
     }
 }
 

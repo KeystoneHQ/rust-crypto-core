@@ -15,7 +15,7 @@ impl KeyMaster for Mini {
     fn generate_entropy(&self, length: super::EntropyLength) -> Result<Vec<u8>, KSError> {
         Err(KSError::SEError("this function is not supported for now".to_string()))
     }
-    fn get_public_key(&self, mnemonic_id: u8, password: Option<String>, algo: SigningAlgorithm, derivation_path: Option<String>) -> Result<Vec<u8>, KSError> {
+    fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError> {
         Ok(vec![])
     }
 

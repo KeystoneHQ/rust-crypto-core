@@ -1,6 +1,6 @@
 use zeroize::Zeroizing;
 use crate::algorithm::SecretKey;
-use crate::KSError;
+use crate::{KSError, SigningOption};
 use k256::ecdsa::SigningKey;
 use crate::keymaster::hash_wraper::ShaWrapper;
 use k256::ecdsa::{recoverable::Signature, signature::DigestSigner,digest::Digest};
@@ -19,7 +19,7 @@ impl SecretKey for SigningKey {
         Ok(signing_key)
     }
 
-    fn sign(&self, data: Vec<u8>) -> Result<Vec<u8>, KSError> {
+    fn sign(&self, data: Vec<u8>, signing_option: Option<SigningOption>) -> Result<Vec<u8>, KSError> {
         let mut hash_wrapper = ShaWrapper::new();
         hash_wrapper.update(data);
         let signature: Signature = self.try_sign_digest(hash_wrapper).map_err(|e| KSError::SignDataError(e.to_string()))?;

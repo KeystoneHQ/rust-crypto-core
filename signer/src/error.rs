@@ -25,6 +25,12 @@ pub enum KSError {
     #[error("GenerateSigningKeyError: {0}")]
     GenerateSigningKeyError(String),
 
+    #[error("RSASignError")]
+    RSASignError,
+
+    #[error("RSAVerifyError")]
+    RSAVerifyError,
+
     #[error("SignDataError: {0}")]
     SignDataError(String),
 

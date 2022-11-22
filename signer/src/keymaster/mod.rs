@@ -1,5 +1,5 @@
 use crate::error::KSError;
-use crate::algorithm;
+use crate::{algorithm, SigningOption};
 pub(crate) mod se;
 pub(crate) mod local;
 pub(crate) mod hash_wraper;
@@ -30,6 +30,7 @@ pub trait KeyMaster {
         data: Vec<u8>,
         algo: SigningAlgorithm,
         derivation_path: String,
+        signing_option: Option<SigningOption>
     ) -> Result<Vec<u8>, KSError>;
 
     fn get_version(&self) -> Result<Vec<u8>, KSError>;

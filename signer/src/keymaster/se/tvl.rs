@@ -87,9 +87,9 @@ impl TryFrom<Vec<u8>> for Packet {
         let encryption_flag = mm.get_u8();
         let length = mm.get_u16();
 
-        if all_length != (length + 6).into() {
-            return Err(Self::Error::TVLError("all length is invalid".to_string()));
-        }
+        // if all_length != (length + 6).into() {
+        //     return Err(Self::Error::TVLError("all length is invalid".to_string()));
+        // }
 
         let mut payloads = IndexMap::new();
 

@@ -202,14 +202,14 @@ impl PacketBuilder {
 pub fn parse_result(packet: &Packet, request_tag: u16) -> bool {
     if let Some(tag) = packet.payloads.get(&COMMAND_TAG) {
         let mut tmp = Bytes::copy_from_slice(tag.value.chunk());
-        if tmp.get_uint(tmp.len()) == request_tag.into() {
-            if let Some(v) = packet.payloads.get(&RESPONSE_TAG) {
-                let mut tmp = Bytes::copy_from_slice(v.value.chunk());
-                if tmp.get_uint(tmp.len()) == 0 {
-                    return true;
-                }
-            }
-        }
+        // if tmp.get_uint(tmp.len()) == request_tag.into() {
+        //     if let Some(v) = packet.payloads.get(&RESPONSE_TAG) {
+        //         let mut tmp = Bytes::copy_from_slice(v.value.chunk());
+        //         if tmp.get_uint(tmp.len()) == 0 {
+        //             return true;
+        //         }
+        //     }
+        // }
     }        
 
     return false;

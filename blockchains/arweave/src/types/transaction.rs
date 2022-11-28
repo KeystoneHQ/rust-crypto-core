@@ -133,7 +133,7 @@ impl<'a> ToItems<'a, Vec<Tag<Base64>>> for Vec<Tag<Base64>> {
                     .collect(),
             ))
         } else {
-            Ok(DeepHashItem::Blob(Vec::<u8>::new()))
+            Ok(DeepHashItem::List(vec![]))
         }
     }
 }

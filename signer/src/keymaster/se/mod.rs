@@ -190,20 +190,21 @@ impl KeyMaster for SecureElement {
     }
 
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError> {
-        let auth_token = hex::decode(password.clone()).map_err(|_e| KSError::SEError("".to_string()))?;
+        let zeroize_password = Zeroizing::new(password);
         let mut public_key = BytesMut::with_capacity(512);
+        let token = self.generate_token(zeroize_password.as_str().to_string()).unwrap();
         // get master_seed
         let master_seed = self.get_key(
             mnemonic_id,
             algorithm::rsa::RSA_DERIVATION_PATH.to_string(),
-            Some(auth_token),
+            Some(token),
             SigningAlgorithm::RSA,
             GetKeyType::MasterSeed,
         )?;
         let zeroize_master_seed = Zeroizing::new(master_seed);
         let secret = algorithm::rsa::RSA::from_seed(zeroize_master_seed.as_slice()).map_err(|_| KSError::GenerateSigningKeyError("init rsa key pair failed".to_string()))?;
         // save rsa secret
-        self.write_secret(secret.clone(), password)?;
+        self.write_secret(secret.clone(), zeroize_password.as_str().to_string())?;
         let rsa = algorithm::rsa::RSA::from_secret(&secret)?;
         public_key.extend_from_slice(&rsa.keypair_modulus());
         Ok(public_key.to_vec())

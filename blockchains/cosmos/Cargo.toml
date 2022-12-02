@@ -1,0 +1,16 @@
+[package]
+name = "rcc-cosmos"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "A transaction parser for cosmos."
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rcc-trait-chain = "0.1.0"
+hex = "0.4.3"
+thiserror = "1.0.31"
+cosmos-sdk-proto = "0.15.0"
+serde_json = "1.0"
+serde = "1.0.139"
+base64 = "0.13.1"

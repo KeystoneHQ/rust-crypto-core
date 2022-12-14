@@ -158,7 +158,7 @@ impl SecureElement {
     }
 
     pub(crate) fn generate_token(&self, password: String) -> Result<Vec<u8>, KSError> {
-        let password_bytes = hex::decode(&password).unwrap();
+        let password_bytes = hex::decode(&password).map_err(|_| KSError::SEError(format!("invalid password")))?;
         let params = CommandParams {
             password: Some(password_bytes),
             ..Default::default()
@@ -192,7 +192,7 @@ impl KeyMaster for SecureElement {
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError> {
         let zeroize_password = Zeroizing::new(password);
         let mut public_key = BytesMut::with_capacity(512);
-        let token = self.generate_token(zeroize_password.as_str().to_string()).unwrap();
+        let token = self.generate_token(zeroize_password.as_str().to_string())?;
         // get master_seed
         let master_seed = self.get_key(
             mnemonic_id,
@@ -227,8 +227,8 @@ impl KeyMaster for SecureElement {
             SigningAlgorithm::Secp256k1 => {
                 let private_key = self.get_key(mnemonic_id, derivation_path, Some(auth_token), algo, GetKeyType::ExtendedPrivateKey)?;
                 let zeroize_secret = Zeroizing::new(private_key);
-                let secp245k1 = SigningKey::from_secret(zeroize_secret.as_slice())?;
-                let signature = secp245k1.sign(data, None)?;
+                let secp256k1 = SigningKey::from_secret(zeroize_secret.as_slice())?;
+                let signature = secp256k1.sign(data, None)?;
                 Ok(signature)
             }
             SigningAlgorithm::RSA => {

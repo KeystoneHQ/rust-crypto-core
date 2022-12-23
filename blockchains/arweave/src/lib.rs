@@ -5,7 +5,7 @@ use serde_json::json;
 use crate::types::error::ArweaveError;
 use crate::types::transaction::Transaction;
 
-struct Arweave {}
+pub struct Arweave {}
 
 impl Chain<ArweaveError> for Arweave {
     fn parse(data: &Vec<u8>) -> Result<String, ArweaveError> {

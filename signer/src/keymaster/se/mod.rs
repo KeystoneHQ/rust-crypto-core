@@ -354,7 +354,7 @@ mod tests {
         let path = "m/44'/60'/0'/0/0".to_string();
         let key = se.get_key(0, path, None, SigningAlgorithm::Secp256k1, GetKeyType::ExtendedPrivateKey).unwrap_err().to_string();
         se.clear_token();
-        assert_eq!("SEError:error from chip!", key);
+        assert_eq!("SEError:required field is missing", key);
     }
 
     #[test]

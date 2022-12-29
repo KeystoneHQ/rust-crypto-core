@@ -1,6 +1,6 @@
 [package]
 name = "rcc-arweave"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
 description = "A transaction parser for arweave."

@@ -6,9 +6,20 @@ use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey, d
 use zeroize::Zeroizing;
 use hex;
 
-pub struct Mini;
+pub struct Mini {
+    key: String
+}
+
+impl Mini {
+    pub fn new(key:String) -> Self {
+        Mini {
+            key
+        }
+    }
+}
 
 impl KeyMaster for Mini {
+
     fn generate_entropy(&self, length: super::EntropyLength) -> Result<Vec<u8>, KSError> {
         Err(KSError::SEError("this function is not supported for now".to_string()))
     }
@@ -33,7 +44,7 @@ impl KeyMaster for Mini {
             SigningAlgorithm::RSA => 5u8,
         };
         // only for testing purpose
-        let private_key = hex::decode("cff92a2f2f081fe10c1319cb8cef1e010df9ed53248476c739c2ee5d78fd5e92").map_err(|_e|KSError::SEError("hex key decode error".to_string()))?;
+        let private_key = hex::decode(self.key).map_err(|_e|KSError::SEError("hex key decode error".to_string()))?;
         let zeroize_private_key = Zeroizing::new(private_key);
         match algo {
             SigningAlgorithm::Secp256k1 => {

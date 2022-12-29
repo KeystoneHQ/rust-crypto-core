@@ -27,8 +27,8 @@ impl Signer {
         }
     }
 
-    pub fn new_with_mini() -> Self {
-        Self { inner: Box::new(Mini{})}
+    pub fn new_with_mini(key: String) -> Self {
+        Self { inner: Box::new(Mini::new(key))}
     }
     
 
@@ -49,14 +49,14 @@ impl Signer {
 use alloc_cortex_m::CortexMHeap;
 use core::{alloc::Layout};
 use core::panic::PanicInfo;
-use cstr_core::{CString, c_char};
+use cstr_core::{CString, CStr, c_char};
 
 
 #[global_allocator]
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 
 #[no_mangle]
-pub extern "C" fn test_rust_sign() -> *mut c_char {
+pub extern "C" fn test_rust_sign(data: CString, key: CString) -> *mut c_char {
     
     {
         use core::mem::MaybeUninit;
@@ -66,11 +66,14 @@ pub extern "C" fn test_rust_sign() -> *mut c_char {
     }
 
 
-    let fake_signer = Signer::new_with_mini();
+    let data_tmp = data.into_string().unwrap();
+    
+    let key_tmp = key.into_string().unwrap();
+    let fake_signer = Signer::new_with_mini(key);
         let path = "m/44'/60'/0'/0/0".to_string();
 
         let data: Vec<u8> = hex::decode(
-            "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
+            data_tmp,
         )
         .unwrap();
 

@@ -14,7 +14,16 @@ serialport = "4.1.0"
 hex = "0.4.3"
 thiserror="1.0"
 bytes = "1"
+sha1 = "0.10.5"
 indexmap = "1.8.1"
 k256 = {version = "0.11.3", features=["ecdsa", "keccak256"] }
 bs58="0.4.0"
 zeroize="1.1.0"
+rsa="0.7.0"
+openssl = { version = "0.10", features = ["vendored"] }
+rand_chacha = "0.3.1"
+sha2 = "0.9"
+base64="0.3.1"
+
+[profile.test]
+opt-level=3

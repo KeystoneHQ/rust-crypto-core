@@ -12,7 +12,10 @@ pub struct CommandParams {
     pub auth_token: Option<Vec<u8>>,
     pub password: Option<Vec<u8>>,
     pub curve: Option<u8>,
-    pub hash: Option<[u8;128]>
+    pub hash: Option<[u8;128]>,
+    pub is_master_seed: Option<bool>,
+    pub is_rsa_secret: Option<bool>,
+    pub secret: Option<Vec<u8>>,
 }
 
 
@@ -55,13 +58,22 @@ impl CommandBuilder for GETKeyCommand {
         let id = params.wallet_id?;
         let path = params.path?;
         let curve = params.curve?;
-    
+
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::GET_KEY_TAG);
         builder.add_payload(methods::CURVE_TAG, &[curve]);
         builder.add_payload(methods::WALLET_FLAG_TAG, &[id]);
         let path_bytes = path.as_bytes();
         builder.add_payload(methods::PATH_TAG, path_bytes);
+        match params.is_master_seed {
+            Some(true) => builder.add_payload(methods::MASTER_SEED_FLAG_TAG, &[00]),
+            _ => (),
+        };
+
+        match params.is_rsa_secret {
+            Some(true) => builder.add_payload(methods::RSA_SECRET_FLAG_TAG, &[00]),
+            _ => (),
+        };
         match params.auth_token {
             Some(auth_token) => builder.add_payload(methods::AUTH_TOKEN_TAG, &auth_token),
             None => (),
@@ -127,6 +139,24 @@ impl CommandBuilder for ClearTokenCommand {
         builder.add_command_id(methods::CLEAR_TOKEN_TAG);
         let packet = builder.build();
         return Some(Command { packet, tag: methods::CLEAR_TOKEN_TAG })
+    }
+}
+
+pub struct SetSecretCommand;
+
+impl CommandBuilder for SetSecretCommand {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
+        let params = params?;
+        let password = params.password?;
+        let password_slices = password.as_slice();
+        let secret = params.secret?;
+        let secret_slices = secret.as_slice();
+        let mut builder = PacketBuilder::new();
+        builder.add_command_id(methods::SET_SECRET_TAG);
+        builder.add_payload(methods::CURRENT_PASSWORD, password_slices);
+        builder.add_payload(methods::WRITE_RSA_SECRET_FLAG, secret_slices);
+        let packet = builder.build();
+        return Some(Command { packet, tag: methods::SET_SECRET_TAG });
     }
 }
 
@@ -197,7 +227,7 @@ impl Command {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
 

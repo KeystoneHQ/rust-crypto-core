@@ -1,3 +1,5 @@
+use std::array::TryFromSliceError;
+use std::convert::Infallible;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -20,4 +22,21 @@ pub enum KSError {
     #[error("SEError:{0}")]
     SEError(String),
 
+    #[error("GenerateSigningKeyError: {0}")]
+    GenerateSigningKeyError(String),
+
+    #[error("RSASignError")]
+    RSASignError,
+
+    #[error("RSAVerifyError")]
+    RSAVerifyError,
+
+    #[error("SignDataError: {0}")]
+    SignDataError(String),
+
+    #[error("WriteSecretError: {0}")]
+    WriteSecretError(String),
+
+    #[error("GetPublicKeyError: {0}")]
+    GetPublicKeyError(String),
 }

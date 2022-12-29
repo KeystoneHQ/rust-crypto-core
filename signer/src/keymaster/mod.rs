@@ -1,4 +1,6 @@
+use openssl::sign::RsaPssSaltlen;
 use crate::error::KSError;
+use crate::algorithm;
 pub(crate) mod se;
 pub(crate) mod local;
 pub(crate) mod hash_wraper;
@@ -17,18 +19,23 @@ pub enum SigningAlgorithm {
     RSA,
 }
 
+pub enum SigningOption {
+    RSA { salt_len: i32 }
+}
+
 pub trait KeyMaster {
     fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
 
-    fn write_menomic(&self, menomic: String, password: String) -> Result<String, KSError>;
+    fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError>;
 
     fn sign_data(
         &self,
-        menomic_id: u8,
+        mnemonic_id: u8,
         password: String,
         data: Vec<u8>,
         algo: SigningAlgorithm,
         derivation_path: String,
+        signing_option: Option<SigningOption>
     ) -> Result<Vec<u8>, KSError>;
 
     fn get_version(&self) -> Result<Vec<u8>, KSError>;

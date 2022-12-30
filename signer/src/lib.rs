@@ -56,7 +56,7 @@ use cstr_core::{CString, CStr, c_char};
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 
 #[no_mangle]
-pub extern "C" fn test_rust_sign(data: CString, key: CString) -> *mut c_char {
+pub extern "C" fn test_rust_sign(data: *const c_char, key: *const c_char) -> *mut c_char {
     
     {
         use core::mem::MaybeUninit;
@@ -65,39 +65,46 @@ pub extern "C" fn test_rust_sign(data: CString, key: CString) -> *mut c_char {
         unsafe { ALLOCATOR.init(HEAP.as_ptr() as usize, HEAP_SIZE) }
     }
 
+    let data_tmp: &str;
+    let key_tmp: &str;
+    unsafe {
+        let a = CStr::from_ptr(data);
+        data_tmp = a.to_str().unwrap();
+        let b = CStr::from_ptr(key);
+        key_tmp = b.to_str().unwrap();
+    }
 
-    let data_tmp = data.into_string().unwrap();
-    
-    let key_tmp = key.into_string().unwrap();
-    let fake_signer = Signer::new_with_mini(key);
-        let path = "m/44'/60'/0'/0/0".to_string();
-
-        let data: Vec<u8> = hex::decode(
-            data_tmp,
-        )
-        .unwrap();
-
-        let signature = fake_signer
-            .sign_data(0, "test_pass".to_string(), data, SigningAlgorithm::Secp256k1, path)
-            .unwrap();
-
-        let c_string_sig = CString::new(signature).unwrap();
+        let c_string_sig = CString::new(data_tmp).unwrap();
         c_string_sig.into_raw()
+
+    // let fake_signer = Signer::new_with_mini(key_tmp.to_string());
+    //     let path = "m/44'/60'/0'/0/0".to_string();
+
+    //     let data: Vec<u8> = hex::decode(
+    //         data_tmp.to_string(),
+    //     )
+    //     .unwrap();
+
+    //     let signature = fake_signer
+    //         .sign_data(0, "test_pass".to_string(), data, SigningAlgorithm::Secp256k1, path)
+    //         .unwrap();
+
+    
 }
 
 
-#[alloc_error_handler]
-fn oom(_: Layout) -> ! {
-    loop {}
-}
+// #[alloc_error_handler]
+// fn oom(_: Layout) -> ! {
+//     loop {}
+// }
 
-#[panic_handler]
-fn panic(_: &PanicInfo) -> ! {
-    loop {}
-}
+// #[panic_handler]
+// fn panic(_: &PanicInfo) -> ! {
+//     loop {}
+// }
 
 
-#[cfg(test)]
+#[cfg(all(test))]
 mod tests {
     use alloc::string::ToString;
     use k256::ecdsa::signature::Signature as _;
@@ -108,7 +115,8 @@ mod tests {
     
     #[test]
     fn it_should_pass_test_sign() {        
-        let fake_signer = Signer::new_with_mini();
+        let key = "cff92a2f2f081fe10c1319cb8cef1e010df9ed53248476c739c2ee5d78fd5e92".to_string();
+        let fake_signer = Signer::new_with_mini(key);
         let path = "m/44'/60'/0'/0/0".to_string();
 
         let data: Vec<u8> = hex::decode(

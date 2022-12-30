@@ -44,7 +44,7 @@ impl KeyMaster for Mini {
             SigningAlgorithm::RSA => 5u8,
         };
         // only for testing purpose
-        let private_key = hex::decode(self.key).map_err(|_e|KSError::SEError("hex key decode error".to_string()))?;
+        let private_key = hex::decode(&self.key).map_err(|_e|KSError::SEError("hex key decode error".to_string()))?;
         let zeroize_private_key = Zeroizing::new(private_key);
         match algo {
             SigningAlgorithm::Secp256k1 => {

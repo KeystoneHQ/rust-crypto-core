@@ -173,8 +173,8 @@ pub fn lrc<'a, T: IntoIterator<Item = &'a u8>>(bytes: T) -> u8 {
     result
 }
 
-#[cfg(target_os = "android")]
-#[cfg(test)]
+// #[cfg(target_os = "android")]
+#[cfg(all(test))]
 mod tests {
     use alloc::{vec, string::ToString};
 

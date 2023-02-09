@@ -10,7 +10,7 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "embeded_rust"
+name = "signer"
 crate-type = ["staticlib"]      # 生成动态链接库
 
 
@@ -26,5 +26,5 @@ bytes = { version = "1", default-features = false }
 k256 = {version = "0.11.3", default-features = false, features=["ecdsa", "keccak256"] }
 bs58= { version = "0.4.0", default-features = false }
 zeroize="1.1.0"
-alloc-cortex-m="0.4.3"
 cstr_core="0.2.6"
+cty = "0.2.2"

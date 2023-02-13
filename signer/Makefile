@@ -26,7 +26,7 @@ build/lib/println.o:
 build/lib/libsigner.a: build/rust/bindings.rs src/lib.rs
 	mkdir -p "build/lib"
 	mkdir -p "build/rust-builds"
-	$(CARGO) build --target-dir build/rust-builds --features use-std --release
+	$(CARGO) build --target-dir build/rust-builds --release
 	cp build/rust-builds/release/libsigner.a build/lib/
 	$(CBINDGEN) --output build/lib/libsigner.h --lang c
 

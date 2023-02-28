@@ -1,3 +1,15 @@
+#![no_std]
+
+#[cfg(any(feature = "std", test))]
+#[macro_use]
+extern crate std;
+
+#[cfg(all(not(feature = "std"), not(test)))]
+#[macro_use]
+extern crate core as std;
+extern crate alloc;
+
+use alloc::string::{ToString, String};
 use crate::error::{BitcoinError, Result};
 use std::str::{FromStr};
 use bitcoin::util::{base58};
@@ -36,7 +48,8 @@ pub fn derive_address(xpub: String, path: String, script_type: String) -> Result
 
 #[cfg(test)]
 mod tests {
-    use crate::{BitcoinError, derive_address};
+    use super::*;
+    use crate::std::string::String;
 
     // they audit color point vague response vital voice slogan coil depth vehicle
     #[test]

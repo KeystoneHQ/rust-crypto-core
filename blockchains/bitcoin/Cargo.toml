@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bitcoin = "0.29.2"
+bitcoin = { verison = "0.29.2", default-features = false, features = ["no-std"] }
 xyzpub = "0.3.0"
-thiserror = "1.0.31"
+thiserror-no-std = "2.0.2"

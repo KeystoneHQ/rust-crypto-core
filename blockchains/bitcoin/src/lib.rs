@@ -19,29 +19,30 @@ use bitcoin::{Address};
 use xyzpub::{convert_version, Version};
 
 mod error;
+mod xyzpub;
 
 pub fn derive_address(xpub: String, path: String, script_type: String) -> Result<String> {
     let converted_xpub = convert_version(xpub, &Version::Xpub)
-        .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("xpub is not valid")))?;
+        .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("xpub is not valid")))?;
     let xpub_key = base58::from_check(&converted_xpub)
-        .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("xpub is not valid")))?;
+        .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("xpub is not valid")))?;
     let extended_pub_key = ExtendedPubKey::decode(&xpub_key)
-        .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("xpub is not valid")))?;
+        .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("xpub is not valid")))?;
 
     let secp = Secp256k1::new();
     let path = DerivationPath::from_str(path.as_str())
-        .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("path is not valid")))?;
+        .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("path is not valid")))?;
     let address_xpub = extended_pub_key.derive_pub(&secp, &path)
-        .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("error occurs in derivation")))?;
+        .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("error occurs in derivation")))?;
     let address_pubkey = address_xpub.to_pub();
 
     let address: Result<String> = match script_type.as_str() {
         "P2PKH" => Ok(Address::p2pkh(&address_pubkey, extended_pub_key.network).to_string()),
         "P2SH-P2WPKH" => Ok(Address::p2shwpkh(&address_pubkey, extended_pub_key.network)
-            .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("error occurs for derive P2SH-P2WPKH")))?.to_string()),
+            .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("error occurs for derive P2SH-P2WPKH")))?.to_string()),
         "P2WPKH" => Ok(Address::p2wpkh(&address_pubkey, extended_pub_key.network)
-            .map_err(|_| BitcoinError::AddressCalculationFailed(String::from("error occurs for derive P2WPKH")))?.to_string()),
-        _ => Err(BitcoinError::AddressCalculationFailed(String::from("script type is not supported")))
+            .map_err(|_| BitcoinError::AddressDerivationFailed(String::from("error occurs for derive P2WPKH")))?.to_string()),
+        _ => Err(BitcoinError::AddressDerivationFailed(String::from("script type is not supported")))
     };
     address
 }
@@ -89,7 +90,7 @@ mod tests {
         let script_type = String::from("P2PKH");
 
         let address = derive_address(xpub, path, script_type).unwrap_err();
-        let expected = BitcoinError::AddressCalculationFailed(String::from("xpub is not valid"));
+        let expected = BitcoinError::AddressDerivationFailed(String::from("xpub is not valid"));
         assert_eq!(expected, address);
     }
 }

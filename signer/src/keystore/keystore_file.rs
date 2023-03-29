@@ -21,7 +21,7 @@ use aes_gcm::{
 
 #[derive(Serialize, Deserialize)]
 struct KeyStorage {
-    id: u32,
+    id: String,
     aes_nonce_seed: Vec<u8>,
     password_salt_seed: Vec<u8>,
     encrypted_seed: Vec<u8>,
@@ -53,13 +53,13 @@ impl Keystore for KeyManager  {
         Ok(seed)
     }
 
-    fn save_entropy_seed_data(entropy: Vec<u8>, passphrase: &str, password: &str) -> Result<u32, crate::error::KSError> {
+    fn save_entropy_seed_data(entropy: Vec<u8>, passphrase: &str, password: &str) -> Result<String, crate::error::KSError> {
         
         let seed = KeyManager::entropy_to_bip39_seed(&entropy, passphrase)?;
-        let (key_seed, salt_seed) = generate_password_encryption_key(password)?;
+        let (key_seed, salt_seed) = generate_password_encryption_key(password, None)?;
         let (ciphertext_seed, nonce_seed) = encrypt_data(&seed, &key_seed)?;
 
-        let (key_entropy, salt_entropy) = generate_password_encryption_key(password)?;
+        let (key_entropy, salt_entropy) = generate_password_encryption_key(password, None)?;
         let (ciphertext_entropy, nonce_entropy) = encrypt_data(&entropy, &key_entropy)?;
 
         let mut hasher = Hasher::new();
@@ -67,7 +67,7 @@ impl Keystore for KeyManager  {
         let checksum = hasher.finalize();
         
         let storage = KeyStorage {
-            id: checksum,
+            id: checksum.to_string(),
             aes_nonce_seed: nonce_seed,
             password_salt_seed: salt_seed,
             encrypted_seed: ciphertext_seed,
@@ -77,30 +77,47 @@ impl Keystore for KeyManager  {
         };
 
         serialize_key_storage(&storage);
-        Ok(checksum)
+        Ok(checksum.to_string())
 
     }
 
-    fn get_seed_data(seed_id: [u8;4], password: String) -> Result<[u8;64], KSError> {
-        todo!()
+    fn get_seed_data(seed_id: String, password: &str) -> Result<[u8;64], KSError> {
+        
+        let filename = format!("{}.json", seed_id);
+    
+    match Path::new(&filename).try_exists() {
+        Ok(result) => {
+            if result {
+                let content = fs::read_to_string(&filename).map_err(|e| KSError::GetPublicKeyError((e.to_string())))?;
+                let keystorage: KeyStorage = serde_json::from_str(&content).map_err(|e| KSError::GetPublicKeyError((e.to_string())))?;
+                let (key, _) = generate_password_encryption_key(password, Some(keystorage.password_salt_seed))?;
+                let a = decrypt_data(&keystorage.encrypted_seed, &key, &keystorage.aes_nonce_seed)?;
+                let seed:[u8;64] = a.as_slice().try_into().map_err(|e| KSError::EntropyError("".to_string()))?;
+                Ok(seed)
+            } else {
+                Err(KSError::EntropyError("".to_string()))
+            }
+            
+        },
+        Err(_) => Err(KSError::GetPublicKeyError("()".to_string()))
+    }
+        
     }
 }
 
-
-// fn encrypt_data() ->{
-    
-//     Aes256Gcm::new()
-// }
-
-
-fn generate_password_encryption_key(password: &str) -> Result<([u8;32], Vec<u8>), KSError> {
+fn generate_password_encryption_key(password: &str, salt: Option<Vec<u8>>) -> Result<([u8;32], Vec<u8>), KSError> {
     let password_bytes = password.as_bytes();
-    let salt = random_generator(32);
-    println!("----{:?}",salt);
+    let password_salt:Vec<u8>;
+    if let Some(i) = salt {
+        password_salt = i
+    } else {
+        password_salt = random_generator(32);
+    }
+    
     let mut key_material = [0u8; 32];
-    Argon2::default().hash_password_into(password_bytes, &salt, &mut key_material).map_err(|e| KSError::GetPublicKeyError((e.to_string())))?;
+    Argon2::default().hash_password_into(password_bytes, &password_salt, &mut key_material).map_err(|e| KSError::GetPublicKeyError((e.to_string())))?;
 
-    Ok((key_material, salt))
+    Ok((key_material, password_salt))
 }
 
 fn encrypt_data(content:&[u8], key:&[u8]) -> Result<(Vec<u8>, Vec<u8>), KSError> {
@@ -109,6 +126,13 @@ fn encrypt_data(content:&[u8], key:&[u8]) -> Result<(Vec<u8>, Vec<u8>), KSError>
     let nonce = Nonce::from_slice(&nonce_source); // 96-bits; unique per message
     let ciphertext = cipher.encrypt(nonce, content.as_ref()).map_err(|_| KSError::EntropyError("".to_string()))?;
     Ok((ciphertext, nonce_source))
+}
+
+fn decrypt_data(ciphertext: &[u8], key: &[u8], nonce_source: &[u8])  -> Result<Vec<u8>, KSError> {
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| KSError::GetPublicKeyError("".to_string()))?;
+    let nonce = Nonce::from_slice(nonce_source); // 96-bits; unique per message
+    let plaintext = cipher.decrypt(nonce, ciphertext.as_ref()).map_err(|_| KSError::EntropyError("".to_string()))?;
+    Ok(plaintext)
 }
 
 fn random_generator(length:u8) -> Vec<u8> {
@@ -123,13 +147,14 @@ fn serialize_key_storage(key_storage: &KeyStorage) -> Result<(), KSError> {
     let filename = format!("{}.json", key_storage.id);
     
     match Path::new(&filename).try_exists() {
-        Ok(result) => Ok({
+        Ok(result) => {
             if result {
                 fs::remove_file(&filename).map_err(|_| KSError::EntropyError("".to_string()))?   
             }
             let mut f = File::create(&filename).map_err(|_|KSError::GetPublicKeyError("()".to_string()))?;
             f.write_all(&key_json);
-        }),
+            Ok(())
+        },
         Err(_) => Err(KSError::GetPublicKeyError("()".to_string()))
     }
     
@@ -164,11 +189,12 @@ mod tests {
     }
 
     #[test]
-    fn save_entropy_seed_data() {
+    fn save_entropy_seed_data_get_data() {
         let entropy = [0u8;16].to_vec();
         let passpharse = "";
         let password = "password";
         let id = KeyManager::save_entropy_seed_data(entropy, passpharse, password).unwrap();
-        assert_eq!(id.to_be_bytes().len(), 4);
+        let content = KeyManager::get_seed_data(id, password).unwrap();
+        assert_eq!(hex::encode(content), "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4".to_string())
     }
 }

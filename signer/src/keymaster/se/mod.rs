@@ -180,15 +180,9 @@ impl SecureElement {
     }
 }
 
-impl KeyMaster for SecureElement {
-    fn generate_entropy(&self, length: super::EntropyLength) -> Result<Vec<u8>, KSError> {
-        self.get_se_result(
-            GenerateEntropyCommand::build(None)
-                .ok_or(KSError::SEError("compose command error".to_string()))?,
-            result::ENTROPY,
-        )
-    }
 
+impl KeyMaster for SecureElement {
+    
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError> {
         let zeroize_password = Zeroizing::new(password);
         let mut public_key = BytesMut::with_capacity(512);

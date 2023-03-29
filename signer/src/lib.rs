@@ -2,10 +2,14 @@ extern crate core;
 
 mod error;
 mod keymaster;
+mod keystore;
 mod algorithm;
 
 use error::KSError;
+
 use keymaster::{se::SecureElement, KeyMaster, local::Mini};
+use keystore::Keystore;
+
 pub use keymaster::SigningAlgorithm;
 pub use crate::keymaster::SigningOption;
 

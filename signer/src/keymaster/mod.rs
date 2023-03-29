@@ -7,8 +7,8 @@ pub(crate) mod hash_wraper;
 
 
 pub enum EntropyLength {
-    Short(u32) ,
-    Long(u32),
+    Short,
+    Long,
 }
 
 pub enum SigningAlgorithm {
@@ -24,8 +24,6 @@ pub enum SigningOption {
 }
 
 pub trait KeyMaster {
-    fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
-
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError>;
 
     fn sign_data(

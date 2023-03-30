@@ -1,6 +1,7 @@
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use indexmap::IndexMap;
 use std::convert::{TryFrom, TryInto};
+use std::cmp::PartialEq;
 
 use crate::error::KSError;
 #[derive(Debug)]
@@ -72,7 +73,7 @@ impl TryFrom<Vec<u8>> for Packet {
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         let caculate_lrc = lrc(&value);
         let mut mm = Bytes::from(value);
-        let all_length = mm.len();
+        let all_length:u16 = mm.len().try_into().unwrap();
 
         if all_length < 6 {
             return Err(Self::Error::TVLError(
@@ -87,7 +88,8 @@ impl TryFrom<Vec<u8>> for Packet {
         let encryption_flag = mm.get_u8();
         let length = mm.get_u16();
 
-        if all_length != (length + 6).into() {
+        
+        if all_length !=(length + 6) {
             return Err(Self::Error::TVLError("all length is invalid".to_string()));
         }
 

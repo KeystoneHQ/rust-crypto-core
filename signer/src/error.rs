@@ -39,4 +39,10 @@ pub enum KSError {
 
     #[error("GetPublicKeyError: {0}")]
     GetPublicKeyError(String),
+
+    #[error("Keystore error: {0}")]
+    EntropyError(String),
+
+    #[error("Keystore error: {0}")]
+    MnemonicError(String),
 }

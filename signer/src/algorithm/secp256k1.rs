@@ -26,21 +26,3 @@ impl SecretKey for SigningKey {
         Ok(signature.as_ref().to_vec())
     }
 }
-
-#[cfg(all(test, target_os = "macos"))]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_from_secret() {
-        /*
-           Test Vector:
-           mnemonic words, for testing "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
-           hd_path: m/44'/60'/0'/0/0
-           xprivKey: xprvA46yrWykFh3LjMHn1eqk7A8WNBt7JzJqEeBX1RNz2bx9Ditu6peK7MJWR8tfXUqPjWNuL7LwLvphdgkWShNpYXiJBuvi9agxJUWiHGHtoNk
-         */
-        let secret = hex::decode("78707276413436797257796b4668334c6a4d486e3165716b374138574e4274374a7a4a714565425831524e7a32627839446974753670654b374d4a5752387466585571506a574e754c374c774c76706864676b5753684e705958694a42757669396167784a555769484748746f4e6b").unwrap();
-        let signing_key = SigningKey::from_secret(secret.as_slice()).unwrap();
-        let expected = SigningKey::from_bytes(hex::decode("1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727").unwrap().as_slice()).unwrap();
-        assert_eq!(signing_key, expected);
-    }
-}

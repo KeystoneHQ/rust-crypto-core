@@ -5,7 +5,7 @@ use super::tvl::{Packet, TVL};
 use super::tags::{COMMAND_TAG, methods, RESPONSE_TAG};
 
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct CommandParams {
     pub wallet_id: Option<u8>,
     pub path: Option<String>,

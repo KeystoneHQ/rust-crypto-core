@@ -24,12 +24,14 @@ use crate::algorithm::SecretKey;
 use k256::ecdsa::SigningKey;
 use crate::keymaster::se::command::SetSecretCommand;
 use crate::keymaster::SigningOption;
+use log::error;
 
 pub struct SecureElement {
     version: String,
     port: String,
 }
 
+#[derive(Debug)]
 pub enum GetKeyType {
     MasterSeed,
     RSASecret,
@@ -49,12 +51,13 @@ impl SecureElement {
         let timeout = 100000;
         let sem = SerialManager::new(&self.port, timeout);
         let data = sem.send_data(command.to_vec())?;
+        error!("ProcessCommandMengru: get_se_result: command: {:?} data: {:?}",hex::encode(command.to_vec().clone()), hex::encode(data.clone()));
         let result_packet = Packet::try_from(data)?;
         if parse_result(&result_packet, command.tag) {
             if let Some(v) = result_packet.payloads.get(&response) {
                 return Ok(v.value.to_vec());
             } else {
-                Err(KSError::SEError("required field is missing".to_string()))
+                Err(KSError::SEError(format!("required field is missing, expected response is {:?}", response)))
             }
         } else {
             Err(KSError::SEError("error from chip!".to_string()))
@@ -124,6 +127,7 @@ impl SecureElement {
             GetKeyType::ExtendedPrivateKey | GetKeyType::ExtendedPublicKey => {},
             _ => Err(KSError::SEError("get key type is not supported".to_string()))?
         };
+        error!("ProcessCommandMengru: get key type {:?}, params {:?}", key_type, params);
         let key = self.get_se_result(
             GETKeyCommand::build(Some(params))
                 .ok_or(KSError::SEError("compose command error".to_string()))?,
@@ -165,6 +169,7 @@ impl SecureElement {
         };
         let command = GenerateTokenCommand::build(Some(params))
             .ok_or(KSError::SEError("compose command error".to_string()))?;
+        error!("ProcessCommandMengru: generate_token command: {:?}",hex::encode(command.to_vec().clone()));
         self.get_se_result(
             command,
             result::AUTH_TOKEN,
@@ -190,6 +195,12 @@ impl KeyMaster for SecureElement {
     }
 
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError> {
+        android_logger::init_once(
+            android_logger::Config::default()
+                .with_min_level(log::Level::Error)
+                .with_tag("RCCSignerMengru"),
+        );
+        log_panics::init();
         let zeroize_password = Zeroizing::new(password);
         let mut public_key = BytesMut::with_capacity(512);
         let token = self.generate_token(zeroize_password.as_str().to_string())?;
@@ -207,6 +218,8 @@ impl KeyMaster for SecureElement {
         self.write_secret(secret.clone(), zeroize_password.as_str().to_string())?;
         let rsa = algorithm::rsa::RSA::from_secret(&secret)?;
         public_key.extend_from_slice(&rsa.keypair_modulus());
+        let _result = self.clear_token();
+        error!("ProcessCommandMengru: clear_token _result {:?}", _result);
         Ok(public_key.to_vec())
     }
 

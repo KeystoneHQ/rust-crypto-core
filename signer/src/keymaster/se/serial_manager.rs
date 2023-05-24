@@ -4,6 +4,7 @@ use std::io::ErrorKind;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
+use log::error;
 
 const BAUD_RATE: u32 = 115_200;
 
@@ -49,14 +50,16 @@ impl<'a> SerialManager<'a> {
                     let buffer_size = 3096;
 
                     let mut read_data_buf = vec![0; buffer_size];
-
+                    error!("ProcessCommandMengru port name {:?}", port.name());
+                    error!("ProcessCommandMengru port read_data_set_ready {:?}", port.read_data_set_ready());
+                    error!("ProcessCommandMengru port bytes_to_read {:?}", port.bytes_to_read());
+                    error!("ProcessCommandMengru port baud_rate {:?}", port.baud_rate());
                     let length =
                         port.read(read_data_buf.as_mut_slice())
                             .map_err(|e| match e.kind() {
                                 ErrorKind::TimedOut => KSError::SerialTimeout,
                                 _ => KSError::SerialManagerError("notKnow error".to_string()),
                             })?;
-
                     let received_data = read_data_buf.as_slice();
                     let result = received_data[..length].to_vec();
                     port.clear(serialport::ClearBuffer::All);

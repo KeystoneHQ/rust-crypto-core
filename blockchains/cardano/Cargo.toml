@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 cardano-serialization-lib = "11.4.0"
-paste = "1.0.12"
-thiserror = "1.0.40"
+paste = "1"
+thiserror = "1.0"
 ed25519-bip32-core = "0.1.1"
 bitcoin = "0.30.0"
 cryptoxide = "0.4.4"

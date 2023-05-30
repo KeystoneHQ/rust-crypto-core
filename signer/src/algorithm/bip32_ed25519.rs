@@ -37,7 +37,7 @@ pub fn get_extended_public_key(path: &String, icarus_master_key: XPrv) -> Result
 }
 
 pub fn sign_message(message: &[u8], path: &String, icarus_master_key: XPrv) -> Result<[u8; 64], String> {
-    let xprv = get_extended_private_key(path, icarus_master_key: XPrv)?;
+    let xprv = get_extended_private_key(path, icarus_master_key)?;
     let sig = xprv.sign::<Vec<u8>>(message);
     Ok(sig.to_bytes().clone())
 }

@@ -45,7 +45,15 @@ impl Signer {
         self.inner
             .get_rsa_public_key(mnemonic_id, password)
     }
-}
+
+    pub fn get_ada_root_key(
+        &self,
+        mnemonic_id: u8,
+        password: String,
+    ) -> Result<Vec<u8>, KSError> {
+        self.inner
+            .get_ada_root_key(mnemonic_id, password.into())
+    }}
 
 #[cfg(all(test, target_os = "macos"))]
 mod tests {

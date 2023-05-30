@@ -2,6 +2,7 @@ use crate::{KSError, SigningOption};
 
 pub mod rsa;
 pub mod secp256k1;
+pub mod bip32_ed25519;
 
 pub trait SecretKey {
     fn from_secret(secret: &[u8]) -> Result<Self, KSError> where Self: Sized;

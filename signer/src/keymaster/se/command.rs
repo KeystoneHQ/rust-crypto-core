@@ -1,9 +1,8 @@
-use bytes::{BufMut, BytesMut, Buf, Bytes};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use indexmap::IndexMap;
 
+use super::tags::{methods, COMMAND_TAG, RESPONSE_TAG};
 use super::tvl::{Packet, TVL};
-use super::tags::{COMMAND_TAG, methods, RESPONSE_TAG};
-
 
 #[derive(Default)]
 pub struct CommandParams {
@@ -12,50 +11,52 @@ pub struct CommandParams {
     pub auth_token: Option<Vec<u8>>,
     pub password: Option<Vec<u8>>,
     pub curve: Option<u8>,
-    pub hash: Option<[u8;128]>,
+    pub hash: Option<[u8; 128]>,
     pub is_master_seed: Option<bool>,
     pub is_rsa_secret: Option<bool>,
     pub is_entropy: Option<bool>,
     pub is_ada_root: Option<bool>,
-    pub secret: Option<Vec<u8>>,    
+    pub secret: Option<Vec<u8>>,
 }
 
-
 pub trait CommandBuilder {
-    fn build(params:Option<CommandParams>) -> Option<Command>;
+    fn build(params: Option<CommandParams>) -> Option<Command>;
 }
 
 pub(crate) struct GetFirmwareStatusCommand;
 
 impl CommandBuilder for GetFirmwareStatusCommand {
-
-    fn build(params:Option<CommandParams>) -> Option<Command> {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::GET_FIRMWARE_STATUS_TAG);
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::GET_FIRMWARE_STATUS_TAG })
-    }   
+        return Some(Command {
+            packet,
+            tag: methods::GET_FIRMWARE_STATUS_TAG,
+        });
+    }
 }
 
 pub struct GenerateEntropyCommand;
 
 impl CommandBuilder for GenerateEntropyCommand {
-    
-    fn build(params:Option<CommandParams>) -> Option<Command> {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::GET_RANDOM_ENTROPY_TAG);
-        builder.add_payload(methods::ENTROPY_TYPE_TAG, &[01,00]);
+        builder.add_payload(methods::ENTROPY_TYPE_TAG, &[01, 00]);
         builder.add_payload(methods::ENTROPY_CHECKSUM_TAG, &[00]);
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::GET_RANDOM_ENTROPY_TAG })    
+        return Some(Command {
+            packet,
+            tag: methods::GET_RANDOM_ENTROPY_TAG,
+        });
     }
 }
 
 pub struct GETKeyCommand;
 
 impl CommandBuilder for GETKeyCommand {
-
-    fn build(params:Option<CommandParams>) -> Option<Command> {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
         let params = params?;
         let id = params.wallet_id?;
         let path = params.path?;
@@ -90,45 +91,47 @@ impl CommandBuilder for GETKeyCommand {
             Some(true) => builder.add_payload(methods::ADA_FLAG_TAG, &[00]),
             _ => (),
         };
-        
+
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::GET_KEY_TAG })
+        return Some(Command {
+            packet,
+            tag: methods::GET_KEY_TAG,
+        });
     }
 }
 
 pub struct SignTxCommand;
 
 impl CommandBuilder for SignTxCommand {
-
-    fn build(params:Option<CommandParams>) -> Option<Command> {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
         let params = params?;
         let id = params.wallet_id?;
         let path = params.path?;
         let auth_token = params.auth_token?;
         let curve = params.curve?;
         let tx_hash = params.hash?;
-    
+
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::SIGN_TAG);
         let path_bytes = path.as_bytes();
         builder.add_payload(methods::PATH_TAG, path_bytes);
         builder.add_payload(methods::CURVE_TAG, &[00]);
         builder.add_payload(methods::WALLET_FLAG_TAG, &[00]);
-        
+
         builder.add_payload(methods::AUTH_TOKEN_TAG, &auth_token);
         builder.add_payload(methods::TX_HASH_TAG, &tx_hash);
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::SIGN_TAG })
+        return Some(Command {
+            packet,
+            tag: methods::SIGN_TAG,
+        });
     }
 }
-
-
 
 pub struct GenerateTokenCommand;
 
 impl CommandBuilder for GenerateTokenCommand {
-
-    fn build(params:Option<CommandParams>) -> Option<Command> {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
         let params = params?;
         let password = params.password?;
         let password_slices = password.as_slice();
@@ -137,20 +140,24 @@ impl CommandBuilder for GenerateTokenCommand {
         builder.add_payload(methods::CURRENT_PASSWORD, password_slices);
         builder.add_payload(methods::NEED_TOKEN_TAG, &[01]);
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::VERIFY_USER_PASSWORD })
+        return Some(Command {
+            packet,
+            tag: methods::VERIFY_USER_PASSWORD,
+        });
     }
 }
-
 
 pub struct ClearTokenCommand;
 
 impl CommandBuilder for ClearTokenCommand {
-    
-    fn build(params:Option<CommandParams>) -> Option<Command> {
+    fn build(params: Option<CommandParams>) -> Option<Command> {
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::CLEAR_TOKEN_TAG);
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::CLEAR_TOKEN_TAG })
+        return Some(Command {
+            packet,
+            tag: methods::CLEAR_TOKEN_TAG,
+        });
     }
 }
 
@@ -166,14 +173,22 @@ impl CommandBuilder for SetSecretCommand {
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::SET_SECRET_TAG);
         builder.add_payload(methods::CURRENT_PASSWORD, password_slices);
+
         match params.is_ada_root {
-            Some(true) => {
-                builder.add_payload(methods::WRITE_ADA_ROOT_FLAG, secret_slices)
-            },
-            _ => builder.add_payload(methods::WRITE_RSA_SECRET_FLAG, secret_slices),
-        }
+            Some(true) => builder.add_payload(methods::WRITE_ADA_ROOT_FLAG, secret_slices),
+            _ => (),
+        };
+
+        match params.is_rsa_secret {
+            Some(true) => builder.add_payload(methods::WRITE_RSA_SECRET_FLAG, secret_slices),
+            _ => (),
+        };
+
         let packet = builder.build();
-        return Some(Command { packet, tag: methods::SET_SECRET_TAG });
+        return Some(Command {
+            packet,
+            tag: methods::SET_SECRET_TAG,
+        });
     }
 }
 
@@ -188,12 +203,14 @@ fn build_packet(tag: u16) -> Packet {
 }
 
 struct PacketBuilder {
-    payloads: IndexMap<u16, TVL>
+    payloads: IndexMap<u16, TVL>,
 }
 
 impl PacketBuilder {
     pub fn new() -> Self {
-        Self { payloads: IndexMap::new() }
+        Self {
+            payloads: IndexMap::new(),
+        }
     }
 
     pub fn add_command_id(&mut self, tag: u16) {
@@ -227,11 +244,10 @@ pub fn parse_result(packet: &Packet, request_tag: u16) -> bool {
                 }
             }
         }
-    }        
+    }
 
     return false;
 }
-
 
 pub struct Command {
     packet: Packet,

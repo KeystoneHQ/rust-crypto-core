@@ -1,13 +1,12 @@
-use openssl::sign::RsaPssSaltlen;
-use crate::error::KSError;
 use crate::algorithm;
-pub(crate) mod se;
-pub(crate) mod local;
+use crate::error::KSError;
+use openssl::sign::RsaPssSaltlen;
 pub(crate) mod hash_wraper;
-
+pub(crate) mod local;
+pub(crate) mod se;
 
 pub enum EntropyLength {
-    Short(u32) ,
+    Short(u32),
     Long(u32),
 }
 
@@ -20,13 +19,22 @@ pub enum SigningAlgorithm {
 }
 
 pub enum SigningOption {
-    RSA { salt_len: i32 }
+    RSA { salt_len: i32 },
 }
 
 pub trait KeyMaster {
     fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
 
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError>;
+
+    fn get_ada_root_key(&self, mnemonic_id: u8, password: Vec<u8>) -> Result<Vec<u8>, KSError>;
+
+    fn set_ada_root_key(
+        &self,
+        mnemonic_id: u8,
+        password: String,
+        secret: Vec<u8>,
+    ) -> Result<bool, KSError>;
 
     fn sign_data(
         &self,
@@ -35,7 +43,7 @@ pub trait KeyMaster {
         data: Vec<u8>,
         algo: SigningAlgorithm,
         derivation_path: String,
-        signing_option: Option<SigningOption>
+        signing_option: Option<SigningOption>,
     ) -> Result<Vec<u8>, KSError>;
 
     fn get_version(&self) -> Result<Vec<u8>, KSError>;

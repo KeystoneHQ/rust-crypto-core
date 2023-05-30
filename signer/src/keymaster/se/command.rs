@@ -15,7 +15,9 @@ pub struct CommandParams {
     pub hash: Option<[u8;128]>,
     pub is_master_seed: Option<bool>,
     pub is_rsa_secret: Option<bool>,
-    pub secret: Option<Vec<u8>>,
+    pub is_entropy: Option<bool>,
+    pub is_ada_root: Option<bool>,
+    pub secret: Option<Vec<u8>>,    
 }
 
 
@@ -70,6 +72,11 @@ impl CommandBuilder for GETKeyCommand {
             _ => (),
         };
 
+        match params.is_entropy {
+            Some(true) => builder.add_payload(methods::CURRENT_SECRET, &[00]),
+            _ => (),
+        };
+
         match params.is_rsa_secret {
             Some(true) => builder.add_payload(methods::RSA_SECRET_FLAG_TAG, &[00]),
             _ => (),
@@ -77,6 +84,11 @@ impl CommandBuilder for GETKeyCommand {
         match params.auth_token {
             Some(auth_token) => builder.add_payload(methods::AUTH_TOKEN_TAG, &auth_token),
             None => (),
+        };
+
+        match params.is_ada_root {
+            Some(true) => builder.add_payload(methods::ADA_FLAG_TAG, &[00]),
+            _ => (),
         };
         
         let packet = builder.build();
@@ -154,7 +166,12 @@ impl CommandBuilder for SetSecretCommand {
         let mut builder = PacketBuilder::new();
         builder.add_command_id(methods::SET_SECRET_TAG);
         builder.add_payload(methods::CURRENT_PASSWORD, password_slices);
-        builder.add_payload(methods::WRITE_RSA_SECRET_FLAG, secret_slices);
+        match params.is_ada_root {
+            Some(true) => {
+                builder.add_payload(methods::WRITE_ADA_ROOT_FLAG, secret_slices)
+            },
+            _ => builder.add_payload(methods::WRITE_RSA_SECRET_FLAG, secret_slices),
+        }
         let packet = builder.build();
         return Some(Command { packet, tag: methods::SET_SECRET_TAG });
     }

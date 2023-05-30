@@ -27,17 +27,28 @@ pub mod methods {
     pub const RSA_SECRET_FLAG_TAG: u16= 0x0216;
     pub const MASTER_SEED_FLAG_TAG: u16= 0x0217;
     pub const WRITE_RSA_SECRET_FLAG: u16 = 0x0212;
+
+    //ADA TAG
+    pub const ENTROPY_FLAG_TAG: u16= 0x0218;
+    pub const ADA_FLAG_TAG: u16= 0x021A;
+    pub const WRITE_ADA_ROOT_FLAG: u16 = 0x021C;
+
 }
 
 pub mod result {
+
+    // 
+
     pub const FIRMWARE_APP_VERSION: u16 = 0x0106;
     pub const ENTROPY: u16 = 0x0202;
     pub const EXT_KET: u16 = 0x020a;
     pub const EXT_MASTER_SEED: u16 = 0x0211;
     pub const EXT_RSA_SECRET: u16 = 0x0212;
+    pub const EXT_ENTROPY: u16 = 0x0219;
+    pub const EXT_ADA_ROOT_KEY: u16 = 0x021B;
     // pub const `KEY`: u16 = 0x0302;
     pub const AUTH_TOKEN: u16 = 0x0404;
-    pub const SUCCEED: u16 = 0x0000;
+    pub const SUCCESS: u16 = 0x0000;
 }
 
 

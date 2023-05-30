@@ -1,0 +1,17 @@
+[package]
+name = "rcc_cardano"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cardano-serialization-lib = "11.4.0"
+paste = "1"
+thiserror = "1.0"
+ed25519-bip32-core = "0.1.1"
+bitcoin = "0.30.0"
+cryptoxide = "0.4.4"
+hex = "0.4.3"
+rcc-trait-chain = "0.1.0"
+itertools = "0.10.5"

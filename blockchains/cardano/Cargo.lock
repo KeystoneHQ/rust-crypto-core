@@ -430,6 +430,7 @@ dependencies = [
  "itertools",
  "paste",
  "rcc-trait-chain",
+ "serde_json",
  "thiserror",
 ]
 

@@ -1,4 +1,4 @@
-use crate::address::{generate_address_by_xpub, AddressGenerator};
+use crate::address::{AddressGenerator, AddressType, derive_address};
 use crate::errors::{CardanoError, R};
 use cardano_serialization_lib::address::RewardAddress;
 
@@ -453,13 +453,13 @@ impl ParsedCardanoTx {
                             Hardened { index: i } => i,
                         };
 
-                    let address = generate_address_by_xpub(context.get_cardano_xpub(), *index)?;
+                    let address = derive_address(context.get_cardano_xpub(), index.clone(), AddressType::Base, 1)?;
 
                     parsed_inputs.push(ParsedCardanoInput {
                         transaction_hash: utxo.transaction_hash.clone(),
                         index: utxo.index,
                         value: Some(utxo.value),
-                        address: Some(address.to_bech32()?),
+                        address: Some(address),
                         path: None,
                         is_mine: utxo.master_fingerprint.eq(&context.master_fingerprint),
                     })

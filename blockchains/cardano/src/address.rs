@@ -6,6 +6,14 @@ use cryptoxide::hashing::blake2b_224;
 use ed25519_bip32_core::{DerivationScheme, XPub};
 use hex;
 
+use cardano_serialization_lib::address::{BaseAddress, RewardAddress, StakeCredential};
+use cardano_serialization_lib::crypto::Ed25519KeyHash;
+
+pub enum AddressType {
+    Base,
+    Stake,
+}
+
 pub trait AddressGenerator {
     fn to_bech32(&self) -> R<String>;
 }
@@ -73,4 +81,48 @@ pub(crate) fn generate_address_by_xpub(xpub: String, index: u32) -> R<CardanoAdd
         &payment_key,
         &stake_key,
     ))
+}
+
+pub fn derive_address(xpub: String, index: u32, address_type: AddressType, network: u8) -> R<String> {
+    let xpub_bytes = hex::decode(xpub).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
+    let xpub =
+        XPub::from_slice(&xpub_bytes).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
+    match address_type {
+        AddressType::Base => {
+            let payment_key = xpub
+                .derive(DerivationScheme::V2, 0)?
+                .derive(DerivationScheme::V2, index.clone())?
+                .public_key();
+            let payment_key_hash = blake2b_224(&payment_key);
+            let stake_key = xpub
+                .derive(DerivationScheme::V2, 2)?
+                .derive(DerivationScheme::V2, index.clone())?
+                .public_key();
+            let stake_key_hash = blake2b_224(&stake_key);
+            let address = BaseAddress::new(
+                network,
+                &StakeCredential::from_keyhash(&Ed25519KeyHash::from(payment_key_hash)),
+                &StakeCredential::from_keyhash(&Ed25519KeyHash::from(stake_key_hash)),
+            );
+            address
+                .to_address()
+                .to_bech32(None)
+                .map_err(|e| CardanoError::AddressEncodingError(e.to_string()))
+        }
+        AddressType::Stake => {
+            let stake_key = xpub
+                .derive(DerivationScheme::V2, 2)?
+                .derive(DerivationScheme::V2, index.clone())?
+                .public_key();
+            let stake_key_hash = blake2b_224(&stake_key);
+            let address = RewardAddress::new(
+                network,
+                &StakeCredential::from_keyhash(&Ed25519KeyHash::from(stake_key_hash)),
+            );
+            address
+                .to_address()
+                .to_bech32(None)
+                .map_err(|e| CardanoError::AddressEncodingError(e.to_string()))
+        }
+    }
 }

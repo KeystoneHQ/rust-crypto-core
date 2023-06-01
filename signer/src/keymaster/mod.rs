@@ -1,6 +1,7 @@
 use crate::algorithm;
 use crate::error::KSError;
 use openssl::sign::RsaPssSaltlen;
+
 pub(crate) mod hash_wraper;
 pub(crate) mod local;
 pub(crate) mod se;
@@ -24,6 +25,10 @@ pub enum SigningOption {
 
 pub trait KeyMaster {
     fn generate_entropy(&self, length: EntropyLength) -> Result<Vec<u8>, KSError>;
+
+    fn setup_ada_root_key(&self, mnemonic_id: u8, password: String, passphrase: String) -> Result<bool, KSError>;
+
+    fn get_ada_extended_public_key(&self, mnemonic_id: u8, password: String, path: String) -> Result<String, KSError>;
 
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError>;
 

@@ -8,6 +8,7 @@ use std::convert::TryFrom;
 use self::command::CommandBuilder;
 use self::tags::RESPONSE_TAG;
 use bytes::BytesMut;
+use ed25519_bip32_core::XPrv;
 use zeroize::Zeroizing;
 
 use super::KeyMaster;
@@ -219,6 +220,27 @@ impl KeyMaster for SecureElement {
                 .ok_or(KSError::SEError("compose command error".to_string()))?,
             result::ENTROPY,
         )
+    }
+
+    fn setup_ada_root_key(&self, mnemonic_id: u8, password: String, passphrase: String) -> Result<bool, KSError> {
+        let zeroize_password = Zeroizing::new(password.clone());
+        let token = self.generate_token(zeroize_password.as_str().to_string())?;
+        let entropy = self.get_entropy(mnemonic_id, token)?;
+        let passphrase = passphrase.as_bytes();
+        let root_key = algorithm::bip32_ed25519::get_icarus_master_key(&entropy, passphrase).as_ref().to_vec();
+        self.set_ada_root_key(mnemonic_id, password, root_key)?;
+        self.clear_token()?;
+        Ok(true)
+    }
+
+    fn get_ada_extended_public_key(&self, mnemonic_id: u8, password: String, path: String) -> Result<String, KSError> {
+        let zeroize_password = Zeroizing::new(password.clone());
+        let token = self.generate_token(zeroize_password.as_str().to_string())?;
+        let root_key = self.get_ada_root_key(mnemonic_id, token)?;
+        let root_xprv = XPrv::from_slice_verified(&root_key).map_err(|e| KSError::GetPublicKeyError(e.to_string()))?;
+        let xpub = algorithm::bip32_ed25519::get_extended_public_key(path, root_xprv).map_err(|e| KSError::GetPublicKeyError(e))?;
+        self.clear_token()?;
+        Ok(xpub.to_string())
     }
 
     fn get_rsa_public_key(&self, mnemonic_id: u8, password: String) -> Result<Vec<u8>, KSError> {
@@ -560,7 +582,7 @@ mod tests {
         let data: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         )
-        .unwrap();
+            .unwrap();
 
         let signature = se
             .sign_data(
@@ -593,7 +615,7 @@ mod tests {
         let data: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         )
-        .unwrap();
+            .unwrap();
         let signing_option = SigningOption::RSA { salt_len: 0 };
         let signature = se
             .sign_data(
@@ -620,7 +642,7 @@ mod tests {
         let data2: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         )
-        .unwrap();
+            .unwrap();
         let result = rsa.verify(
             &signature.as_ref(),
             &data2,
@@ -647,7 +669,7 @@ mod tests {
         let data: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         )
-        .unwrap();
+            .unwrap();
         let signing_option = SigningOption::RSA { salt_len: 32 };
         let signature = se
             .sign_data(
@@ -673,7 +695,7 @@ mod tests {
         let data2: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
         )
-        .unwrap();
+            .unwrap();
         let result = rsa.verify(
             &signature.as_ref(),
             &data2,

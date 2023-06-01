@@ -1,7 +1,7 @@
 use crate::errors::R;
 use crate::structs::{ParseContext, ParsedCardanoTx};
 use cardano_serialization_lib;
-use serde_json::json;
+use crate::traits::ToJSON;
 
 pub fn parse_tx(tx: Vec<u8>, context: ParseContext) -> R<ParsedCardanoTx> {
     let cardano_tx = cardano_serialization_lib::Transaction::from_bytes(tx)?;
@@ -10,6 +10,5 @@ pub fn parse_tx(tx: Vec<u8>, context: ParseContext) -> R<ParsedCardanoTx> {
 
 pub fn parse_tx_to_json(tx: Vec<u8>, context: ParseContext) -> R<String> {
     let cardano_tx = parse_tx(tx, context)?;
-
-    todo!()
+    Ok(cardano_tx.to_json().to_string())
 }

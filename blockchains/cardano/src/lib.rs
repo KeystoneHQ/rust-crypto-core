@@ -5,4 +5,5 @@ mod macros;
 pub mod overview;
 pub mod structs;
 pub mod transaction;
+mod traits;
 

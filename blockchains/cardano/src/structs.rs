@@ -1,4 +1,4 @@
-use crate::address::{generate_address_by_xpub, AddressGenerator};
+use crate::address::{AddressGenerator, AddressType, derive_address};
 use crate::errors::{CardanoError, R};
 use cardano_serialization_lib::address::RewardAddress;
 
@@ -18,8 +18,10 @@ use cryptoxide::hashing::blake2b_256;
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::ops::Div;
+use serde_json::{json, Value};
 
 use crate::{impl_internal_struct, impl_public_struct};
+use crate::traits::ToJSON;
 
 impl_public_struct!(ParseContext {
     utxos: Vec<CardanoUtxo>,
@@ -53,6 +55,21 @@ impl_public_struct!(ParsedCardanoTx {
     method: String,
     sign_data: String
 });
+
+impl ToJSON for ParsedCardanoTx {
+    fn to_json(&self) -> Value {
+        json!({
+            "overview": self.get_overview().to_json(),
+            "detail": self.get_detail().to_json(),
+            "fee": self.get_fee(),
+            "network": self.get_network(),
+            "method": self.get_method(),
+            "sign_data": self.get_sign_data(),
+            "from": self.get_from().iter().map(|v| v.to_json()).collect::<Vec<Value>>(),
+            "to": self.get_to().iter().map(|v| v.to_json()).collect::<Vec<Value>>(),
+        })
+    }
+}
 
 // method label on ui
 #[derive(Clone, Debug, Default)]
@@ -89,6 +106,16 @@ impl_public_struct!(CardanoFrom {
     value: u64
 });
 
+impl ToJSON for CardanoFrom {
+    fn to_json(&self) -> Value {
+        json!({
+            "address": self.get_address(),
+            "amount": self.get_amount(),
+            "path": self.get_path(),
+        })
+    }
+}
+
 impl_public_struct!(CardanoTo {
     address: String,
     amount: String,
@@ -96,6 +123,16 @@ impl_public_struct!(CardanoTo {
     assets_text: Option<String>,
     value: u64
 });
+
+impl ToJSON for CardanoTo {
+    fn to_json(&self) -> Value {
+        json!({
+            "address": self.get_address(),
+            "amount": self.get_amount(),
+            "assets_text": self.get_assets_text(),
+        })
+    }
+}
 
 impl_internal_struct!(ParsedCardanoOutput {
     address: String,
@@ -453,13 +490,13 @@ impl ParsedCardanoTx {
                             Hardened { index: i } => i,
                         };
 
-                    let address = generate_address_by_xpub(context.get_cardano_xpub(), *index)?;
+                    let address = derive_address(context.get_cardano_xpub(), index.clone(), AddressType::Base, 1)?;
 
                     parsed_inputs.push(ParsedCardanoInput {
                         transaction_hash: utxo.transaction_hash.clone(),
                         index: utxo.index,
                         value: Some(utxo.value),
-                        address: Some(address.to_bech32()?),
+                        address: Some(address),
                         path: None,
                         is_mine: utxo.master_fingerprint.eq(&context.master_fingerprint),
                     })

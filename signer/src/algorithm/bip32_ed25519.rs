@@ -17,8 +17,8 @@ pub fn get_icarus_master_key(entropy: &[u8], passphrase: &[u8]) -> XPrv {
     XPrv::normalize_bytes_force3rd(hash)
 }
 
-pub fn get_extended_private_key(path: &String, icarus_master_key: XPrv) -> Result<XPrv, String> {
-    let path = normalize_path(path);
+pub fn get_extended_private_key(path: String, icarus_master_key: XPrv) -> Result<XPrv, String> {
+    let path = normalize_path(&path);
     let derivation_path = DerivationPath::from_str(path.as_str())
         .map_err(|e| format!("{}", e))?;
     let childrens: Vec<ChildNumber> = derivation_path.into();
@@ -31,12 +31,12 @@ pub fn get_extended_private_key(path: &String, icarus_master_key: XPrv) -> Resul
     Ok(key)
 }
 
-pub fn get_extended_public_key(path: &String, icarus_master_key: XPrv) -> Result<XPub, String> {
+pub fn get_extended_public_key(path: String, icarus_master_key: XPrv) -> Result<XPub, String> {
     let xprv = get_extended_private_key(path, icarus_master_key)?;
     Ok(xprv.public())
 }
 
-pub fn sign_message(message: &[u8], path: &String, icarus_master_key: XPrv) -> Result<[u8; 64], String> {
+pub fn sign_message(message: &[u8], path: String, icarus_master_key: XPrv) -> Result<[u8; 64], String> {
     let xprv = get_extended_private_key(path, icarus_master_key)?;
     let sig = xprv.sign::<Vec<u8>>(message);
     Ok(sig.to_bytes().clone())

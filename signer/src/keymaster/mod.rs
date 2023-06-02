@@ -11,6 +11,7 @@ pub enum EntropyLength {
     Long(u32),
 }
 
+#[derive(Clone, Copy)]
 pub enum SigningAlgorithm {
     Secp256k1,
     Secp256R1,
@@ -19,8 +20,10 @@ pub enum SigningAlgorithm {
     RSA,
 }
 
+#[derive(Clone, Copy)]
 pub enum SigningOption {
     RSA { salt_len: i32 },
+    ADA
 }
 
 pub trait KeyMaster {

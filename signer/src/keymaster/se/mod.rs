@@ -191,12 +191,22 @@ impl SecureElement {
         self.get_se_result(command, result::AUTH_TOKEN)
     }
 
-    pub(crate) fn clear_token(&self) -> Result<Vec<u8>, KSError> {
-        self.get_se_result(
+    pub(crate) fn clear_token(&self) -> Result<bool, KSError> {
+        let result = self.get_se_result(
             ClearTokenCommand::build(None)
                 .ok_or(KSError::SEError("compose command error".to_string()))?,
-            result::AUTH_TOKEN,
-        )
+            RESPONSE_TAG,
+        )?;
+        let result_value = u16::from_ne_bytes(
+            result[0..2]
+                .try_into()
+                .map_err(|_| KSError::SEError("process response tvl result error".to_string()))?,
+        );
+        if result_value == 0 {
+            return Ok(true);
+        } else {
+            return Ok(false);
+        }
     }
 
     pub fn get_entropy(&self, mnemonic_id: u8, auth_token: Vec<u8>) -> Result<Vec<u8>, KSError> {
@@ -228,7 +238,7 @@ impl KeyMaster for SecureElement {
         let entropy = self.get_entropy(mnemonic_id, token)?;
         let passphrase = passphrase.as_bytes();
         let root_key = algorithm::bip32_ed25519::get_icarus_master_key(&entropy, passphrase).as_ref().to_vec();
-        self.set_ada_root_key(mnemonic_id, password, root_key)?;
+        self.set_ada_root_key(mnemonic_id, zeroize_password.as_str().to_string(), root_key)?;
         self.clear_token()?;
         Ok(true)
     }
@@ -320,9 +330,11 @@ impl KeyMaster for SecureElement {
         signing_option: Option<SigningOption>,
     ) -> Result<Vec<u8>, KSError> {
         // get key from se
-
         let auth_token = hex::decode(password).map_err(|_e| KSError::SEError("".to_string()))?;
-
+        if let (SigningAlgorithm::Ed25519, (Some(SigningOption::ADA))) = (algo, signing_option) {
+            // sign with bip32_ed25519
+            todo!()
+        }
         match algo {
             SigningAlgorithm::Secp256k1 => {
                 let private_key = self.get_key(

@@ -36,7 +36,12 @@ pub fn get_extended_public_key(path: String, icarus_master_key: XPrv) -> Result<
     Ok(xprv.public())
 }
 
-pub fn sign_message(message: &[u8], path: String, icarus_master_key: XPrv) -> Result<[u8; 64], String> {
+pub fn sign_message(message: &[u8], path: String, ada_root_key: &[u8]) -> Result<[u8; 64], String> {
+    let icarus_master_key = XPrv::from_slice_verified(ada_root_key).map_err(|e| e.to_string())?;
+    _sign_message(message, path, icarus_master_key)
+}
+
+fn _sign_message(message: &[u8], path: String, icarus_master_key: XPrv) -> Result<[u8; 64], String> {
     let xprv = get_extended_private_key(path, icarus_master_key)?;
     let sig = xprv.sign::<Vec<u8>>(message);
     Ok(sig.to_bytes().clone())

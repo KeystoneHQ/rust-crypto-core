@@ -6,12 +6,13 @@ use cryptoxide::hashing::blake2b_224;
 use ed25519_bip32_core::{DerivationScheme, XPub};
 use hex;
 
-use cardano_serialization_lib::address::{BaseAddress, RewardAddress, StakeCredential};
+use cardano_serialization_lib::address::{BaseAddress, EnterpriseAddress, RewardAddress, StakeCredential};
 use cardano_serialization_lib::crypto::Ed25519KeyHash;
 
 pub enum AddressType {
     Base,
     Stake,
+    Enterprise,
 }
 
 pub trait AddressGenerator {
@@ -118,6 +119,21 @@ pub fn derive_address(xpub: String, index: u32, address_type: AddressType, netwo
             let address = RewardAddress::new(
                 network,
                 &StakeCredential::from_keyhash(&Ed25519KeyHash::from(stake_key_hash)),
+            );
+            address
+                .to_address()
+                .to_bech32(None)
+                .map_err(|e| CardanoError::AddressEncodingError(e.to_string()))
+        }
+        AddressType::Enterprise => {
+            let payment_key = xpub
+                .derive(DerivationScheme::V2, 0)?
+                .derive(DerivationScheme::V2, index.clone())?
+                .public_key();
+            let payment_key_hash = blake2b_224(&payment_key);
+            let address = EnterpriseAddress::new(
+                network,
+                &StakeCredential::from_keyhash(&Ed25519KeyHash::from(payment_key_hash)),
             );
             address
                 .to_address()

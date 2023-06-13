@@ -232,23 +232,37 @@ impl KeyMaster for SecureElement {
         )
     }
 
-    fn setup_ada_root_key(&self, mnemonic_id: u8, password: String, passphrase: String) -> Result<bool, KSError> {
+    fn setup_ada_root_key(
+        &self,
+        mnemonic_id: u8,
+        password: String,
+        passphrase: String,
+    ) -> Result<bool, KSError> {
         let zeroize_password = Zeroizing::new(password.clone());
         let token = self.generate_token(zeroize_password.as_str().to_string())?;
         let entropy = self.get_entropy(mnemonic_id, token)?;
         let passphrase = passphrase.as_bytes();
-        let root_key = algorithm::bip32_ed25519::get_icarus_master_key(&entropy, passphrase).as_ref().to_vec();
+        let root_key = algorithm::bip32_ed25519::get_icarus_master_key(&entropy, passphrase)
+            .as_ref()
+            .to_vec();
         self.set_ada_root_key(mnemonic_id, zeroize_password.as_str().to_string(), root_key)?;
         self.clear_token()?;
         Ok(true)
     }
 
-    fn get_ada_extended_public_key(&self, mnemonic_id: u8, password: String, path: String) -> Result<String, KSError> {
+    fn get_ada_extended_public_key(
+        &self,
+        mnemonic_id: u8,
+        password: String,
+        path: String,
+    ) -> Result<String, KSError> {
         let zeroize_password = Zeroizing::new(password.clone());
         let token = self.generate_token(zeroize_password.as_str().to_string())?;
         let root_key = self.get_ada_root_key(mnemonic_id, token)?;
-        let root_xprv = XPrv::from_slice_verified(&root_key).map_err(|e| KSError::GetPublicKeyError(e.to_string()))?;
-        let xpub = algorithm::bip32_ed25519::get_extended_public_key(path, root_xprv).map_err(|e| KSError::GetPublicKeyError(e))?;
+        let root_xprv = XPrv::from_slice_verified(&root_key)
+            .map_err(|e| KSError::GetPublicKeyError(e.to_string()))?;
+        let xpub = algorithm::bip32_ed25519::get_extended_public_key(path, root_xprv)
+            .map_err(|e| KSError::GetPublicKeyError(e))?;
         self.clear_token()?;
         Ok(xpub.to_string())
     }
@@ -333,7 +347,11 @@ impl KeyMaster for SecureElement {
         let auth_token = hex::decode(password).map_err(|_e| KSError::SEError("".to_string()))?;
         if let (SigningAlgorithm::Ed25519, (Some(SigningOption::ADA))) = (algo, signing_option) {
             // sign with bip32_ed25519
-            todo!()
+            let ada_root_key = self.get_ada_root_key(mnemonic_id, auth_token)?;
+            let signature =
+                algorithm::bip32_ed25519::sign_message(&data, derivation_path, &ada_root_key)
+                    .map_err(|e| KSError::SignDataError(e))?;
+            return Ok(signature.to_vec());
         }
         match algo {
             SigningAlgorithm::Secp256k1 => {

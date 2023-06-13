@@ -1,6 +1,8 @@
+use std::str::FromStr;
 use crate::errors::{CardanoError, R};
 use bitcoin::bech32;
 use bitcoin::bech32::{ToBase32, Variant};
+use bitcoin::bip32::{ChildNumber, DerivationPath};
 
 use cryptoxide::hashing::blake2b_224;
 use ed25519_bip32_core::{DerivationScheme, XPub};
@@ -82,6 +84,21 @@ pub(crate) fn generate_address_by_xpub(xpub: String, index: u32) -> R<CardanoAdd
         &payment_key,
         &stake_key,
     ))
+}
+
+pub fn derive_public_key(xpub: String, sub_path: String) -> R<String> {
+    let xpub_bytes = hex::decode(xpub).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
+    let xpub =
+        XPub::from_slice(&xpub_bytes).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
+    let path = DerivationPath::from_str(&sub_path).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
+    let childrens: Vec<ChildNumber> = path.into();
+    let key = childrens
+        .iter()
+        .fold(Ok(xpub), |acc, cur| match cur {
+            ChildNumber::Hardened { index } => acc.and_then(|v| v.derive(DerivationScheme::V2, index + 0x80000000)),
+            ChildNumber::Normal { index } => acc.and_then(|v| v.derive(DerivationScheme::V2, index.clone())),
+        }).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
+    Ok(hex::encode(key.public_key()))
 }
 
 pub fn derive_address(xpub: String, index: u32, address_type: AddressType, network: u8) -> R<String> {

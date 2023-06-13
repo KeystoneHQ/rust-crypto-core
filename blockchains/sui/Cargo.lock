@@ -32,16 +32,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c7d0618f0e0b7e8ff11427422b64564d5fb0be1940354bfe2e0529b18a9d9b8"
 
 [[package]]
-name = "app_sui"
-version = "0.1.0"
-dependencies = [
- "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0)",
- "hex",
- "sui-types",
- "thiserror-core",
-]
-
-[[package]]
 name = "atomic-polyfill"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -516,6 +506,16 @@ name = "rand_core"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
+
+[[package]]
+name = "rcc_sui"
+version = "0.1.0"
+dependencies = [
+ "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0)",
+ "hex",
+ "sui-types",
+ "thiserror-core",
+]
 
 [[package]]
 name = "ref-cast"

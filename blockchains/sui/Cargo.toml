@@ -1,7 +1,7 @@
 cargo-features = ["profile-rustflags"]
 
 [package]
-name = "app_sui"
+name = "rcc_sui"
 version = "0.1.0"
 edition = "2021"
 

@@ -30,6 +30,11 @@ impl_public_struct!(ParseContext {
     master_fingerprint: Vec<u8>
 });
 
+impl_public_struct!(CardanoSignarure {
+    public_key: Vec<u8>,
+    signature: Vec<u8>
+});
+
 impl_public_struct!(CardanoUtxo {
     master_fingerprint: Vec<u8>,
     address: String,

@@ -339,7 +339,7 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 [[package]]
 name = "move-core-types"
 version = "0.0.4"
-source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.0#69d79cc1b6e49f2c3a09767708fa0775ca5f2c5d"
+source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd92ae7013c479061fe69b28"
 dependencies = [
  "anyhow",
  "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1)",
@@ -513,6 +513,7 @@ version = "0.1.0"
 dependencies = [
  "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0)",
  "hex",
+ "serde_json",
  "sui-types",
  "thiserror-core",
 ]
@@ -644,12 +645,12 @@ dependencies = [
 [[package]]
 name = "sui-enum-compat-util"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.0#69d79cc1b6e49f2c3a09767708fa0775ca5f2c5d"
+source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd92ae7013c479061fe69b28"
 
 [[package]]
 name = "sui-macros"
 version = "0.7.0"
-source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.0#69d79cc1b6e49f2c3a09767708fa0775ca5f2c5d"
+source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd92ae7013c479061fe69b28"
 dependencies = [
  "futures",
  "once_cell",
@@ -660,7 +661,7 @@ dependencies = [
 [[package]]
 name = "sui-proc-macros"
 version = "0.7.0"
-source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.0#69d79cc1b6e49f2c3a09767708fa0775ca5f2c5d"
+source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd92ae7013c479061fe69b28"
 dependencies = [
  "msim-macros",
  "proc-macro2",
@@ -672,7 +673,7 @@ dependencies = [
 [[package]]
 name = "sui-types"
 version = "0.1.0"
-source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.0#69d79cc1b6e49f2c3a09767708fa0775ca5f2c5d"
+source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd92ae7013c479061fe69b28"
 dependencies = [
  "anyhow",
  "base64ct",

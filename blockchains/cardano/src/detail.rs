@@ -14,7 +14,7 @@ impl ToJSON for CardanoDetail {
     fn to_json(&self) -> Value {
         let stake_content = self.get_stake_content().map(|v| v.iter().map(|v| v.to_json()).collect::<Vec<Value>>());
         json!({
-            "total_intput_amount": self.get_total_input_amount(),
+            "total_input_amount": self.get_total_input_amount(),
             "total_output_amount": self.get_total_output_amount(),
             "deposit_reclaim": self.get_deposit_reclaim(),
             "deposit": self.get_deposit(),

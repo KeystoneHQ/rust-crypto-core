@@ -74,12 +74,13 @@ impl SecureElement {
         Ok(())
     }
 
-    fn write_secret(&self, secret: Vec<u8>, password: String) -> Result<(), KSError> {
+    fn set_rsa_secret(&self, secret: Vec<u8>, password: String) -> Result<(), KSError> {
         let password_bytes = hex::decode(&password)
             .map_err(|_| KSError::WriteSecretError("decode password bytes failed".to_string()))?;
         let params = CommandParams {
             secret: Some(secret),
             password: Some(password_bytes),
+            is_rsa_secret: Some(true),
             ..Default::default()
         };
         self.set_se_result(
@@ -285,7 +286,7 @@ impl KeyMaster for SecureElement {
                 KSError::GenerateSigningKeyError("init rsa key pair failed".to_string())
             })?;
         // save rsa secret
-        self.write_secret(secret.clone(), zeroize_password.as_str().to_string())?;
+        self.set_rsa_secret(secret.clone(), zeroize_password.as_str().to_string())?;
         let rsa = algorithm::rsa::RSA::from_secret(&secret)?;
         public_key.extend_from_slice(&rsa.keypair_modulus());
         Ok(public_key.to_vec())

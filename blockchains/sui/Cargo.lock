@@ -61,16 +61,6 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 [[package]]
 name = "bcs"
 version = "0.1.4"
-source = "git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0#1ea6f39efe1cfdc38fe2eeb4acb9a92a9aed1a2d"
-dependencies = [
- "core2",
- "serde",
- "thiserror-core",
-]
-
-[[package]]
-name = "bcs"
-version = "0.1.4"
 source = "git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1#99bd6ac3de60ca7b14b36a93d75a8ef0c695bd8f"
 dependencies = [
  "core2",
@@ -342,7 +332,7 @@ version = "0.0.4"
 source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd92ae7013c479061fe69b28"
 dependencies = [
  "anyhow",
- "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1)",
+ "bcs",
  "ethnum",
  "hex",
  "num",
@@ -511,7 +501,7 @@ checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 name = "rcc_sui"
 version = "0.1.0"
 dependencies = [
- "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0)",
+ "bcs",
  "hex",
  "serde_json",
  "sui-types",
@@ -677,7 +667,7 @@ source = "git+https://github.com/KeystoneHQ/sui.git?tag=0.1.1#1844112dd182dd90cd
 dependencies = [
  "anyhow",
  "base64ct",
- "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1)",
+ "bcs",
  "bs58",
  "core2",
  "hashbrown 0.14.0",

@@ -732,7 +732,7 @@ impl ParsedCardanoTx {
     }
 }
 
-static DIVIDER: f64 = 1_000_000_00f64;
+static DIVIDER: f64 = 1_000_000f64;
 
 fn normalize_coin(value: u64) -> String {
     format!("{} ADA", (value as f64).div(DIVIDER))

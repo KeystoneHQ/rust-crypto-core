@@ -493,20 +493,61 @@ impl ParsedCardanoTx {
             match m {
                 //known utxo
                 Some(utxo) => {
-                    let index =
-                        match utxo
-                            .path
-                            .into_iter()
-                            .last()
-                            .ok_or(CardanoError::DerivationError(
+                    let mut iter = utxo.path.into_iter();
+                    let _root = match iter.next() {
+                        Some(Hardened { index: 1852 }) => {
+                            Ok(1852u32)
+                        }
+                        _ => {
+                            Err(CardanoError::DerivationError(
                                 "invalid derivation path".to_string(),
-                            ))? {
-                            Normal { index: i } => i,
-                            Hardened { index: i } => i,
-                        };
+                            ))
+                        }
+                    }?;
+                    let _coin_type = match iter.next() {
+                        Some(Hardened { index: 1815 }) => {
+                            Ok(1815u32)
+                        }
+                        _ => {
+                            Err(CardanoError::DerivationError(
+                                "invalid derivation path".to_string(),
+                            ))
+                        }
+                    }?;
+                    let _account = match iter.next() {
+                        Some(Hardened { index: _i }) => {
+                            Ok(_i)
+                        }
+                        _ => {
+                            Err(CardanoError::DerivationError(
+                                "invalid derivation path".to_string(),
+                            ))
+                        }
+                    }?;
+                    let change = match iter.next() {
+                        Some(Normal { index: _i }) => {
+                            Ok(_i)
+                        }
+                        _ => {
+                            Err(CardanoError::DerivationError(
+                                "invalid derivation path".to_string(),
+                            ))
+                        }
+                    }?;
+                    let index = match iter.next() {
+                        Some(Normal { index: _i }) => {
+                            Ok(_i)
+                        }
+                        _ => {
+                            Err(CardanoError::DerivationError(
+                                "invalid derivation path".to_string(),
+                            ))
+                        }
+                    }?;
 
                     let address = derive_address(
                         context.get_cardano_xpub(),
+                        change.clone(),
                         index.clone(),
                         AddressType::Base,
                         network_id,

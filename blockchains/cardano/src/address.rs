@@ -76,9 +76,10 @@ pub(crate) fn generate_address_by_xpub(xpub: String, index: u32) -> R<CardanoAdd
         .derive(DerivationScheme::V2, 0)?
         .derive(DerivationScheme::V2, index)?
         .public_key();
+    // stakeKey is m/1852'/1815'/X'/2/0 in most cases. except LACE wallet.
     let stake_key = xpub
         .derive(DerivationScheme::V2, 2)?
-        .derive(DerivationScheme::V2, index)?
+        .derive(DerivationScheme::V2, 0)?
         .public_key();
     Ok(CardanoAddress::new_mainnet_base_address(
         &payment_key,
@@ -101,20 +102,21 @@ pub fn derive_public_key(xpub: String, sub_path: String) -> R<String> {
     Ok(hex::encode(key.public_key()))
 }
 
-pub fn derive_address(xpub: String, index: u32, address_type: AddressType, network: u8) -> R<String> {
+pub fn derive_address(xpub: String, change: u32, index: u32, address_type: AddressType, network: u8) -> R<String> {
     let xpub_bytes = hex::decode(xpub).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
     let xpub =
         XPub::from_slice(&xpub_bytes).map_err(|e| CardanoError::DerivationError(e.to_string()))?;
     match address_type {
         AddressType::Base => {
             let payment_key = xpub
-                .derive(DerivationScheme::V2, 0)?
+                .derive(DerivationScheme::V2, change)?
                 .derive(DerivationScheme::V2, index.clone())?
                 .public_key();
             let payment_key_hash = blake2b_224(&payment_key);
+            // stakeKey is m/1852'/1815'/X'/2/0 in most cases. except LACE wallet.
             let stake_key = xpub
                 .derive(DerivationScheme::V2, 2)?
-                .derive(DerivationScheme::V2, index.clone())?
+                .derive(DerivationScheme::V2, 0)?
                 .public_key();
             let stake_key_hash = blake2b_224(&stake_key);
             let address = BaseAddress::new(

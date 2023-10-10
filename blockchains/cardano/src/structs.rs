@@ -1,4 +1,4 @@
-use crate::address::{AddressGenerator, AddressType, derive_address};
+use crate::address::{derive_address, AddressGenerator, AddressType};
 use crate::errors::{CardanoError, R};
 use cardano_serialization_lib::address::RewardAddress;
 
@@ -16,12 +16,12 @@ use bitcoin::bip32::ChildNumber::{Hardened, Normal};
 use bitcoin::bip32::DerivationPath;
 use cryptoxide::hashing::blake2b_256;
 use itertools::Itertools;
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::ops::Div;
-use serde_json::{json, Value};
 
-use crate::{impl_internal_struct, impl_public_struct};
 use crate::traits::ToJSON;
+use crate::{impl_internal_struct, impl_public_struct};
 
 impl_public_struct!(ParseContext {
     utxos: Vec<CardanoUtxo>,
@@ -179,7 +179,12 @@ struct Delegation {
 
 impl ParsedCardanoTx {
     pub fn from_cardano_tx(tx: Transaction, context: ParseContext) -> R<Self> {
-        let parsed_inputs = Self::parse_inputs(&tx, &context)?;
+        let network_id = Self::judge_network_id(&tx);
+        let network = match network_id {
+            1 => "Cardano Mainnet".to_string(),
+            _ => "Cardano Testnet".to_string(),
+        };
+        let parsed_inputs = Self::parse_inputs(&tx, &context, network_id)?;
         let parsed_outputs = Self::parse_outputs(&tx)?;
         let cert_actions = Self::parse_certs(&tx)?;
         let stake_actions = Self::parse_stake_actions(&tx, &cert_actions)?;
@@ -222,14 +227,6 @@ impl ParsedCardanoTx {
                 _list.push(value)
             }
             _list
-        };
-
-        let network = match tx.body().network_id() {
-            None => "Cardano Mainnet".to_string(),
-            Some(id) => match id.kind() {
-                NetworkIdKind::Mainnet => "Cardano Mainnet".to_string(),
-                NetworkIdKind::Testnet => "Cardano Testnet".to_string(),
-            },
         };
 
         let fee = normalize_coin(fee);
@@ -340,6 +337,19 @@ impl ParsedCardanoTx {
             method: method.to_string(),
             sign_data: hex::encode(hash),
         })
+    }
+
+    fn judge_network_id(tx: &Transaction) -> u8 {
+        match tx.body().network_id() {
+            None => match tx.body().outputs().get(0).address().network_id() {
+                Ok(id) => id,
+                Err(_) => 1,
+            },
+            Some(id) => match id.kind() {
+                NetworkIdKind::Mainnet => 1,
+                NetworkIdKind::Testnet => 0,
+            },
+        }
     }
 
     fn get_from_list(inputs: Vec<ParsedCardanoInput>) -> HashMap<String, CardanoFrom> {
@@ -454,8 +464,8 @@ impl ParsedCardanoTx {
         return CardanoMethod::Transfer;
     }
 
-    pub fn verify(tx: Transaction, context: ParseContext) -> R<()> {
-        let parsed_inputs = Self::parse_inputs(&tx, &context)?;
+    pub fn verify(tx: Transaction, context: ParseContext, network_id: u8) -> R<()> {
+        let parsed_inputs = Self::parse_inputs(&tx, &context, network_id)?;
         if parsed_inputs
             .iter()
             .filter(|v| v.address.is_some())
@@ -470,7 +480,7 @@ impl ParsedCardanoTx {
         Ok(())
     }
 
-    fn parse_inputs(tx: &Transaction, context: &ParseContext) -> R<Vec<ParsedCardanoInput>> {
+    fn parse_inputs(tx: &Transaction, context: &ParseContext, network_id: u8) -> R<Vec<ParsedCardanoInput>> {
         let inputs_len = tx.body().inputs().len();
         let mut parsed_inputs = vec![];
         for i in 0..inputs_len {
@@ -495,7 +505,12 @@ impl ParsedCardanoTx {
                             Hardened { index: i } => i,
                         };
 
-                    let address = derive_address(context.get_cardano_xpub(), index.clone(), AddressType::Base, 1)?;
+                    let address = derive_address(
+                        context.get_cardano_xpub(),
+                        index.clone(),
+                        AddressType::Base,
+                        network_id,
+                    )?;
 
                     parsed_inputs.push(ParsedCardanoInput {
                         transaction_hash: utxo.transaction_hash.clone(),

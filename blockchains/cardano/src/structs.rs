@@ -545,13 +545,29 @@ impl ParsedCardanoTx {
                         }
                     }?;
 
-                    let address = derive_address(
+                    let mut address = derive_address(
                         context.get_cardano_xpub(),
                         change.clone(),
                         index.clone(),
                         AddressType::Base,
                         network_id,
                     )?;
+
+                    // maybe Enterprise address
+                    if !address.eq(&utxo.address) {
+                        address = derive_address(
+                            context.get_cardano_xpub(),
+                            change.clone(),
+                            index.clone(),
+                            AddressType::Enterprise,
+                            network_id,
+                        )?;
+                        if !address.eq(&utxo.address) {
+                            return Err(CardanoError::InvalidTransaction(
+                                "invalid address".to_string(),
+                            ));
+                        }
+                    }
 
                     parsed_inputs.push(ParsedCardanoInput {
                         transaction_hash: utxo.transaction_hash.clone(),

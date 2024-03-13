@@ -406,7 +406,6 @@ impl KeyMaster for SecureElement {
 mod tests {
     use super::*;
     use crate::keymaster::EntropyLength;
-    use base64;
 
     #[test]
     fn it_should_get_entropy() {
@@ -450,7 +449,7 @@ mod tests {
     // this test function rely on secure element
     fn it_should_get_right_version_from_chip() {
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let version = se.get_version().unwrap();
         let a = String::from_utf8(version).unwrap();
         assert_eq!(a.as_str(), "1.2.0.000000");
@@ -460,7 +459,7 @@ mod tests {
     // this test function rely on secure element
     fn it_should_get_right_entropy_from_chip() {
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let entropy = se.generate_entropy(EntropyLength::Short(12)).unwrap();
         assert_eq!(32, entropy.len());
     }
@@ -471,7 +470,7 @@ mod tests {
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let token = se.generate_token(password).unwrap();
 
         let path = "m/44'/60'/0'/0/0".to_string();
@@ -498,7 +497,7 @@ mod tests {
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let token = se.generate_token(password).unwrap();
         let path = "m/44'/472'".to_string();
 
@@ -522,8 +521,7 @@ mod tests {
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
-        let path = "m/44'/472'".to_string();
+        let se = SecureElement::new(port_name.to_string());
 
         let key = se.get_rsa_public_key(0, password).unwrap();
         se.clear_token();
@@ -537,7 +535,7 @@ mod tests {
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let token = se.generate_token(password).unwrap();
         let path = "m/44'/472'".to_string();
 
@@ -557,7 +555,7 @@ mod tests {
     #[test]
     fn it_should_test_get_extend_private_key_error_without_token() {
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
 
         let path = "m/44'/60'/0'/0/0".to_string();
         let key = se
@@ -577,7 +575,7 @@ mod tests {
     #[test]
     fn it_should_test_get_extended_public_key_without_token() {
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
 
         let path = "M/44'/60'/0'/0".to_string();
         let key = se
@@ -598,12 +596,11 @@ mod tests {
 
     #[test]
     fn it_should_sign_right_data() {
-        use k256::ecdsa::{recoverable, SigningKey};
         let password =
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let token = se.generate_token(password).unwrap();
 
         let token_string = hex::encode(token);
@@ -636,7 +633,7 @@ mod tests {
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let token = se.generate_token(password).unwrap();
 
         let token_string = hex::encode(token.clone());
@@ -672,25 +669,19 @@ mod tests {
         let rsa = algorithm::rsa::RSA::from_secret(secret.as_slice()).unwrap();
         let data2: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
-        )
-            .unwrap();
-        let result = rsa.verify(
-            &signature.as_ref(),
-            &data2,
-            SigningOption::RSA { salt_len: 0 },
-        );
+        ).unwrap();
+        let result = rsa.verify(&signature.as_ref(), &data2);
         se.clear_token();
         assert_eq!(result.ok(), Some(()));
     }
 
     #[test]
     fn it_should_sign_right_data_rsa_salt_digest() {
-        use k256::ecdsa::{recoverable, SigningKey};
         let password =
             "f6cda9bc3afff095f7c96a78455b2925c6339db3ce3563013e7fb75cc0e4829d".to_string();
 
         let port_name = "/dev/ttyMT1";
-        let mut se = SecureElement::new(port_name.to_string());
+        let se = SecureElement::new(port_name.to_string());
         let token = se.generate_token(password).unwrap();
 
         let token_string = hex::encode(token.clone());
@@ -725,13 +716,8 @@ mod tests {
         let rsa = algorithm::rsa::RSA::from_secret(secret.as_slice()).unwrap();
         let data2: Vec<u8> = hex::decode(
             "af1dee894786c304604a039b041463c9ab8defb393403ea03cf2c85b1eb8cbfd".to_string(),
-        )
-            .unwrap();
-        let result = rsa.verify(
-            &signature.as_ref(),
-            &data2,
-            SigningOption::RSA { salt_len: 32 },
-        );
+        ).unwrap();
+        let result = rsa.verify(&signature.as_ref(), &data2);
         se.clear_token();
         assert_eq!(result.ok(), Some(()));
     }

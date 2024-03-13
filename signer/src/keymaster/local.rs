@@ -1,12 +1,9 @@
-use super::{KeyMaster, SigningAlgorithm, hash_wraper::ShaWrapper};
+use super::{KeyMaster, SigningAlgorithm};
 use crate::error::KSError;
-use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey, digest::Digest};
-use openssl::sign::RsaPssSaltlen;
+use k256::ecdsa::{SigningKey, digest::Digest};
 use zeroize::Zeroizing;
-use crate::SigningAlgorithm::RSA;
 use crate::{algorithm, SigningOption};
 use crate::algorithm::SecretKey;
-use crate::keymaster::se::GetKeyType;
 
 pub struct Mini;
 

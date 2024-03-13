@@ -1,6 +1,5 @@
 use crate::algorithm;
 use crate::error::KSError;
-use openssl::sign::RsaPssSaltlen;
 
 pub(crate) mod hash_wraper;
 pub(crate) mod local;

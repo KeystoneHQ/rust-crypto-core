@@ -4,7 +4,7 @@ use k256::ecdsa::{recoverable::Signature, signature::DigestSigner, SigningKey, d
 use openssl::sign::RsaPssSaltlen;
 use zeroize::Zeroizing;
 use crate::SigningAlgorithm::RSA;
-use crate::{algorithm, SigningOption};
+use crate::{algorithm, RSASignType, SigningOption};
 use crate::algorithm::SecretKey;
 use crate::keymaster::se::GetKeyType;
 
@@ -71,9 +71,17 @@ impl KeyMaster for Mini {
                 let zeroize_secret = Zeroizing::new(secret);
                 let rsa = algorithm::rsa::RSA::from_secret(zeroize_secret.as_slice())?;
                 match signing_option {
-                    Some(SigningOption::RSA { salt_len }) => {
-                        let signature = rsa.sign(data, Some(SigningOption::RSA { salt_len }))?;
-                        Ok(signature)
+                    Some(SigningOption::RSA { salt_len, sign_type }) => {
+                        match sign_type {
+                            RSASignType::Common => {
+                                let signature = rsa.sign(data, Some(SigningOption::RSA { salt_len, sign_type }))?;
+                                Ok(signature)
+                            }
+                            RSASignType::ARMessage => {
+                                let signature = rsa.sign_ar_message(data, Some(SigningOption::RSA { salt_len, sign_type }))?;
+                                Ok(signature)
+                            }
+                        }
                     }
                     _ => Err(KSError::RSASignError)
                 }

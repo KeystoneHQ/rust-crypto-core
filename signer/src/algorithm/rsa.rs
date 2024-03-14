@@ -1,13 +1,23 @@
-use bytes::BytesMut;
-use openssl::hash::MessageDigest;
-use openssl::pkey::PKey;
-use rsa::{BigUint, pkcs8::{EncodePrivateKey}, PublicKeyParts, rand_core, RsaPrivateKey};
-use sha2::{Digest, Sha256};
-use rand_core::SeedableRng;
-use rand_chacha::ChaCha20Rng;
 use crate::algorithm::SecretKey;
-use openssl::sign::{RsaPssSaltlen, Signer as OpensslSigner, Verifier};
 use crate::{KSError, SigningOption};
+use bytes::BytesMut;
+use openssl::{
+    hash::MessageDigest,
+    pkey::PKey,
+    sign::Signer as OpensslSigner,
+    sign::{RsaPssSaltlen, Verifier},
+};
+use rand_chacha::ChaCha20Rng;
+use rand_core::SeedableRng;
+use rsa::signature::{RandomizedSigner, SignatureEncoding};
+use rsa::{
+    pkcs8::EncodePrivateKey,
+    pss::SigningKey,
+    rand_core,
+    traits::{PrivateKeyParts, PublicKeyParts},
+    BigUint, RsaPrivateKey,
+};
+use sha2::{Digest, Sha256};
 
 pub const MODULUS_LENGTH: usize = 4096;
 // secret = p || q || d || n
@@ -23,36 +33,55 @@ pub struct RSA {
 impl SecretKey for RSA {
     fn from_secret(secret: &[u8]) -> Result<RSA, KSError> {
         if secret.len() != SECRET_LENGTH_IN_BYTE {
-            return Err(KSError::GenerateSigningKeyError("invalid secret length".to_string()));
+            return Err(KSError::GenerateSigningKeyError(
+                "invalid secret length".to_string(),
+            ));
         }
         let mut p = BytesMut::with_capacity(PRIME_LENGTH_IN_BYTE);
         p.extend_from_slice(&secret[0..PRIME_LENGTH_IN_BYTE]);
         let mut q = BytesMut::with_capacity(PRIME_LENGTH_IN_BYTE);
         q.extend_from_slice(&secret[PRIME_LENGTH_IN_BYTE..PRIME_LENGTH_IN_BYTE * 2]);
         let mut d = BytesMut::with_capacity(MODULUS_LENGTH_IN_BYTE);
-        d.extend_from_slice(&secret[PRIME_LENGTH_IN_BYTE * 2..PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE]);
+        d.extend_from_slice(
+            &secret[PRIME_LENGTH_IN_BYTE * 2..PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE],
+        );
         let mut n = BytesMut::with_capacity(MODULUS_LENGTH_IN_BYTE);
-        n.extend_from_slice(&secret[PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE..PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE * 2]);
+        n.extend_from_slice(
+            &secret[PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE
+                ..PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE * 2],
+        );
         let e = vec![01, 00, 01];
         let private_key = RsaPrivateKey::from_components(
             BigUint::from_bytes_be(&n),
             BigUint::from_bytes_be(&e),
             BigUint::from_bytes_be(&d),
             [BigUint::from_bytes_be(&p), BigUint::from_bytes_be(&q)].to_vec(),
-        ).map_err(|_| KSError::GenerateSigningKeyError("failed to compose rsa signing key".to_string()))?;
-        Ok(Self {
-            private_key
-        })
+        )
+        .map_err(|_| {
+            KSError::GenerateSigningKeyError("failed to compose rsa signing key".to_string())
+        })?;
+        Ok(Self { private_key })
     }
 
-    fn sign(&self, data: Vec<u8>, signing_option: Option<SigningOption>) -> Result<Vec<u8>, KSError> {
-        let private_key_der = self.private_key.to_pkcs8_der().map_err(|_| KSError::RSASignError)?;
+    fn sign(
+        &self,
+        data: Vec<u8>,
+        signing_option: Option<SigningOption>,
+    ) -> Result<Vec<u8>, KSError> {
+        let private_key_der = self
+            .private_key
+            .to_pkcs8_der()
+            .map_err(|_| KSError::RSASignError)?;
         let pkey = PKey::private_key_from_der(private_key_der.as_bytes()).unwrap();
-        let mut signer = OpensslSigner::new(MessageDigest::sha256(), &pkey).map_err(|_| KSError::RSASignError)?;
-        signer.set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS).map_err(|_| KSError::RSASignError)?;
+        let mut signer = OpensslSigner::new(MessageDigest::sha256(), &pkey)
+            .map_err(|_| KSError::RSASignError)?;
+        signer
+            .set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS)
+            .map_err(|_| KSError::RSASignError)?;
         match signing_option {
-            Some(SigningOption::RSA {salt_len})=>{
-                let parsed_salt_len: i32 = salt_len.try_into().map_err(|_|KSError::RSASignError)?;
+            Some(SigningOption::RSA { salt_len, sign_type }) => {
+                let parsed_salt_len: i32 =
+                    salt_len.try_into().map_err(|_| KSError::RSASignError)?;
                 signer
                     .set_rsa_pss_saltlen(RsaPssSaltlen::custom(parsed_salt_len))
                     .map_err(|_| KSError::RSASignError)?;
@@ -60,9 +89,8 @@ impl SecretKey for RSA {
                 let signature = signer.sign_to_vec().map_err(|_| KSError::RSAVerifyError)?;
                 Ok(signature)
             }
-            _=>Err(KSError::RSASignError)
+            _ => Err(KSError::RSASignError),
         }
-
     }
 }
 
@@ -74,15 +102,19 @@ impl RSA {
             intermediate = Sha256::digest(&hash);
             hash = &intermediate[..];
         }
-        let rng_seed: [u8; 32] = hash.try_into().map_err(|_| KSError::GenerateSigningKeyError("rsa generate chacha20 rng_seed failed".to_string()))?;
+        let rng_seed: [u8; 32] = hash.try_into().map_err(|_| {
+            KSError::GenerateSigningKeyError("rsa generate chacha20 rng_seed failed".to_string())
+        })?;
         let mut rng = ChaCha20Rng::from_seed(rng_seed);
-        let private_key =
-            RsaPrivateKey::new(&mut rng, MODULUS_LENGTH).map_err(|_| KSError::GenerateSigningKeyError("generate rsa private key failed".to_string()))?;
-        let mut secret = BytesMut::with_capacity(PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE * 2);
+        let private_key = RsaPrivateKey::new(&mut rng, MODULUS_LENGTH).map_err(|_| {
+            KSError::GenerateSigningKeyError("generate rsa private key failed".to_string())
+        })?;
+        let mut secret =
+            BytesMut::with_capacity(PRIME_LENGTH_IN_BYTE * 2 + MODULUS_LENGTH_IN_BYTE * 2);
         secret.extend_from_slice(&private_key.primes()[0].to_bytes_be());
         secret.extend_from_slice(&private_key.primes()[1].to_bytes_be());
         secret.extend_from_slice(&private_key.d().to_bytes_be());
-        secret.extend_from_slice(&private_key.n().to_bytes_be());
+        secret.extend_from_slice(&private_key.to_public_key().n().to_bytes_be());
         Ok(secret.to_vec())
     }
 
@@ -90,31 +122,67 @@ impl RSA {
         self.private_key.n().to_bytes_be()
     }
 
-    pub fn verify(&self, signature: &[u8], message: &[u8], signing_option: SigningOption) -> Result<(), KSError> {
-        let private_key_der = self.private_key.to_pkcs8_der().map_err(|_| KSError::RSAVerifyError)?;
-        let pkey = PKey::private_key_from_der(private_key_der.as_bytes()).map_err(|_| KSError::RSAVerifyError)?;
-        let mut verifier = Verifier::new(MessageDigest::sha256(), &pkey).map_err(|_| KSError::RSAVerifyError)?;
-        verifier.set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS).map_err(|_| KSError::RSAVerifyError)?;
+    pub fn verify(
+        &self,
+        signature: &[u8],
+        message: &[u8],
+        signing_option: SigningOption,
+    ) -> Result<(), KSError> {
+        let private_key_der = self
+            .private_key
+            .to_pkcs8_der()
+            .map_err(|_| KSError::RSAVerifyError)?;
+        let pkey = PKey::private_key_from_der(private_key_der.as_bytes())
+            .map_err(|_| KSError::RSAVerifyError)?;
+        let mut verifier =
+            Verifier::new(MessageDigest::sha256(), &pkey).map_err(|_| KSError::RSAVerifyError)?;
+        verifier
+            .set_rsa_padding(openssl::rsa::Padding::PKCS1_PSS)
+            .map_err(|_| KSError::RSAVerifyError)?;
         match signing_option {
-            SigningOption::RSA {salt_len}=>{
-                let parsed_salt_len: i32 = salt_len.try_into().map_err(|_|KSError::RSASignError)?;
+            SigningOption::RSA { salt_len, sign_type } => {
+                let parsed_salt_len: i32 =
+                    salt_len.try_into().map_err(|_| KSError::RSASignError)?;
                 verifier
                     .set_rsa_pss_saltlen(RsaPssSaltlen::custom(parsed_salt_len))
                     .map_err(|_| KSError::RSAVerifyError)?;
-                verifier.update(&message).map_err(|_| KSError::RSAVerifyError)?;
-                verifier.verify(&signature).map_err(|_| KSError::RSAVerifyError)?;
+                verifier
+                    .update(&message)
+                    .map_err(|_| KSError::RSAVerifyError)?;
+                verifier
+                    .verify(&signature)
+                    .map_err(|_| KSError::RSAVerifyError)?;
                 Ok(())
-            },
-            _ => Err(KSError::RSAVerifyError)
+            }
+            _ => Err(KSError::RSAVerifyError),
         }
+    }
 
+    pub fn sign_ar_message(
+        &self,
+        data: Vec<u8>,
+        signing_option: Option<SigningOption>,
+    ) -> Result<Vec<u8>, KSError> {
+        let mut sl: usize = 32;
+        if let Some(SigningOption::RSA { salt_len, sign_type }) = signing_option {
+            sl = salt_len as usize;
+        }
+        let mut rng = rand::thread_rng();
+        use sha1::Digest;
+        let mut digest = rsa::sha2::Sha256::new();
+        digest.update(data);
+        let hash = digest.finalize().to_vec();
+        let signing_key =
+            SigningKey::<rsa::sha2::Sha256>::new_with_salt_len(self.private_key.clone(), sl);
+        let result = signing_key.sign_with_rng(&mut rng, &hash);
+        Ok(result.to_vec())
     }
 }
 
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
-    use hex;
     use super::*;
+    use hex;
 
     #[test]
     fn test_sign_verify_salt_zero() {
@@ -122,10 +190,14 @@ mod tests {
         let secret = RSA::from_seed(&seed_bytes).unwrap();
         let rsa = RSA::from_secret(&secret).unwrap();
         let message = hex::decode("00f41cfa7bfad3d7b097fcc28ed08cb4ca7d0c544ec760cc6cc5c4f3780d0ec43cc011eaaab0868393c3c813ab8c04df").unwrap();
-        let signing_option = SigningOption::RSA {salt_len: 0};
+        let signing_option = SigningOption::RSA { salt_len: 0, sign_type: crate::RSASignType::Common };
         let signature = rsa.sign(message.clone(), Some(signing_option)).unwrap();
         assert_eq!(hex::encode(signature.clone()), "a8e58c9aa9a74039f239f49adca18ea5d54b9d28852b7d39b098a96230ebe4b07bf1f66eea2ef3ee29ab912f90508917703ca9838f228b0f75014ea5d41101f7dff194d8086010aa92b6e6d04a56ed6cb7bd63c3dc15f833c0fcbeb03a16892ed715f7b178c20dbb6cd9923ddd0ab4b1c8753a554a8165ff34224fb630445582d3b588581deca41dbcf2144dcf10a362510178af9923e9f6cdf30dfaafa5642a20f777a4a9bff7170517d9a4347a2f0e360a38bf90a8b5d10f80f2581422798aa7b77d959f237a77d71b35558349e35f9c1193154bcf252d79171abeec6f37858584f878503af44a3553eb218b86dc31dfcca66dea947364580515bb2543d2403d53866ee16bba1b8e51ba060a5ecfef3ef4617d96fa3a3f67176621e638ad7e33bf08c56409f0ce01ef345ac4b49ba4fd94dbaf11b544f4ce089d9adcebf5b592afd2f8cecf22f21539975e50441fe3bf5f77d7d0fcfa2bd3c6e2cbf1bb59ed141b5c0f257be5958c5b46c9f08ec1e912b7fa6ff7182aa9010ce9f0cd6fc4845760a37f97197ea8ad3fa8a75b742e9ad61f877acd5771e7c43e0c75a422eb7d96153d4c561469c0f6011d0fe74f718b2db26894e3c5daf72784d34374c4dab78c3ff7619f883085a45efe1781cfcdb80b64b4c8aa96f86225144ca9430a499e96c607a77538ad7fb920fdd1126cdc8c5574ed3c2b1fb1dadac51ad4e13fdd9d");
-        let result = rsa.verify(&signature.as_ref(), message.as_slice(), SigningOption::RSA {salt_len: 0});
+        let result = rsa.verify(
+            &signature.as_ref(),
+            message.as_slice(),
+            SigningOption::RSA { salt_len: 0, sign_type: crate::RSASignType::Common },
+        );
         assert_eq!(result.ok(), Some(()));
     }
 
@@ -135,9 +207,13 @@ mod tests {
         let secret = RSA::from_seed(&seed_bytes).unwrap();
         let rsa = RSA::from_secret(&secret).unwrap();
         let message = hex::decode("00f41cfa7bfad3d7b097fcc28ed08cb4ca7d0c544ec760cc6cc5c4f3780d0ec43cc011eaaab0868393c3c813ab8c04df").unwrap();
-        let signing_option = SigningOption::RSA {salt_len: 32};
+        let signing_option = SigningOption::RSA { salt_len: 32, sign_type: crate::RSASignType::Common };
         let signature = rsa.sign(message.clone(), Some(signing_option)).unwrap();
-        let result = rsa.verify(&signature.as_ref(), message.as_slice(),SigningOption::RSA {salt_len: 32});
+        let result = rsa.verify(
+            &signature.as_ref(),
+            message.as_slice(),
+            SigningOption::RSA { salt_len: 32, sign_type: crate::RSASignType::Common },
+        );
         assert_eq!(result.ok(), Some(()));
     }
 
@@ -165,8 +241,7 @@ mod tests {
 
         let rng_seed: [u8; 32] = hash.try_into().unwrap();
         let mut rng = ChaCha20Rng::from_seed(rng_seed);
-        let expected =
-            RsaPrivateKey::new(&mut rng, MODULUS_LENGTH);
+        let expected = RsaPrivateKey::new(&mut rng, MODULUS_LENGTH);
         assert_eq!(priv_key == expected, true);
     }
 }

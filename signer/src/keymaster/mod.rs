@@ -21,8 +21,14 @@ pub enum SigningAlgorithm {
 }
 
 #[derive(Clone, Copy)]
+pub enum RSASignType {
+    Common,
+    ARMessage,
+}
+
+#[derive(Clone, Copy)]
 pub enum SigningOption {
-    RSA { salt_len: i32 },
+    RSA { salt_len: i32, sign_type: RSASignType},
     ADA
 }
 

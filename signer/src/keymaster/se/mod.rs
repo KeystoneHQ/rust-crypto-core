@@ -12,6 +12,7 @@ use ed25519_bip32_core::XPrv;
 use zeroize::Zeroizing;
 
 use super::KeyMaster;
+use super::RSASignType;
 use super::SigningAlgorithm;
 use crate::algorithm;
 use crate::algorithm::SecretKey;
@@ -346,7 +347,7 @@ impl KeyMaster for SecureElement {
     ) -> Result<Vec<u8>, KSError> {
         // get key from se
         let auth_token = hex::decode(password).map_err(|_e| KSError::SEError("".to_string()))?;
-        if let (SigningAlgorithm::Ed25519, (Some(SigningOption::ADA))) = (algo, signing_option) {
+        if let (SigningAlgorithm::Ed25519, Some(SigningOption::ADA)) = (algo, signing_option) {
             // sign with bip32_ed25519
             let ada_root_key = self.get_ada_root_key(mnemonic_id, auth_token)?;
             let signature =
@@ -380,9 +381,18 @@ impl KeyMaster for SecureElement {
                 let zeroize_secret = Zeroizing::new(secret);
                 let rsa = algorithm::rsa::RSA::from_secret(zeroize_secret.as_slice())?;
                 match signing_option {
-                    Some(SigningOption::RSA { salt_len }) => {
-                        let signature = rsa.sign(data, Some(SigningOption::RSA { salt_len }))?;
-                        Ok(signature)
+                    Some(SigningOption::RSA { salt_len, sign_type }) => {
+                        match sign_type {
+                            RSASignType::Common => {
+                                let signature = rsa.sign(data, Some(SigningOption::RSA { salt_len, sign_type }))?;
+                                Ok(signature)
+                            }
+                            RSASignType::ARMessage => {
+                                let signature = rsa.sign_ar_message(data, Some(SigningOption::RSA { salt_len, sign_type }))?;
+                                Ok(signature)
+                            }
+                        }
+                        
                     }
                     _ => Err(KSError::RSASignError),
                 }
